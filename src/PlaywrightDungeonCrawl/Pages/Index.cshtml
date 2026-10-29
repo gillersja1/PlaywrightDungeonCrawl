@@ -47,6 +47,7 @@
             <button type="submit">Claim treasure</button>
         </form>
         <p id="claim-result" role="status" aria-live="polite"></p>
+        <div class="next-step" id="claim-next" data-next-after="treasures" hidden></div>
     </section>
 
     <section class="panel quartermaster" aria-labelledby="shop-heading">
@@ -74,7 +75,7 @@
                 <ul class="steps">
                     <li data-progress="scrolls:@floor.Slug"><a href="/floors/@floor.Slug">Scroll</a> <span class="state">Not yet</span></li>
                     <li data-progress="riddles:@floor.Slug"><a href="/floors/@floor.Slug/riddle">Riddle</a> <span class="state">Not yet</span></li>
-                    <li data-progress="treasures:@floor.Room.Slug"><a href="/rooms/@floor.Room.Slug">@floor.Room.Name</a> <span class="state">Not yet</span></li>
+                    <li data-progress="treasures:@floor.Room.Slug">@(floor.BonusRoom ? "Bonus: " : "")<a href="/rooms/@floor.Room.Slug">@floor.Room.Name</a> <span class="state">Not yet</span></li>
                 </ul>
             </li>
         }

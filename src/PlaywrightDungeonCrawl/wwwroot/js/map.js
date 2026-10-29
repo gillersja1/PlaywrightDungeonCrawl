@@ -36,7 +36,12 @@
             result.className = "bad";
             return;
         }
+        // Show what's next for the treasure's floor (mark re-renders it).
+        document.getElementById("claim-next").dataset.nextStep = claim.floor;
         const isNew = Dungeon.mark("treasures", claim.room);
+        if (!isNew) {
+            Dungeon.render();
+        }
         result.textContent = isNew
             ? `Treasure claimed: ${claim.treasure} (floor ${claim.floor}). +${Dungeon.rules.treasure} XP`
             : `You already hold the treasure from ${claim.treasure}.`;
@@ -45,6 +50,9 @@
     });
 
     document.getElementById("reset-progress").addEventListener("click", () => {
+        const next = document.getElementById("claim-next");
+        delete next.dataset.nextStep;
+        next.hidden = true;
         Dungeon.reset();
         result.textContent = "";
     });

@@ -55,7 +55,7 @@ public sealed class WelcomeMatt : Room
     public override string[] Nudges { get; } =
     {
         "Clicking Knock yourself won't work: the door checks whether a test is driving the browser. You need to run a test from Visual Studio.",
-        "Follow step 6 of this floor's scroll: add a WelcomeMattTests class to your starter kit project, then run it from Test Explorer.",
+        "Start from the training dummy test in step 6 of this floor's scroll. Copy it into a WelcomeMattTests class, then change where it goes, what it clicks and how it ends.",
         "Your test needs three lines: EnterAsync(\"/rooms/welcome-matt\"), a click on Page.GetByRole(AriaRole.Button, new() { Name = \"Knock\" }), then await TakeTreasureAsync().",
     };
 

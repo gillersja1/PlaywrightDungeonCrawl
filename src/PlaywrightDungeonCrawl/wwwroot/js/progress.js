@@ -73,12 +73,38 @@
     }
 
     // A floor is complete once its scroll, riddle and treasure are all done.
+    // A bonus room's treasure is optional.
     function isComplete(number, progress = load()) {
         const floor = rules.floors.find(f => f.number === number);
         return !!floor
             && progress.scrolls.includes(floor.slug)
             && progress.riddles.includes(floor.slug)
-            && progress.treasures.includes(floor.room);
+            && (floor.bonus || progress.treasures.includes(floor.room));
+    }
+
+    // Where to go after a challenge on this floor: its next unfinished step,
+    // or, once the floor is complete, the stairs down (and any bonus left).
+    function nextSteps(number, progress = load()) {
+        const floor = rules.floors.find(f => f.number === number);
+        const below = rules.floors.find(f => f.number === number + 1);
+        const room = { href: `/rooms/${floor.room}`, label: `${floor.bonus ? "Bonus: " : "Enter "}${floor.roomName}` };
+        const todo = [
+            !progress.scrolls.includes(floor.slug) && { href: `/floors/${floor.slug}`, label: "Read the scroll" },
+            !progress.riddles.includes(floor.slug) && { href: `/floors/${floor.slug}/riddle`, label: "Face the riddle" },
+            !floor.bonus && !progress.treasures.includes(floor.room) && room,
+        ].filter(Boolean);
+        if (todo.length > 0) {
+            return { title: "Next challenge", links: [todo[0]] };
+        }
+        const links = [];
+        if (below) {
+            links.push({ href: `/floors/${below.slug}`, label: `Down to floor ${below.number}: ${below.title}` });
+        }
+        if (floor.bonus && !progress.treasures.includes(floor.room)) {
+            links.push(room);
+        }
+        links.push({ href: "/", label: "Back to the Respawn Room" });
+        return { title: `Floor ${number} complete!`, links };
     }
 
     // Floors open in order. A browser driven by a test (navigator.webdriver)
@@ -116,9 +142,21 @@
             page.hidden = !open;
             document.querySelectorAll("[data-sealed-note]").forEach(note => (note.hidden = open));
         });
+        // A next-step panel appears once the challenge it follows is done.
+        document.querySelectorAll("[data-next-step]").forEach(panel => {
+            const floor = rules.floors.find(f => f.number === Number(panel.dataset.nextStep));
+            const kind = panel.dataset.nextAfter;
+            panel.hidden = !floor || !progress[kind].includes(kind === "treasures" ? floor.room : floor.slug);
+            if (!panel.hidden) {
+                const { title, links } = nextSteps(floor.number, progress);
+                panel.innerHTML = `<p>${title}</p>` + links
+                    .map((link, i) => `<a class="button${i > 0 ? " secondary" : ""}" href="${link.href}">${link.label} →</a>`)
+                    .join("");
+            }
+        });
         document.dispatchEvent(new CustomEvent("dungeon:progress", { detail: { progress, xp: points, rank: rank(points) } }));
     }
 
-    window.Dungeon = { rules, load, mark, earned, helpSpent, xp, rank, reset, render, isComplete, isOpen, hasUsedHelp, useHelp };
+    window.Dungeon = { rules, load, mark, earned, helpSpent, xp, rank, reset, render, isComplete, isOpen, nextSteps, hasUsedHelp, useHelp };
     document.addEventListener("DOMContentLoaded", render);
 })();
