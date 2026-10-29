@@ -1,3 +1,63 @@
 <section>
-    <p class="tip"><strong>This scroll is still being written.</strong> The riddle works already. The full lesson and the trap room are coming soon.</p>
+    <h2>Pages don't run on your schedule</h2>
+    <p>
+        A real page loads data, animates, and shows things when it's ready. A test that assumes everything is
+        there the instant it navigates will pass on your machine and fail in CI. The fix isn't to slow down:
+        it's to wait for the right <em>thing</em>.
+    </p>
+<pre><code>// Don't: guess how long it takes
+await Task.Delay(3000);
+await Page.GetByRole(AriaRole.Button, new() { Name = "Open" }).ClickAsync();
+
+// Do: just act. Playwright waits for the button to be visible, enabled and stable first.
+await Page.GetByRole(AriaRole.Button, new() { Name = "Open" }).ClickAsync();</code></pre>
+    <p>
+        A fixed sleep is wrong twice over: too long when the page is fast (your suite crawls) and too short
+        when it's slow (your test flakes).
+    </p>
+</section>
+
+<section>
+    <h2>Auto-waiting: actions wait for you</h2>
+    <p>
+        Every action (<code>ClickAsync</code>, <code>FillAsync</code>, <code>CheckAsync</code> and friends)
+        waits until its element is attached, visible, stable and able to receive the action. You rarely need to
+        wait for anything before acting.
+    </p>
+</section>
+
+<section>
+    <h2>Web-first assertions: checks that retry</h2>
+    <p>
+        <code>Expect(...)</code> assertions keep checking until they pass or time out (5 seconds by default),
+        so they work on pages that are still changing:
+    </p>
+<pre><code>await Expect(Page.GetByRole(AriaRole.Status)).ToHaveTextAsync("Saved");
+await Expect(Page.GetByText("Loading")).ToBeHiddenAsync();
+
+// Need longer for one slow check? Say so, for just that check.
+await Expect(report).ToBeVisibleAsync(new() { Timeout = 15_000 });</code></pre>
+    <p class="tip">
+        <strong>Trap:</strong> reading a value and checking it yourself doesn't retry.
+        <code>Assert.That(await status.TextContentAsync(), Is.EqualTo("Saved"))</code> reads once, maybe too early.
+        <code>Expect(status).ToHaveTextAsync("Saved")</code> waits for it.
+    </p>
+</section>
+
+<section>
+    <h2>Waiting for something to appear</h2>
+    <p>
+        Sometimes you don't want to act or assert, you just want to know the moment something shows up, so you
+        can read it. That's <code>WaitForAsync</code>:
+    </p>
+<pre><code>var banner = Page.GetByRole(AriaRole.Alert);
+await banner.WaitForAsync();                    // returns the moment it's visible
+var message = await banner.TextContentAsync();  // read it straight away</code></pre>
+    <p>
+        <code>WaitForAsync</code> can also wait for other states, like an element being removed:
+        <code>new() { State = WaitForSelectorState.Detached }</code>.
+    </p>
+    <p>
+        You'll need exactly this in the trap room. Something appears when it likes, and doesn't stay long.
+    </p>
 </section>

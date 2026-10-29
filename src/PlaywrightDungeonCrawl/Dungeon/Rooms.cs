@@ -129,7 +129,7 @@ public sealed class FlickeringTorch : Room
     {
         "The rune is only on screen for a moment, and you can't know when. Don't sleep: wait for it.",
         "Wait for the rune to appear with WaitForAsync(), then read its text straight away, before it vanishes.",
-        "The rune has the label \"Rune\": call WaitForAsync() then TextContentAsync() on Page.GetByLabel(\"Rune\"), fill the box labelled \"Speak the rune\", and click \"Speak\".",
+        "The rune is labelled \"Torch rune\": call WaitForAsync() then TextContentAsync() on Page.GetByLabel(\"Torch rune\"), fill the box labelled \"Speak the rune\", and click the \"Speak\" button.",
     };
 
     public override string Slug => "flickering-torch";
