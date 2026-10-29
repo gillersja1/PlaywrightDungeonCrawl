@@ -17,7 +17,7 @@
             <span>Playwright Dungeon Crawl</span>
         </a>
         <nav aria-label="Main">
-            <a href="/">Map</a>
+            <a href="/">Respawn Room</a>
             <a href="/#treasure">Claim treasure</a>
             <a class="xp-badge" href="/#progress" id="xp-badge" aria-label="Your experience">0 XP</a>
         </nav>
@@ -41,6 +41,7 @@
         ranks = Rewards.RanksFor(DungeonCatalog.MaxXp(Catalog.Floors.Count)).Select(r => new { minXp = r.MinXp, title = r.Title }),
     }))</script>
     <script src="~/js/progress.js" asp-append-version="true"></script>
+    <script src="~/js/dungeon-ai.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

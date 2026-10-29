@@ -85,15 +85,29 @@
         <li>In Test Explorer, find <code>StepThroughWithTheInspector</code> under <em>ExampleTests</em>. It's the
             same test with one extra line at the top: <code>await Page.PauseAsync();</code></li>
         <li>Right-click it and choose <strong>Run</strong>. ("Run All" skips it on purpose, because it waits for you.)
-            The browser stays open, and a second window appears next to it: the Inspector. The test is paused.</li>
-        <li>Click <strong>Step over</strong> in the Inspector to run the next line. Watch the browser go to the map.
-            Keep stepping and see each check happen.</li>
-        <li>Click <strong>Resume</strong> to let the test run to the end.</li>
+            Two windows open: a browser showing an empty page (<code>about:blank</code>), and the
+            <strong>Playwright Inspector</strong> showing your test's code. The test is paused on
+            <code>PauseAsync</code>, before the dungeon has even loaded.</li>
+    </ol>
+    <figure class="screenshot narrow">
+        <img src="~/img/setup/playwright-inspector.png" width="1200" height="1132" loading="lazy"
+             alt="The Playwright Inspector, paused on line 34 of ExampleTests.cs. Numbered markers: 1 on the Step over button, 2 on the Pick locator button, 3 on the Resume button, 4 on the Log tab, which lists Pause done in 1ms, Navigate to localhost:5299 done in 130ms, and ToHaveTitleAsync paused." />
+        <figcaption>The Inspector mid-test. (1) Step over, (2) Pick locator, (3) Resume, (4) the Log of what's happened so far.</figcaption>
+    </figure>
+    <p>Now walk through it, one click of <strong>Step over</strong> (1) at a time:</p>
+    <ol>
+        <li><strong>First click</strong> finishes the pause. The page is still blank: nothing has asked it to load yet.</li>
+        <li><strong>Second click</strong> runs <code>EnterAsync("/")</code>. The dungeon appears in the browser.</li>
+        <li>Stop here and try <strong>Pick locator</strong> (2). Hover over the big heading on the page and click it.
+            The <em>Locator</em> tab shows the C# to find it, something like
+            <code>GetByRole(AriaRole.Heading, new() { Name = "The Respawn Room" })</code>. You'll lean on this a lot
+            on floor 2.</li>
+        <li><strong>Two more clicks</strong> run the two checks. Open the <strong>Log</strong> tab (4) to see every
+            step so far, each with a tick and how long it took.</li>
+        <li><strong>One last click</strong> finishes the test. The browser closes, and Test Explorer shows a green tick.</li>
     </ol>
     <p>
-        Try <strong>Pick locator</strong> in the Inspector too: hover over anything on the page and it shows
-        you a locator for it, like <code>GetByRole(AriaRole.Button, new() { Name = "Claim treasure" })</code>.
-        You'll lean on that a lot on floor 2.
+        In a hurry? <strong>Resume</strong> (3) runs everything that's left in one go.
     </p>
     <p class="tip">
         <strong>Want to pause one of your own tests?</strong> Add <code>await Page.PauseAsync();</code> wherever you
@@ -149,7 +163,7 @@ public class WelcomeMatTests : DungeonTest
         <li>Build (<strong>Ctrl+Shift+B</strong>), then in Test Explorer right-click <code>KnockOnTheDoor</code> and choose <strong>Run</strong>.</li>
         <li>Watch the browser knock. When the test goes green, click it in Test Explorer.</li>
         <li>In the details pane, open the test's additional output. You'll see <code>Treasure flag: PDC{…}</code>.</li>
-        <li>Copy the flag, including the braces, and paste it into <a href="/#treasure">Claim treasure</a> on the map.</li>
+        <li>Copy the flag, including the braces, and paste it into <a href="/#treasure">Claim treasure</a> on the Trophy Wall in the Respawn Room.</li>
     </ol>
     <p>Then answer this floor's riddle, and take the stairs down.</p>
 </section>

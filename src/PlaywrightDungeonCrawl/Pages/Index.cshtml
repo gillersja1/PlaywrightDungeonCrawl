@@ -1,35 +1,68 @@
 ﻿@page
 @model IndexModel
+@using PlaywrightDungeonCrawl.Dungeon
 @{
-    ViewData["Title"] = "Map";
+    ViewData["Title"] = "The Respawn Room";
 }
 
-<section class="hero">
-    <p class="eyebrow">Learn Playwright for .NET</p>
-    <h1>Descend the dungeon. Script your way out.</h1>
+<section class="hero lobby">
+    <p class="eyebrow">Playwright Dungeon Crawl · Learn Playwright for .NET</p>
+    <h1>The Respawn Room</h1>
     <p class="lead">
-        Each floor teaches one Playwright skill. Read the scroll, answer the riddle,
-        then face the trap room: a challenge built so that only a C# test can beat it.
-        Clear the room and it hands over a treasure flag.
+        The crawlers-only lounge at the top of the stairs. Grab a seat at the bar, check the map, admire
+        your trophies. Every trip into the dungeon starts here, and so does every comeback.
     </p>
+    <aside class="dungeon-ai" aria-label="The Dungeon AI says">
+        <p class="ai-label"><span class="ai-eye" aria-hidden="true"></span> Dungeon AI</p>
+        <p class="ai-line" id="ai-greeting">The Dungeon AI is warming up. It runs on judgment, and judgment takes a moment.</p>
+    </aside>
+</section>
+
+<section class="panel how-panel" aria-labelledby="how-heading">
+    <h2 id="how-heading">How the crawl works</h2>
+    <p>Each floor teaches one Playwright skill, in three parts. Floors open in order.</p>
     <ol class="how">
         <li><strong>Scroll</strong>: a short lesson with C# examples. <span class="xp-tag">+@Model.Rewards.Scroll XP</span></li>
         <li><strong>Riddle</strong>: three questions to check you've got it. <span class="xp-tag">+@Model.Rewards.Riddle XP</span></li>
-        <li><strong>Trap room</strong>: write a Playwright test that clears it and prints the flag. <span class="xp-tag">+@Model.Rewards.Treasure XP</span></li>
+        <li><strong>Trap room</strong>: write a Playwright test that clears it and prints a treasure flag. <span class="xp-tag">+@Model.Rewards.Treasure XP</span></li>
     </ol>
+    <p class="breakdown">Stuck? Hints and nudges are there, for a few XP. Help on floor 1 is free.</p>
 </section>
 
-<section id="progress" class="panel progress-panel" aria-labelledby="progress-heading">
-    <h2 id="progress-heading">Your progress</h2>
-    <p class="rank-line"><span id="rank-title">Novice Delver</span> · score <span id="xp-total">0</span> / @Model.MaxXp XP</p>
-    <div class="xp-bar" role="progressbar" aria-label="Experience" aria-valuemin="0" aria-valuemax="@Model.MaxXp" aria-valuenow="0">
-        <div class="xp-fill"></div>
-    </div>
-    <p class="breakdown">Earned <span id="xp-earned">0</span> XP, spent <span id="xp-help">0</span> on hints and nudges.</p>
-</section>
+<div class="lobby-grid">
+    <section id="progress" class="panel progress-panel" aria-labelledby="progress-heading">
+        <p class="station">The Trophy Wall</p>
+        <h2 id="progress-heading">Your progress</h2>
+        <p class="rank-line"><span id="rank-title">Novice Delver</span> · score <span id="xp-total">0</span> / @Model.MaxXp XP</p>
+        <div class="xp-bar" role="progressbar" aria-label="Experience" aria-valuemin="0" aria-valuemax="@Model.MaxXp" aria-valuenow="0">
+            <div class="xp-fill"></div>
+        </div>
+        <p class="breakdown">Earned <span id="xp-earned">0</span> XP, spent <span id="xp-help">0</span> on hints and nudges.</p>
+
+        <h3 id="treasure">Claim treasure</h3>
+        <p>Cleared a trap room with a script? Paste the flag it printed to hang the treasure on the wall.</p>
+        <form id="claim-form" class="inline-form">
+            <label for="flag-input">Flag</label>
+            <input id="flag-input" name="flag" placeholder="PDC{...}" autocomplete="off" required />
+            <button type="submit">Claim treasure</button>
+        </form>
+        <p id="claim-result" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="panel quartermaster" aria-labelledby="shop-heading">
+        <p class="station">The Quartermaster's Counter</p>
+        <h2 id="shop-heading">Loot shop</h2>
+        <p>
+            Titles, torch colors and other questionable finery, paid for from your wallet. Spending never
+            lowers your score.
+        </p>
+        <p class="closed-sign">Closed for stocktaking. The quartermaster says "soon", in the tone of someone who means "eventually".</p>
+    </section>
+</div>
 
 <section aria-labelledby="map-heading">
-    <h2 id="map-heading">The dungeon</h2>
+    <p class="station">The Bar</p>
+    <h2 id="map-heading">The dungeon map</h2>
     <ol class="floors">
         @foreach (var floor in Model.Floors)
         {
@@ -45,31 +78,21 @@
                 </ul>
             </li>
         }
-        @foreach (var (number, skill) in Model.SealedFloors)
+        @foreach (var (number, title, skill) in Model.SealedFloors)
         {
-            <li class="floor-card sealed" aria-label="Floor @number, sealed">
+            <li class="floor-card sealed" aria-label="Floor @number, @title, sealed">
                 <p class="floor-number">Floor @number · @skill</p>
-                <h3><span aria-hidden="true">🔒</span> Sealed</h3>
+                <h3><span aria-hidden="true">🔒</span> @title</h3>
                 <p>The stairs down haven't been dug yet.</p>
             </li>
         }
     </ol>
-</section>
-
-<section id="treasure" class="panel" aria-labelledby="treasure-heading">
-    <h2 id="treasure-heading">Claim treasure</h2>
-    <p>Cleared a trap room with a script? Paste the flag it printed to add the treasure to your progress.</p>
-    <form id="claim-form" class="inline-form">
-        <label for="flag-input">Flag</label>
-        <input id="flag-input" name="flag" placeholder="PDC{...}" autocomplete="off" required />
-        <button type="submit">Claim treasure</button>
-    </form>
-    <p id="claim-result" role="status" aria-live="polite"></p>
+    <partial name="_DungeonAi" model="DungeonAi.SealedFloors" />
 </section>
 
 <section class="panel subtle" aria-labelledby="reset-heading">
     <h2 id="reset-heading">Start over</h2>
-    <p>Wipes the progress saved in this browser.</p>
+    <p>Wipes the progress saved in this browser. The Dungeon AI will pretend not to remember you.</p>
     <button type="button" id="reset-progress" class="secondary">Reset progress</button>
 </section>
 

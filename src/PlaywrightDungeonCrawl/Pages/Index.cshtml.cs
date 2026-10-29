@@ -7,7 +7,7 @@ public class IndexModel(DungeonCatalog catalog) : PageModel
 {
     public IReadOnlyList<Floor> Floors => catalog.Floors;
 
-    public IReadOnlyList<(int Number, string Skill)> SealedFloors => catalog.SealedFloors;
+    public IReadOnlyList<(int Number, string Title, string Skill)> SealedFloors => catalog.SealedFloors;
 
     public int MaxXp => DungeonCatalog.MaxXp(catalog.Floors.Count);
 
