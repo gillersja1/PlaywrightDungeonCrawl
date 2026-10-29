@@ -4,8 +4,7 @@ namespace PlaywrightDungeonCrawl.Dungeon;
 /// <param name="Explanation">Shown once the question is answered correctly.</param>
 public sealed record QuizQuestion(string Prompt, string[] Options, int CorrectIndex, string Explanation, string Hint);
 
-/// <param name="BonusRoom">The trap room is optional: the floor is complete without its treasure.</param>
-public sealed record Floor(int Number, string Slug, string Title, string Skill, string Tagline, Room Room, QuizQuestion[] Riddles, bool BonusRoom = false);
+public sealed record Floor(int Number, string Slug, string Title, string Skill, string Tagline, Room Room, QuizQuestion[] Riddles);
 
 /// <summary>
 /// XP for each kind of progress, and the rank titles they unlock. The
@@ -94,8 +93,7 @@ public sealed class DungeonCatalog
                         1,
                         "Anything written with TestContext.Out.WriteLine is stored with the test result and shown in its details.",
                         "Output isn't an error, and it isn't in the browser. It's saved with the test result itself."),
-                },
-                BonusRoom: true),
+                }),
             new Floor(2, "locators", "The Hall of Doors", "Locators",
                 "Every door looks alike. Learn to find exactly the one you mean.",
                 bySlug["hall-of-doors"],

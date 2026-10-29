@@ -73,25 +73,23 @@
     }
 
     // A floor is complete once its scroll, riddle and treasure are all done.
-    // A bonus room's treasure is optional.
     function isComplete(number, progress = load()) {
         const floor = rules.floors.find(f => f.number === number);
         return !!floor
             && progress.scrolls.includes(floor.slug)
             && progress.riddles.includes(floor.slug)
-            && (floor.bonus || progress.treasures.includes(floor.room));
+            && progress.treasures.includes(floor.room);
     }
 
     // Where to go after a challenge on this floor: its next unfinished step,
-    // or, once the floor is complete, the stairs down (and any bonus left).
+    // or, once the floor is complete, the stairs down.
     function nextSteps(number, progress = load()) {
         const floor = rules.floors.find(f => f.number === number);
         const below = rules.floors.find(f => f.number === number + 1);
-        const room = { href: `/rooms/${floor.room}`, label: `${floor.bonus ? "Bonus: " : "Enter "}${floor.roomName}` };
         const todo = [
             !progress.scrolls.includes(floor.slug) && { href: `/floors/${floor.slug}`, label: "Read the scroll" },
             !progress.riddles.includes(floor.slug) && { href: `/floors/${floor.slug}/riddle`, label: "Face the riddle" },
-            !floor.bonus && !progress.treasures.includes(floor.room) && room,
+            !progress.treasures.includes(floor.room) && { href: `/rooms/${floor.room}`, label: `Enter ${floor.roomName}` },
         ].filter(Boolean);
         if (todo.length > 0) {
             return { title: "Next challenge", links: [todo[0]] };
@@ -99,9 +97,6 @@
         const links = [];
         if (below) {
             links.push({ href: `/floors/${below.slug}`, label: `Down to floor ${below.number}: ${below.title}` });
-        }
-        if (floor.bonus && !progress.treasures.includes(floor.room)) {
-            links.push(room);
         }
         links.push({ href: "/", label: "Back to the Respawn Room" });
         return { title: `Floor ${number} complete!`, links };

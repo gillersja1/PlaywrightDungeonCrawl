@@ -171,17 +171,11 @@ public class TrainingDummyTests : DungeonTest
 </section>
 
 <section>
+    <h2>7. Knock on the Welcome Matt</h2>
     <p>
-        That's your crawler built. Mark this scroll as read and answer the riddle, and floor 2 opens.
-    </p>
-</section>
-
-<section class="bonus">
-    <h2><span aria-hidden="true">⭐</span> Bonus: knock on the Welcome Matt</h2>
-    <p>
-        Optional, but worth <strong>+@Rewards.Treasure XP</strong>. The <a href="/rooms/welcome-matt">Welcome Matt</a>
-        is the same kind of trap as the dummy, in a different place. Write a second test, in a new class
-        called <code>WelcomeMattTests</code>, that does what the dummy test does, with three changes:
+        Now the real thing. The <a href="/rooms/welcome-matt">Welcome Matt</a> is this floor's trap room: the same
+        kind of trap as the dummy, in a different place. Write a second test, in a new class called
+        <code>WelcomeMattTests</code>, that does what the dummy test does, with three changes:
     </p>
     <ul>
         <li><strong>Where:</strong> the door is at <code>/rooms/welcome-matt</code>.</li>
@@ -189,12 +183,17 @@ public class TrainingDummyTests : DungeonTest
         <li><strong>How it ends:</strong> instead of checking for a reply, finish with <code>await TakeTreasureAsync();</code>.
             It waits for the treasure flag to appear and prints it in the test's output.</li>
     </ul>
-    <p>When your test goes green, claim the treasure:</p>
-    <ol>
-        <li>Click the test in Test Explorer, and in the details pane open its additional output. You'll see <code>Treasure flag: PDC{…}</code>.</li>
-        <li>Copy the flag, including the braces, and paste it into <a href="/#treasure">Claim treasure</a> on the Trophy Wall in the Respawn Room.</li>
-    </ol>
     <p class="tip">
         <strong>Stuck?</strong> The room's <em>Give me a nudge</em> button has hints, and on this floor they're free.
     </p>
+</section>
+
+<section>
+    <h2>8. Claim the treasure</h2>
+    <ol>
+        <li>Run your new test. When it goes green, click it in Test Explorer.</li>
+        <li>In the details pane, open the test's additional output. You'll see <code>Treasure flag: PDC{…}</code>.</li>
+        <li>Copy the flag, including the braces, and paste it into <a href="/#treasure">Claim treasure</a> on the Trophy Wall in the Respawn Room.</li>
+    </ol>
+    <p>Then answer this floor's riddle, and take the stairs down.</p>
 </section>

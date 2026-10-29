@@ -37,7 +37,7 @@
         riddle = Rewards.Riddle,
         treasure = Rewards.Treasure,
         maxXp = DungeonCatalog.MaxXp(Catalog.Floors.Count),
-        floors = Catalog.Floors.Select(f => new { number = f.Number, slug = f.Slug, room = f.Room.Slug, roomName = f.Room.Name, title = f.Title, bonus = f.BonusRoom }),
+        floors = Catalog.Floors.Select(f => new { number = f.Number, slug = f.Slug, room = f.Room.Slug, roomName = f.Room.Name, title = f.Title }),
         ranks = Rewards.RanksFor(DungeonCatalog.MaxXp(Catalog.Floors.Count)).Select(r => new { minXp = r.MinXp, title = r.Title }),
     }))</script>
     <script src="~/js/progress.js" asp-append-version="true"></script>
