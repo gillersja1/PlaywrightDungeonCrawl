@@ -82,11 +82,10 @@
         pauses a test and lets you step through it.
     </p>
     <ol>
-        <li>Open <code>ExampleTests.cs</code>. Add this line as the first line inside <code>TheDungeonIsOpen</code>,
-            before <code>EnterAsync</code>:
-<pre><code>await Page.PauseAsync();</code></pre></li>
-        <li>Run the test again. This time the browser stays open, and a second window appears next to it:
-            the Inspector. The test is paused.</li>
+        <li>In Test Explorer, find <code>StepThroughWithTheInspector</code> under <em>ExampleTests</em>. It's the
+            same test with one extra line at the top: <code>await Page.PauseAsync();</code></li>
+        <li>Right-click it and choose <strong>Run</strong>. ("Run All" skips it on purpose, because it waits for you.)
+            The browser stays open, and a second window appears next to it: the Inspector. The test is paused.</li>
         <li>Click <strong>Step over</strong> in the Inspector to run the next line. Watch the browser go to the map.
             Keep stepping and see each check happen.</li>
         <li>Click <strong>Resume</strong> to let the test run to the end.</li>
@@ -97,8 +96,9 @@
         You'll lean on that a lot on floor 2.
     </p>
     <p class="tip">
-        <strong>Remember to delete the <code>PauseAsync</code> line when you're done.</strong> A paused test
-        waits for you forever, and Test Explorer will look stuck.
+        <strong>Want to pause one of your own tests?</strong> Add <code>await Page.PauseAsync();</code> wherever you
+        want it to stop. Delete the line when you're done: a paused test waits for you forever, and Test Explorer
+        will look stuck.
     </p>
     <p>
         Prefer watching a whole run at normal pace? In <code>dungeon.runsettings</code>, turn on
