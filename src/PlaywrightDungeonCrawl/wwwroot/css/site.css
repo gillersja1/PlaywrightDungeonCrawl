@@ -46,6 +46,10 @@ code { font-family: var(--mono); font-size: 0.92em; }
 .brand-mark { color: var(--torch); font-size: 1.4rem; }
 .site-header nav { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
 .site-header nav a { text-decoration: none; }
+.account { display: inline-flex; gap: 8px; align-items: center; margin: 0; }
+.account .player { color: var(--stone-400); }
+button.link-button { background: none; border: none; padding: 0; color: var(--torch); font: inherit; text-decoration: underline; cursor: pointer; }
+button.link-button:hover { background: none; color: #ffc56e; }
 .xp-badge { background: var(--stone-700); border: 1px solid var(--torch-dim); border-radius: 999px; padding: 3px 12px; font-size: 0.9rem; color: var(--bone) !important; }
 
 .page { max-width: 960px; margin: 0 auto; padding: 24px 16px 48px; }

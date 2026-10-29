@@ -2,6 +2,8 @@
 // Shape: { scrolls: [floorSlug], riddles: [floorSlug], treasures: [roomSlug],
 //          help: { "hint:locators:0": 5, "nudge:hall-of-doors:1": 10, ... } }
 // Score = XP earned minus the XP spent on help.
+// Signed in with GitHub, every save is also sent to the server, which merges
+// it with the account's progress and sends back the combined copy.
 (function () {
     const KEY = "pdc-progress";
     const rules = JSON.parse(document.getElementById("dungeon-rules").textContent);
@@ -19,13 +21,39 @@
         }
     }
 
-    function save(progress) {
+    function store(progress) {
         try {
             localStorage.setItem(KEY, JSON.stringify(progress));
         } catch {
             // Storage blocked (private mode, etc.): progress lasts for this page only.
         }
+    }
+
+    function save(progress) {
+        store(progress);
         render();
+        sync();
+    }
+
+    // Sends this browser's progress to the account and keeps the merged reply.
+    // Offline or signed out elsewhere: the local copy stays, and the next save retries.
+    async function sync() {
+        if (!rules.account.player) {
+            return;
+        }
+        try {
+            const reply = await fetch("/api/progress", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(load()),
+            });
+            if (reply.ok) {
+                store({ ...empty(), ...(await reply.json()) });
+                render();
+            }
+        } catch {
+            // Network trouble: try again on the next save.
+        }
     }
 
     function mark(kind, slug) {
@@ -108,8 +136,12 @@
         return number <= 1 || navigator.webdriver || isComplete(number - 1, progress);
     }
 
-    function reset() {
-        save(empty());
+    async function reset() {
+        if (rules.account.player) {
+            await fetch("/api/progress", { method: "DELETE" }).catch(() => {});
+        }
+        store(empty());
+        render();
     }
 
     // Anything with data-progress="kind:slug" gets a "done" state.
@@ -153,5 +185,8 @@
     }
 
     window.Dungeon = { rules, load, mark, earned, helpSpent, xp, rank, reset, render, isComplete, isOpen, nextSteps, hasUsedHelp, useHelp };
-    document.addEventListener("DOMContentLoaded", render);
+    document.addEventListener("DOMContentLoaded", () => {
+        render();
+        sync();
+    });
 })();

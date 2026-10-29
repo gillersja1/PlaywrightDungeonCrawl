@@ -8,6 +8,19 @@ on:
 jobs:
   build-and-crawl:
     runs-on: ubuntu-latest
+    # For the Postgres tests: saved progress and the sign-in cookie keys.
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v7
 
@@ -17,6 +30,11 @@ jobs:
 
       - name: Build
         run: dotnet build PlaywrightDungeonCrawl.slnx -c Release
+
+      - name: Run tests
+        env:
+          DUNGEON_TEST_POSTGRES: Host=localhost;Database=postgres;Username=postgres;Password=postgres
+        run: dotnet test tests/PlaywrightDungeonCrawl.Tests -c Release --no-build
 
       # The reference solutions crawl the Docker image, so one run checks the
       # image starts, serves the site, and every room can still be cleared.

@@ -34,7 +34,10 @@ builder.Services.AddSingleton<DungeonCatalog>();
 var flagSecret = builder.Configuration["Dungeon:FlagSecret"] ?? "local-dungeon-secret";
 builder.Services.AddSingleton(new FlagService(flagSecret));
 
+builder.AddAccounts();
+
 var app = builder.Build();
+await app.PrepareAccountsAsync();
 
 app.UseForwardedHeaders();
 
@@ -44,11 +47,14 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseRouting();
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapStaticAssets();
 app.MapRazorPages()
    .WithStaticAssets();
 app.MapDungeonApi();
+app.MapAccounts();
 app.MapGet("/health", () => Results.Ok(new { Status = "ok" }));
 
 app.Run();

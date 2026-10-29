@@ -13,3 +13,12 @@ services:
       # Signs the treasure flags. Render generates a random value once and keeps it.
       - key: Dungeon__FlagSecret
         generateValue: true
+      # GitHub sign-in and saved progress. sync: false means Render asks for
+      # the values when the Blueprint syncs; they never live in this repo.
+      - key: GitHub__ClientId
+        sync: false
+      - key: GitHub__ClientSecret
+        sync: false
+      # Neon's connection string (the postgresql://... URL is fine).
+      - key: ConnectionStrings__Dungeon
+        sync: false
