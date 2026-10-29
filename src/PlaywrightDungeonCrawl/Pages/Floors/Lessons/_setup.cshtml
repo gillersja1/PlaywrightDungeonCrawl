@@ -129,18 +129,18 @@
     </p>
     <ol>
         <li>In Solution Explorer, right-click <strong>DungeonCrawler.Tests</strong> and choose <strong>Add › Class</strong>.</li>
-        <li>Name it <code>WelcomeMatTests.cs</code> and click <strong>Add</strong>.</li>
+        <li>Name it <code>WelcomeMattTests.cs</code> and click <strong>Add</strong>.</li>
         <li>Replace everything in the new file with:</li>
     </ol>
 <pre><code>namespace DungeonCrawler.Tests;
 
-public class WelcomeMatTests : DungeonTest
+public class WelcomeMattTests : DungeonTest
 {
     [Test]
     public async Task KnockOnTheDoor()
     {
         // Walk up to the door.
-        await EnterAsync("/rooms/welcome-mat");
+        await EnterAsync("/rooms/welcome-matt");
 
         // Find the button whose label is "Knock", and click it.
         await Page.GetByRole(AriaRole.Button, new() { Name = "Knock" }).ClickAsync();

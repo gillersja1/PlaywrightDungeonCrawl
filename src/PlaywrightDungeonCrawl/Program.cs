@@ -6,7 +6,7 @@ builder.Services.AddRazorPages();
 builder.Services.AddMemoryCache();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton<AttemptStore>();
-builder.Services.AddSingleton<Room, WelcomeMat>();
+builder.Services.AddSingleton<Room, WelcomeMatt>();
 builder.Services.AddSingleton<Room, HallOfDoors>();
 builder.Services.AddSingleton<Room, FlickeringTorch>();
 builder.Services.AddSingleton<Room, ScribesLedger>();

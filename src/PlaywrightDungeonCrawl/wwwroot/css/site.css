@@ -198,3 +198,12 @@ button:disabled { opacity: 0.6; cursor: default; }
     .ai-eye, .ai-toast { animation: none; }
     .ai-toast { transition: none; }
 }
+
+/* Room plaques */
+.plaque {
+    margin: 0 0 20px; padding: 14px 20px; border-radius: 6px; max-width: 640px;
+    background: linear-gradient(135deg, #8a6a2e, #c9a24e 45%, #8a6a2e); color: #2b1d08;
+    border: 3px double #5a4210; box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.35), 0 4px 14px rgba(0, 0, 0, 0.4);
+    font-family: var(--serif); font-style: italic;
+}
+.plaque p { margin: 0; }
