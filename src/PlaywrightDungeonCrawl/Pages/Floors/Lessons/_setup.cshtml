@@ -75,7 +75,40 @@
 </section>
 
 <section>
-    <h2>5. Write your first test</h2>
+    <h2>5. Slow it down with the Playwright Inspector</h2>
+    <p>
+        That was quick: the browser opened and closed before you could see much. Tests are meant to be
+        fast, but while you're learning you'll want to watch. The <strong>Playwright Inspector</strong>
+        pauses a test and lets you step through it.
+    </p>
+    <ol>
+        <li>Open <code>ExampleTests.cs</code>. Add this line as the first line inside <code>TheDungeonIsOpen</code>,
+            before <code>EnterAsync</code>:
+<pre><code>await Page.PauseAsync();</code></pre></li>
+        <li>Run the test again. This time the browser stays open, and a second window appears next to it:
+            the Inspector. The test is paused.</li>
+        <li>Click <strong>Step over</strong> in the Inspector to run the next line. Watch the browser go to the map.
+            Keep stepping and see each check happen.</li>
+        <li>Click <strong>Resume</strong> to let the test run to the end.</li>
+    </ol>
+    <p>
+        Try <strong>Pick locator</strong> in the Inspector too: hover over anything on the page and it shows
+        you a locator for it, like <code>GetByRole(AriaRole.Button, new() { Name = "Claim treasure" })</code>.
+        You'll lean on that a lot on floor 2.
+    </p>
+    <p class="tip">
+        <strong>Remember to delete the <code>PauseAsync</code> line when you're done.</strong> A paused test
+        waits for you forever, and Test Explorer will look stuck.
+    </p>
+    <p>
+        Prefer watching a whole run at normal pace? In <code>dungeon.runsettings</code>, turn on
+        <code>SlowMo</code> (the comments in the file explain how). It waits a second after every action.
+        Turn it off again before the timed trap rooms.
+    </p>
+</section>
+
+<section>
+    <h2>6. Write your first test</h2>
     <p>
         This floor's trap room is a door that refuses to open for humans. It only opens for a browser that a
         test is driving. Time to send one.
@@ -111,7 +144,7 @@ public class WelcomeMatTests : DungeonTest
 </section>
 
 <section>
-    <h2>6. Run it and claim the treasure</h2>
+    <h2>7. Run it and claim the treasure</h2>
     <ol>
         <li>Build (<strong>Ctrl+Shift+B</strong>), then in Test Explorer right-click <code>KnockOnTheDoor</code> and choose <strong>Run</strong>.</li>
         <li>Watch the browser knock. When the test goes green, click it in Test Explorer.</li>
