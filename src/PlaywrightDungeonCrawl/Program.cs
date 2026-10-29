@@ -1,6 +1,22 @@
+using Microsoft.AspNetCore.HttpOverrides;
 using PlaywrightDungeonCrawl.Dungeon;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Hosts like Render tell the app which port to listen on through PORT.
+if (Environment.GetEnvironmentVariable("PORT") is { Length: > 0 } port)
+{
+    builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+}
+
+// Behind a hosting proxy, trust its X-Forwarded-* headers so the site knows
+// visitors arrived over https (used, e.g., in the starter code's URLs).
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownIPNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 
 builder.Services.AddRazorPages();
 builder.Services.AddMemoryCache();
@@ -19,6 +35,8 @@ var flagSecret = builder.Configuration["Dungeon:FlagSecret"] ?? "local-dungeon-s
 builder.Services.AddSingleton(new FlagService(flagSecret));
 
 var app = builder.Build();
+
+app.UseForwardedHeaders();
 
 if (!app.Environment.IsDevelopment())
 {

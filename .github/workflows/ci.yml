@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build-and-crawl:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Build
+        run: dotnet build PlaywrightDungeonCrawl.slnx -c Release
+
+      # The reference solutions crawl the Docker image, so one run checks the
+      # image starts, serves the site, and every room can still be cleared.
+      - name: Build Docker image
+        run: docker build -t playwright-dungeon-crawl .
+
+      - name: Start the dungeon
+        run: |
+          docker run -d --name dungeon -p 8080:8080 -e Dungeon__FlagSecret=ci-secret playwright-dungeon-crawl
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:8080/health && exit 0
+            sleep 1
+          done
+          docker logs dungeon
+          exit 1
+
+      - name: Install Playwright browsers
+        run: pwsh tests/PlaywrightDungeonCrawl.Solutions/bin/Release/net10.0/playwright.ps1 install --with-deps chromium
+
+      - name: Run reference solutions
+        env:
+          DUNGEON_URL: http://localhost:8080
+        run: dotnet test tests/PlaywrightDungeonCrawl.Solutions -c Release --no-build
+
+      - name: Dungeon logs
+        if: failure()
+        run: docker logs dungeon
