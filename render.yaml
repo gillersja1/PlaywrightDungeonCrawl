@@ -1,0 +1,15 @@
+# Render Blueprint: deploys the dungeon from the Dockerfile on Render's free plan.
+# Render sets PORT, which Program.cs listens on.
+services:
+  - type: web
+    name: playwright-dungeon-crawl
+    runtime: docker
+    plan: free
+    branch: main
+    # Deploy each push to main, but only once CI has passed.
+    autoDeployTrigger: checksPass
+    healthCheckPath: /health
+    envVars:
+      # Signs the treasure flags. Render generates a random value once and keeps it.
+      - key: Dungeon__FlagSecret
+        generateValue: true
