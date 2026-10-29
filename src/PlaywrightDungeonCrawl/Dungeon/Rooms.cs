@@ -25,6 +25,9 @@ public abstract class Room
     /// </summary>
     public abstract string[] Nudges { get; }
 
+    /// <summary>An optional plaque on the room's wall, e.g. a dedication.</summary>
+    public virtual string? Plaque => null;
+
     public abstract RoomPuzzle Generate(Random rng);
 
     public virtual bool IsCorrect(RoomPuzzle puzzle, string answer) =>
@@ -47,20 +50,25 @@ public abstract class Room
 /// Floor 1, setup: a door that only opens for an automated browser, so the
 /// only way to the flag is to get a first Playwright test running.
 /// </summary>
-public sealed class WelcomeMat : Room
+public sealed class WelcomeMatt : Room
 {
     public override string[] Nudges { get; } =
     {
         "Clicking Knock yourself won't work: the door checks whether a test is driving the browser. You need to run a test from Visual Studio.",
-        "Follow step 6 of this floor's scroll: add a WelcomeMatTests class to your starter kit project, then run it from Test Explorer.",
-        "Your test needs three lines: EnterAsync(\"/rooms/welcome-mat\"), a click on Page.GetByRole(AriaRole.Button, new() { Name = \"Knock\" }), then await TakeTreasureAsync().",
+        "Follow step 6 of this floor's scroll: add a WelcomeMattTests class to your starter kit project, then run it from Test Explorer.",
+        "Your test needs three lines: EnterAsync(\"/rooms/welcome-matt\"), a click on Page.GetByRole(AriaRole.Button, new() { Name = \"Knock\" }), then await TakeTreasureAsync().",
     };
 
-    public override string Slug => "welcome-mat";
-    public override string Name => "The Welcome Mat";
+    public override string Slug => "welcome-matt";
+    public override string Name => "The Welcome Matt";
     public override string Objective =>
         "A heavy door with a brass knocker. Knock, and the door decides whether you're worthy. It has opinions about humans.";
     public override TimeSpan TimeLimit => TimeSpan.FromMinutes(10);
+
+    public override string Plaque =>
+        "The Welcome Matt is named in honor of Matt Dinniman, whose Dungeon Crawler Carl books turned a " +
+        "dungeon into the best game show nobody would ever volunteer for, and inspired this one. If you enjoy " +
+        "crawling here, go read them. This dungeon is a fan's tribute, not affiliated with him or his books.";
 
     // The page sends this only when navigator.webdriver is true, which is
     // the case in any browser Playwright launches.

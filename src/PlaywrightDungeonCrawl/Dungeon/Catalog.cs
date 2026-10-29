@@ -54,7 +54,7 @@ public sealed class DungeonCatalog
         {
             new Floor(1, "setup", "The Threshold", "Setting up",
                 "Before you can crawl, you need a crawler: Visual Studio, the starter kit, and your first test run.",
-                bySlug["welcome-mat"],
+                bySlug["welcome-matt"],
                 new[]
                 {
                     new QuizQuestion(

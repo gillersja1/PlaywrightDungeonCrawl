@@ -20,6 +20,13 @@
     <p class="lead">@room.Objective</p>
 </header>
 
+@if (room.Plaque is { } plaque)
+{
+    <aside class="plaque" aria-label="Plaque">
+        <p>@plaque</p>
+    </aside>
+}
+
 @if (!Model.IsBuilt)
 {
     <section class="panel">
