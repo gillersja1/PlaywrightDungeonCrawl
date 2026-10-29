@@ -113,6 +113,13 @@ input, select { font: inherit; padding: 8px 10px; border-radius: 6px; border: 1p
 .screenshot.narrow img { max-width: 600px; }
 .screenshot figcaption { font-size: 0.9rem; color: #5a4a38; margin-top: 6px; }
 .tip { border-left: 4px solid var(--torch-dim); padding: 6px 12px; background: rgba(242, 163, 58, 0.12); }
+.training-dummy { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 16px 0; padding: 12px 16px; border: 1px dashed #b89a6a; border-radius: var(--radius); }
+.training-dummy .dummy-art { font-size: 2rem; margin: 0; }
+.training-dummy .dummy-voice { flex-basis: 100%; margin: 0; font-style: italic; }
+.training-dummy .dummy-voice:empty { display: none; }
+.next-step { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 20px; padding: 12px 16px; border: 1px solid var(--moss); border-radius: var(--radius); background: rgba(111, 191, 115, 0.12); }
+.next-step p { flex-basis: 100%; margin: 0; font-weight: 600; }
+.scroll .next-step .button.secondary { color: #9a5a12; border-color: #9a5a12; }
 .scroll-footer { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 28px; padding-top: 16px; border-top: 1px solid #d5c4a1; }
 .scroll-footer .button.secondary { color: #9a5a12; border-color: #9a5a12; }
 .scroll-footer [role=status] { flex-basis: 100%; margin: 0; font-weight: 600; }
