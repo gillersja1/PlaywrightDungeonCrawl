@@ -207,3 +207,13 @@ button:disabled { opacity: 0.6; cursor: default; }
     font-family: var(--serif); font-style: italic;
 }
 .plaque p { margin: 0; }
+
+/* Floor 3: the Flickering Torch */
+.torch-stage { text-align: center; padding: 20px 10px 10px; border-radius: var(--radius); background: radial-gradient(circle at center, #1a1612 0%, #0c0a0e 70%); transition: background 0.15s; min-height: 190px; }
+.torch-stage.flare { background: radial-gradient(circle at center, #6a4416 0%, #1a1208 70%); }
+.torch { font-size: 3rem; margin: 0; filter: brightness(0.5); }
+.torch-stage.flare .torch { filter: brightness(1.4) drop-shadow(0 0 20px var(--torch)); }
+.torch-status { color: var(--stone-400); margin: 6px 0; }
+.rune-slot { min-height: 52px; }
+.rune { display: inline-block; font-family: var(--mono); font-size: 2rem; letter-spacing: 0.3em; color: #ffd38a; text-shadow: 0 0 12px var(--torch); }
+.speak-form { margin-top: 14px; }
