@@ -1,10 +1,11 @@
 // Shared trap-room flow: start an attempt, run the countdown, submit the
 // answer and show the outcome. Each room module supplies render().
 
+// Failure lines, in the Dungeon AI's voice.
 const OUTCOMES = {
-    "wrong": "Wrong move. The trap springs.",
-    "too-slow": "Too slow. The trap sprang before you finished.",
-    "unknown-attempt": "This attempt has already been used up.",
+    "wrong": "Wrong move. The trap springs. The Dungeon AI has added this to your highlight reel.",
+    "too-slow": "Too slow. The trap had time to finish its coffee before you finished.",
+    "unknown-attempt": "This attempt is used up. The dungeon doesn't do refunds, but it does do reloads.",
 };
 
 export async function startRoom(render) {
@@ -51,7 +52,7 @@ export async function startRoom(render) {
         if (outcome.outcome === "correct") {
             const isNew = Dungeon.mark("treasures", slug);
             finish(
-                `<p><strong>Room cleared!</strong> The chest creaks open.${isNew ? ` +${Dungeon.rules.treasure} XP` : ""}</p>
+                `<p><strong>Room cleared!</strong> The chest creaks open. The Dungeon AI is mildly surprised.${isNew ? ` +${Dungeon.rules.treasure} XP` : ""}</p>
                  <p>Treasure flag: <code aria-label="Treasure flag" id="treasure-flag">${outcome.flag}</code></p>`,
                 "cleared");
         } else {

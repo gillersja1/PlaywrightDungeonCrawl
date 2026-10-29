@@ -33,6 +33,7 @@
         if (!progress[kind].includes(slug)) {
             progress[kind].push(slug);
             save(progress);
+            document.dispatchEvent(new CustomEvent("dungeon:earned", { detail: { kind, slug, progress } }));
             return true;
         }
         return false;
@@ -63,6 +64,7 @@
         if (!(key in progress.help)) {
             progress.help[key] = cost;
             save(progress);
+            document.dispatchEvent(new CustomEvent("dungeon:help", { detail: { key, cost, progress } }));
         }
     }
 

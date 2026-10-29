@@ -5,12 +5,12 @@
     ViewData["Title"] = $"{Model.Floor.Title}: riddle";
 }
 
-<nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">Map</a> › <a href="/floors/@Model.Floor.Slug">Floor @Model.Floor.Number</a> › Riddle</nav>
+<nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">Respawn Room</a> › <a href="/floors/@Model.Floor.Slug">Floor @Model.Floor.Number</a> › Riddle</nav>
 
 <section class="panel sealed-note" data-sealed-note hidden>
     <h2><span aria-hidden="true">🔒</span> This floor is sealed</h2>
     <p>Finish floor @(Model.Floor.Number - 1) first: read its scroll, solve its riddle and claim its treasure.</p>
-    <a class="button" href="/">Back to the map</a>
+    <a class="button" href="/">Back to the Respawn Room</a>
 </section>
 <div data-page-gate="@Model.Floor.Number">
 <h1>The riddle of @Model.Floor.Title</h1>

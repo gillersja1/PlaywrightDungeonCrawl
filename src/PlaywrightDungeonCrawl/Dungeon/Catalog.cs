@@ -94,7 +94,7 @@ public sealed class DungeonCatalog
                         "Anything written with TestContext.Out.WriteLine is stored with the test result and shown in its details.",
                         "Output isn't an error, and it isn't in the browser. It's saved with the test result itself."),
                 }),
-            new Floor(2, "locators", "The Entrance", "Locators",
+            new Floor(2, "locators", "The Hall of Doors", "Locators",
                 "Every door looks alike. Learn to find exactly the one you mean.",
                 bySlug["hall-of-doors"],
                 new[]
@@ -178,7 +178,7 @@ public sealed class DungeonCatalog
                         "WaitForAsync returns the moment the element is attached and visible, leaving time to read it.",
                         "You need something that returns the moment the element shows up, not after a guess."),
                 }),
-            new Floor(4, "forms", "The Scribe's Hall", "Forms and input",
+            new Floor(4, "forms", "The Bureaucracy", "Forms and input",
                 "Text boxes, dropdowns, radio buttons, checkboxes and dates. Fill them like a user would.",
                 bySlug["scribes-ledger"],
                 new[]
@@ -262,7 +262,7 @@ public sealed class DungeonCatalog
                         "Dialogs are dismissed by default. To accept, register Page.Dialog += (_, d) => d.AcceptAsync() before the click.",
                         "Nobody is there to click OK, so Playwright picks the safe option for you."),
                 }),
-            new Floor(6, "network", "The Deep Vault", "Network",
+            new Floor(6, "network", "The Whispering Vaults", "Network",
                 "Some secrets are never shown on screen. Learn to listen to the wire.",
                 bySlug["whispering-vault"],
                 new[]
@@ -308,20 +308,20 @@ public sealed class DungeonCatalog
     }
 
     /// <summary>The deeper floors, shown on the map as sealed until they're built.</summary>
-    public IReadOnlyList<(int Number, string Skill)> SealedFloors { get; } = new[]
+    public IReadOnlyList<(int Number, string Title, string Skill)> SealedFloors { get; } = new[]
     {
-        (7, "Tabs, pop-ups and navigation"),
-        (8, "Mouse and keyboard"),
-        (9, "File upload and download"),
-        (10, "Login state and browser contexts"),
-        (11, "API testing"),
-        (12, "Mocking responses"),
-        (13, "Page Object Model"),
-        (14, "Fixtures, setup and parallel tests"),
-        (15, "Tracing and debugging"),
-        (16, "Screenshots and visual comparison"),
-        (17, "Emulation and the clock"),
-        (18, "The final boss: a flaky-test hunt"),
+        (7, "The Portal Bazaar", "Tabs, pop-ups and navigation"),
+        (8, "The Clockwork Foundry", "Mouse and keyboard"),
+        (9, "The Courier Guild", "File upload and download"),
+        (10, "The Masquerade", "Login state and browser contexts"),
+        (11, "The Oracle's Well", "API testing"),
+        (12, "The Illusionist's Theater", "Mocking responses"),
+        (13, "The Architect's Atelier", "Page Object Model"),
+        (14, "The Hydra Pits", "Fixtures, setup and parallel tests"),
+        (15, "The Haunted Archive", "Tracing and debugging"),
+        (16, "The Portrait Gallery", "Screenshots and visual comparison"),
+        (17, "The Clocktower of Elsewhere", "Emulation and the clock"),
+        (18, "The Flake", "The final boss: a flaky-test hunt"),
     };
 
     public Floor? Find(string slug) => Floors.FirstOrDefault(f => f.Slug == slug);
