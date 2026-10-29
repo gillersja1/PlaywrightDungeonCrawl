@@ -84,6 +84,15 @@ else
             <code>TakeTreasureAsync()</code> waits for the flag and prints it in the test's output.
             Paste it into <a href="/#treasure">Claim treasure</a> on the map.
         </p>
+        @if (Model.IsTimed)
+        {
+            <p class="tip">
+                <strong>Using the Playwright Inspector here?</strong> The clock starts the moment the room loads,
+                so stepping through line by line will run out of time. To study the room, open it in your own
+                browser and look around, or pause your test and use <strong>Pick locator</strong>, then write the
+                test and run it at full speed (with <code>SlowMo</code> off).
+            </p>
+        }
     </details>
 }
 </div>

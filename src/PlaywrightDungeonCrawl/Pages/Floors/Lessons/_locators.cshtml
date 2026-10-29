@@ -33,6 +33,11 @@ var door = Page.GetByRole(AriaRole.Button, new() { Name = "Ember Gate", Disabled
 var hall = Page.GetByRole(AriaRole.Region, new() { Name = "Hall" });
 await hall.GetByRole(AriaRole.Button, new() { Name = "Ember Gate" }).ClickAsync();</code></pre>
     <p class="tip">
+        <strong>Not sure what to write?</strong> Put <code>await Page.PauseAsync();</code> in your test and use
+        <strong>Pick locator</strong> in the Playwright Inspector: hover over an element and it suggests a locator,
+        usually a role-based one. Check it's strict enough before you copy it.
+    </p>
+    <p class="tip">
         <strong>Trap:</strong> <code>.First</code>, <code>.Last</code> and <code>.Nth(i)</code> make
         the error go away, but they depend on order. When the page shuffles, they pick the wrong
         element without telling you.
