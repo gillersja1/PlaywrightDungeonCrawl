@@ -1,5 +1,10 @@
 ﻿@using PlaywrightDungeonCrawl.Dungeon
 @inject DungeonCatalog Catalog
+@inject IConfiguration Config
+@{
+    var accountsOn = Accounts.IsEnabled(Config);
+    var player = User.Identity?.IsAuthenticated == true ? User.Identity.Name : null;
+}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -20,6 +25,17 @@
             <a href="/">Respawn Room</a>
             <a href="/#treasure">Claim treasure</a>
             <a class="xp-badge" href="/#progress" id="xp-badge" aria-label="Your experience">0 XP</a>
+            @if (player is not null)
+            {
+                <form class="account" method="post" action="/signout">
+                    <span class="player" title="Signed in with GitHub">@@@player</span>
+                    <button type="submit" class="link-button">Sign out</button>
+                </form>
+            }
+            else if (accountsOn)
+            {
+                <a class="account" href="/signin?returnUrl=@Uri.EscapeDataString(Context.Request.Path + Context.Request.QueryString)">Sign in with GitHub</a>
+            }
         </nav>
     </header>
 
@@ -28,7 +44,7 @@
     </main>
 
     <footer class="site-footer">
-        <p>A free, hands-on way to learn <a href="https://playwright.dev/dotnet/">Playwright for .NET</a>. Progress is saved in this browser only.</p>
+        <p>A free, hands-on way to learn <a href="https://playwright.dev/dotnet/">Playwright for .NET</a>. @(player is not null ? "Your progress is saved to your GitHub account." : accountsOn ? "Progress is saved in this browser. Sign in with GitHub to keep it everywhere." : "Progress is saved in this browser only.")</p>
     </footer>
 
     <script id="dungeon-rules" type="application/json">@Html.Raw(System.Text.Json.JsonSerializer.Serialize(new
@@ -38,6 +54,7 @@
         treasure = Rewards.Treasure,
         maxXp = DungeonCatalog.MaxXp(Catalog.Floors.Count),
         floors = Catalog.Floors.Select(f => new { number = f.Number, slug = f.Slug, room = f.Room.Slug, roomName = f.Room.Name, title = f.Title }),
+        account = new { enabled = accountsOn, player },
         ranks = Rewards.RanksFor(DungeonCatalog.MaxXp(Catalog.Floors.Count)).Select(r => new { minXp = r.MinXp, title = r.Title }),
     }))</script>
     <script src="~/js/progress.js" asp-append-version="true"></script>
