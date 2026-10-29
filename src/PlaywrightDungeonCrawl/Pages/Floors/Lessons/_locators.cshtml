@@ -1,0 +1,50 @@
+<section>
+    <h2>Find elements the way a user does</h2>
+    <p>
+        A <strong>locator</strong> describes how to find an element. It doesn't grab the element
+        straight away: Playwright looks it up fresh every time you act on it, and waits for it to be
+        ready. Prefer locators based on what a user sees, in this order:
+    </p>
+    <ol>
+        <li><code>GetByRole</code>: the element's role and accessible name. Your first choice.</li>
+        <li><code>GetByLabel</code>, <code>GetByPlaceholder</code>: form fields.</li>
+        <li><code>GetByText</code>: non-interactive content.</li>
+        <li><code>GetByTestId</code>: when there's nothing a user could identify it by.</li>
+        <li>CSS or XPath with <code>Locator()</code>: last resort. They break when the markup changes.</li>
+    </ol>
+<pre><code>// A button whose accessible name is "Enter the dungeon"
+await Page.GetByRole(AriaRole.Button, new() { Name = "Enter the dungeon" }).ClickAsync();
+
+// A link, matched exactly (not "Map of the realm")
+await Page.GetByRole(AriaRole.Link, new() { Name = "Map", Exact = true }).ClickAsync();</code></pre>
+</section>
+
+<section>
+    <h2>Strictness: one locator, one element</h2>
+    <p>
+        If a locator matches more than one element, any action on it throws a
+        <em>strict mode violation</em>. That's a feature: Playwright refuses to guess which one you
+        meant. Narrow the locator by something meaningful, not by position.
+    </p>
+<pre><code>// Two "Ember Gate" doors, one disabled: filter on state
+var door = Page.GetByRole(AriaRole.Button, new() { Name = "Ember Gate", Disabled = false });
+
+// Or scope to a region first, then search inside it
+var hall = Page.GetByRole(AriaRole.Region, new() { Name = "Hall" });
+await hall.GetByRole(AriaRole.Button, new() { Name = "Ember Gate" }).ClickAsync();</code></pre>
+    <p class="tip">
+        <strong>Trap:</strong> <code>.First</code>, <code>.Last</code> and <code>.Nth(i)</code> make
+        the error go away, but they depend on order. When the page shuffles, they pick the wrong
+        element without telling you.
+    </p>
+</section>
+
+<section>
+    <h2>Reading what a locator found</h2>
+<pre><code>var sign = await Page.GetByTestId("target-sign").TextContentAsync();
+var count = await Page.GetByRole(AriaRole.Button).CountAsync();</code></pre>
+    <p>
+        You'll need this in the trap room: the sign you're looking for changes on every visit,
+        so read it first, then build your locator from it.
+    </p>
+</section>

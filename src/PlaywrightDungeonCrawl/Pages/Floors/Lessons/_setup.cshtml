@@ -1,0 +1,122 @@
+@using PlaywrightDungeonCrawl.Dungeon
+@inject IConfiguration Config
+@{
+    var starterUrl = StarterKit.RepoUrl(Config);
+    var dungeonUrl = $"{Context.Request.Scheme}://{Context.Request.Host}";
+}
+<section>
+    <p>
+        No experience needed. By the end of this floor you'll have Visual Studio installed, a test
+        project open, and a test of your own driving a browser through the dungeon. Every floor after
+        this one adds a test to the same project.
+    </p>
+</section>
+
+<section>
+    <h2>1. Install Visual Studio</h2>
+    <ol>
+        <li>Download <strong>Visual Studio Community</strong> (free) from
+            <a href="https://visualstudio.microsoft.com/vs/community/">visualstudio.microsoft.com</a> and run the installer.</li>
+        <li>When it asks what to install, tick the <strong>.NET desktop development</strong> workload.
+            That brings the .NET SDK, the test tools and Git with it.</li>
+        <li>Click <strong>Install</strong>. It takes a while, so it's a good time for a snack.</li>
+    </ol>
+    <p class="tip">
+        <strong>On a Mac or Linux?</strong> Use <a href="https://code.visualstudio.com/">VS Code</a> with the
+        <em>C# Dev Kit</em> extension and the <a href="https://dotnet.microsoft.com/download">.NET 10 SDK</a>.
+        The steps below are the same idea; the menus differ.
+    </p>
+</section>
+
+<section>
+    <h2>2. Clone the starter kit</h2>
+    <p>The starter kit is a test project that's already set up for this dungeon.</p>
+    <ol>
+        <li>Open Visual Studio. On the start window, choose <strong>Clone a repository</strong>.</li>
+        <li>For <em>Repository location</em>, paste:<br /><code>@starterUrl</code></li>
+        <li>Pick a folder to put it in and click <strong>Clone</strong>.</li>
+        <li>Visual Studio opens the solution for you. In <strong>Solution Explorer</strong> you should see
+            <em>Solution 'DungeonCrawler' (1 of 1 project)</em> with a project called
+            <strong>DungeonCrawler.Tests</strong> underneath.</li>
+        <li>Seeing a list of folders instead? Double-click <strong>DungeonCrawler.slnx</strong> to open the solution.</li>
+    </ol>
+</section>
+
+<section>
+    <h2>3. Point it at this dungeon</h2>
+    <p>
+        In Solution Explorer, double-click <strong>dungeon.runsettings</strong> to open it. The
+        <code>DungeonUrl</code> line says where your tests will send the browser.
+    </p>
+    <figure class="screenshot">
+        <img src="~/img/setup/visual-studio-runsettings.png" width="1600" height="742" loading="lazy"
+             alt="Visual Studio with dungeon.runsettings open. The DungeonUrl line, value http://localhost:5299, is highlighted in the editor, and dungeon.runsettings is highlighted in Solution Explorer under the DungeonCrawler.Tests project." />
+        <figcaption>dungeon.runsettings, open in Visual Studio. The highlighted line is the only one you'll change.</figcaption>
+    </figure>
+    <p>It should match the address of this site:</p>
+<pre><code>&lt;Parameter name="DungeonUrl" value="@dungeonUrl" /&gt;</code></pre>
+    <p>If it's different, change it and save. That's the only setting you'll ever need to touch.</p>
+</section>
+
+<section>
+    <h2>4. Run the example test</h2>
+    <ol>
+        <li>Open <strong>Test › Test Explorer</strong>. If it's empty, build first with <strong>Build › Build Solution</strong>.</li>
+        <li>You'll see <code>TheDungeonIsOpen</code> under <em>ExampleTests</em>, with a blue icon: that means "not run yet".</li>
+        <li>Click <strong>Run All Tests</strong>: the double play button at the top left of Test Explorer.</li>
+        <li>The very first run downloads a copy of Chromium for Playwright, which takes about a minute.</li>
+        <li>A browser window opens on the dungeon map, then closes. A green tick next to
+            <code>TheDungeonIsOpen</code> means your setup works.</li>
+    </ol>
+    <p class="tip">
+        <strong>Red cross saying it "can't reach the dungeon"?</strong> The address in step 3 doesn't match
+        this site, or the dungeon isn't running.
+    </p>
+</section>
+
+<section>
+    <h2>5. Write your first test</h2>
+    <p>
+        This floor's trap room is a door that refuses to open for humans. It only opens for a browser that a
+        test is driving. Time to send one.
+    </p>
+    <ol>
+        <li>In Solution Explorer, right-click <strong>DungeonCrawler.Tests</strong> and choose <strong>Add › Class</strong>.</li>
+        <li>Name it <code>WelcomeMatTests.cs</code> and click <strong>Add</strong>.</li>
+        <li>Replace everything in the new file with:</li>
+    </ol>
+<pre><code>namespace DungeonCrawler.Tests;
+
+public class WelcomeMatTests : DungeonTest
+{
+    [Test]
+    public async Task KnockOnTheDoor()
+    {
+        // Walk up to the door.
+        await EnterAsync("/rooms/welcome-mat");
+
+        // Find the button whose label is "Knock", and click it.
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Knock" }).ClickAsync();
+
+        // Wait for the treasure, and print it in the test's output.
+        await TakeTreasureAsync();
+    }
+}</code></pre>
+    <p>What's going on:</p>
+    <ul>
+        <li><code>: DungeonTest</code> gives your class a browser tab called <code>Page</code> and the dungeon helpers.</li>
+        <li><code>[Test]</code> tells Test Explorer this method is a test.</li>
+        <li><code>await</code> means "wait for this step to finish before the next one". Every Playwright action needs it.</li>
+    </ul>
+</section>
+
+<section>
+    <h2>6. Run it and claim the treasure</h2>
+    <ol>
+        <li>Build (<strong>Ctrl+Shift+B</strong>), then in Test Explorer right-click <code>KnockOnTheDoor</code> and choose <strong>Run</strong>.</li>
+        <li>Watch the browser knock. When the test goes green, click it in Test Explorer.</li>
+        <li>In the details pane, open the test's additional output. You'll see <code>Treasure flag: PDC{…}</code>.</li>
+        <li>Copy the flag, including the braces, and paste it into <a href="/#treasure">Claim treasure</a> on the map.</li>
+    </ol>
+    <p>Then answer this floor's riddle, and take the stairs down.</p>
+</section>

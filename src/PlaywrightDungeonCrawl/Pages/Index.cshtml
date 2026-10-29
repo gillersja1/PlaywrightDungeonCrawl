@@ -1,0 +1,78 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Map";
+}
+
+<section class="hero">
+    <p class="eyebrow">Learn Playwright for .NET</p>
+    <h1>Descend the dungeon. Script your way out.</h1>
+    <p class="lead">
+        Each floor teaches one Playwright skill. Read the scroll, answer the riddle,
+        then face the trap room: a challenge built so that only a C# test can beat it.
+        Clear the room and it hands over a treasure flag.
+    </p>
+    <ol class="how">
+        <li><strong>Scroll</strong>: a short lesson with C# examples. <span class="xp-tag">+@Model.Rewards.Scroll XP</span></li>
+        <li><strong>Riddle</strong>: three questions to check you've got it. <span class="xp-tag">+@Model.Rewards.Riddle XP</span></li>
+        <li><strong>Trap room</strong>: write a Playwright test that clears it and prints the flag. <span class="xp-tag">+@Model.Rewards.Treasure XP</span></li>
+    </ol>
+</section>
+
+<section id="progress" class="panel progress-panel" aria-labelledby="progress-heading">
+    <h2 id="progress-heading">Your progress</h2>
+    <p class="rank-line"><span id="rank-title">Novice Delver</span> · score <span id="xp-total">0</span> / @Model.MaxXp XP</p>
+    <div class="xp-bar" role="progressbar" aria-label="Experience" aria-valuemin="0" aria-valuemax="@Model.MaxXp" aria-valuenow="0">
+        <div class="xp-fill"></div>
+    </div>
+    <p class="breakdown">Earned <span id="xp-earned">0</span> XP, spent <span id="xp-help">0</span> on hints and nudges.</p>
+</section>
+
+<section aria-labelledby="map-heading">
+    <h2 id="map-heading">The dungeon</h2>
+    <ol class="floors">
+        @foreach (var floor in Model.Floors)
+        {
+            <li class="floor-card" data-floor-gate="@floor.Number" aria-labelledby="floor-@floor.Slug-title">
+                <p class="floor-number">Floor @floor.Number · @floor.Skill</p>
+                <h3 id="floor-@floor.Slug-title">@floor.Title</h3>
+                <p>@floor.Tagline</p>
+                <p class="lock-note"><span aria-hidden="true">🔒</span> Sealed until you complete floor @(floor.Number - 1).</p>
+                <ul class="steps">
+                    <li data-progress="scrolls:@floor.Slug"><a href="/floors/@floor.Slug">Scroll</a> <span class="state">Not yet</span></li>
+                    <li data-progress="riddles:@floor.Slug"><a href="/floors/@floor.Slug/riddle">Riddle</a> <span class="state">Not yet</span></li>
+                    <li data-progress="treasures:@floor.Room.Slug"><a href="/rooms/@floor.Room.Slug">@floor.Room.Name</a> <span class="state">Not yet</span></li>
+                </ul>
+            </li>
+        }
+        @foreach (var (number, skill) in Model.SealedFloors)
+        {
+            <li class="floor-card sealed" aria-label="Floor @number, sealed">
+                <p class="floor-number">Floor @number · @skill</p>
+                <h3><span aria-hidden="true">🔒</span> Sealed</h3>
+                <p>The stairs down haven't been dug yet.</p>
+            </li>
+        }
+    </ol>
+</section>
+
+<section id="treasure" class="panel" aria-labelledby="treasure-heading">
+    <h2 id="treasure-heading">Claim treasure</h2>
+    <p>Cleared a trap room with a script? Paste the flag it printed to add the treasure to your progress.</p>
+    <form id="claim-form" class="inline-form">
+        <label for="flag-input">Flag</label>
+        <input id="flag-input" name="flag" placeholder="PDC{...}" autocomplete="off" required />
+        <button type="submit">Claim treasure</button>
+    </form>
+    <p id="claim-result" role="status" aria-live="polite"></p>
+</section>
+
+<section class="panel subtle" aria-labelledby="reset-heading">
+    <h2 id="reset-heading">Start over</h2>
+    <p>Wipes the progress saved in this browser.</p>
+    <button type="button" id="reset-progress" class="secondary">Reset progress</button>
+</section>
+
+@section Scripts {
+    <script src="~/js/map.js" asp-append-version="true"></script>
+}

@@ -1,0 +1,46 @@
+﻿@using PlaywrightDungeonCrawl.Dungeon
+@inject DungeonCatalog Catalog
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@(ViewData["Title"] is string title ? $"{title} · Playwright Dungeon Crawl" : "Playwright Dungeon Crawl")</title>
+    <meta name="description" content="Learn Playwright for .NET by crawling a dungeon: lessons, riddles and trap rooms you beat with C# tests." />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+        <a class="brand" href="/">
+            <span class="brand-mark" aria-hidden="true">⚔</span>
+            <span>Playwright Dungeon Crawl</span>
+        </a>
+        <nav aria-label="Main">
+            <a href="/">Map</a>
+            <a href="/#treasure">Claim treasure</a>
+            <a class="xp-badge" href="/#progress" id="xp-badge" aria-label="Your experience">0 XP</a>
+        </nav>
+    </header>
+
+    <main id="main" class="page">
+        @RenderBody()
+    </main>
+
+    <footer class="site-footer">
+        <p>A free, hands-on way to learn <a href="https://playwright.dev/dotnet/">Playwright for .NET</a>. Progress is saved in this browser only.</p>
+    </footer>
+
+    <script id="dungeon-rules" type="application/json">@Html.Raw(System.Text.Json.JsonSerializer.Serialize(new
+    {
+        scroll = Rewards.Scroll,
+        riddle = Rewards.Riddle,
+        treasure = Rewards.Treasure,
+        maxXp = DungeonCatalog.MaxXp(Catalog.Floors.Count),
+        floors = Catalog.Floors.Select(f => new { number = f.Number, slug = f.Slug, room = f.Room.Slug, title = f.Title }),
+        ranks = Rewards.RanksFor(DungeonCatalog.MaxXp(Catalog.Floors.Count)).Select(r => new { minXp = r.MinXp, title = r.Title }),
+    }))</script>
+    <script src="~/js/progress.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

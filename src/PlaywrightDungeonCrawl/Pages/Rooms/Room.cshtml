@@ -1,0 +1,97 @@
+@page "/rooms/{slug}"
+@model PlaywrightDungeonCrawl.Pages.Rooms.RoomModel
+@using PlaywrightDungeonCrawl.Dungeon
+@{
+    ViewData["Title"] = Model.Floor.Room.Name;
+    var room = Model.Floor.Room;
+}
+
+<nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">Map</a> › <a href="/floors/@Model.Floor.Slug">Floor @Model.Floor.Number</a> › Trap room</nav>
+
+<section class="panel sealed-note" data-sealed-note hidden>
+    <h2><span aria-hidden="true">🔒</span> This floor is sealed</h2>
+    <p>Finish floor @(Model.Floor.Number - 1) first: read its scroll, solve its riddle and claim its treasure.</p>
+    <a class="button" href="/">Back to the map</a>
+</section>
+<div data-page-gate="@Model.Floor.Number">
+<header class="room-header">
+    <p class="eyebrow">Floor @Model.Floor.Number trap room · @Model.Floor.Skill</p>
+    <h1>@room.Name</h1>
+    <p class="lead">@room.Objective</p>
+</header>
+
+@if (!Model.IsBuilt)
+{
+    <section class="panel">
+        <p><strong>The masons are still building this room.</strong> Come back soon.</p>
+        <a class="button secondary" href="/">Back to the map</a>
+    </section>
+}
+else
+{
+    <section class="room" data-room="@room.Slug" aria-label="Trap room">
+        <div class="room-status">
+            @if (Model.IsTimed)
+            {
+                <p>Time limit: <strong>@room.TimeLimit.TotalSeconds seconds</strong></p>
+                <p class="timer" aria-live="off">Time left: <span id="time-left">@room.TimeLimit.TotalSeconds.ToString("0.0")</span>s</p>
+            }
+            else
+            {
+                <p>No time limit. Take as long as you need.</p>
+            }
+        </div>
+
+        <div id="arena" class="arena">
+            <p>The torches flicker as the room wakes up…</p>
+        </div>
+
+        <div id="room-result" role="status" aria-live="polite" class="room-result"></div>
+    </section>
+
+    <section id="nudges" class="panel nudges" data-nudge-room="@room.Slug" aria-labelledby="nudge-heading">
+        <h2 id="nudge-heading">Stuck?</h2>
+        <p>Nudges get more specific each time, and each one costs a little more XP. Take only as many as you need.</p>
+        <ol class="nudge-list">
+            @for (var i = 0; i < room.Nudges.Length; i++)
+            {
+                <li hidden data-help-key="nudge:@room.Slug:@i" data-help-cost="@Rewards.NudgeCost(Model.Floor.Number, i)">@room.Nudges[i]</li>
+            }
+        </ol>
+        <button type="button" id="nudge-button" class="secondary">Give me a nudge</button>
+    </section>
+
+    <details class="panel starter">
+        <summary>How to beat it with a script</summary>
+        <p>
+            This room is meant for a Playwright test, not your mouse. In your
+            <a href="@Model.StarterRepoUrl">starter kit</a> project, add a test class like this one
+            (new to this? <a href="/floors/setup">floor 1</a> walks you through it), then fill in your moves:
+        </p>
+<pre><code>public class @(Model.TestClassName) : DungeonTest
+{
+    [Test]
+    public async Task ClearTheRoom()
+    {
+        await EnterAsync("/rooms/@room.Slug");
+
+        // Your moves here.
+
+        await TakeTreasureAsync();
+    }
+}</code></pre>
+        <p>
+            <code>TakeTreasureAsync()</code> waits for the flag and prints it in the test's output.
+            Paste it into <a href="/#treasure">Claim treasure</a> on the map.
+        </p>
+    </details>
+}
+</div>
+
+@section Scripts {
+    @if (Model.IsBuilt)
+    {
+        <script type="module" src="~/js/rooms/@(room.Slug).js" asp-append-version="true"></script>
+        <script src="~/js/nudges.js" asp-append-version="true"></script>
+    }
+}

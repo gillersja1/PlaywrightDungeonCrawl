@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/PlaywrightDungeonCrawl/PlaywrightDungeonCrawl.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/PlaywrightDungeonCrawl.Solutions/PlaywrightDungeonCrawl.Solutions.csproj" />
+    <Project Path="tests/PlaywrightDungeonCrawl.Tests/PlaywrightDungeonCrawl.Tests.csproj" />
+  </Folder>
+</Solution>

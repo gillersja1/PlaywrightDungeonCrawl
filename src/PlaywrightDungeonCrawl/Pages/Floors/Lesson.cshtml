@@ -1,0 +1,39 @@
+@page "/floors/{slug}"
+@model PlaywrightDungeonCrawl.Pages.Floors.LessonModel
+@{
+    ViewData["Title"] = $"{Model.Floor.Title}: scroll";
+}
+
+<nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">Map</a> › Floor @Model.Floor.Number</nav>
+
+<section class="panel sealed-note" data-sealed-note hidden>
+    <h2><span aria-hidden="true">🔒</span> This floor is sealed</h2>
+    <p>Finish floor @(Model.Floor.Number - 1) first: read its scroll, solve its riddle and claim its treasure.</p>
+    <a class="button" href="/">Back to the map</a>
+</section>
+<div data-page-gate="@Model.Floor.Number">
+<article class="scroll" aria-labelledby="lesson-title">
+    <p class="eyebrow">Floor @Model.Floor.Number · @Model.Floor.Skill</p>
+    <h1 id="lesson-title">@Model.Floor.Title</h1>
+    <p class="lead">@Model.Floor.Tagline</p>
+
+    <partial name="Lessons/_@Model.Floor.Slug" />
+
+    <footer class="scroll-footer">
+        <button type="button" id="mark-read" data-floor="@Model.Floor.Slug">Mark scroll as read</button>
+        <a class="button secondary" href="/floors/@Model.Floor.Slug/riddle">Face the riddle →</a>
+        <p id="read-result" role="status" aria-live="polite"></p>
+    </footer>
+</article>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById("mark-read").addEventListener("click", e => {
+            const isNew = Dungeon.mark("scrolls", e.currentTarget.dataset.floor);
+            document.getElementById("read-result").textContent = isNew
+                ? `Scroll read. +${Dungeon.rules.scroll} XP`
+                : "You've already read this scroll.";
+        });
+    </script>
+}

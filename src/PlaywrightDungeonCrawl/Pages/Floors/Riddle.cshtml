@@ -1,0 +1,93 @@
+@page "/floors/{slug}/riddle"
+@model PlaywrightDungeonCrawl.Pages.Floors.RiddleModel
+@using PlaywrightDungeonCrawl.Dungeon
+@{
+    ViewData["Title"] = $"{Model.Floor.Title}: riddle";
+}
+
+<nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">Map</a> › <a href="/floors/@Model.Floor.Slug">Floor @Model.Floor.Number</a> › Riddle</nav>
+
+<section class="panel sealed-note" data-sealed-note hidden>
+    <h2><span aria-hidden="true">🔒</span> This floor is sealed</h2>
+    <p>Finish floor @(Model.Floor.Number - 1) first: read its scroll, solve its riddle and claim its treasure.</p>
+    <a class="button" href="/">Back to the map</a>
+</section>
+<div data-page-gate="@Model.Floor.Number">
+<h1>The riddle of @Model.Floor.Title</h1>
+<p class="lead">Answer all three correctly to pass.</p>
+
+@if (Model.Graded)
+{
+    <div id="riddle-result" role="status" class="panel @(Model.Passed ? "good" : "bad")" data-passed="@Model.Passed.ToString().ToLowerInvariant()">
+        @if (Model.Passed)
+        {
+            <p><strong>The riddle is solved.</strong> The way to the trap room is open.</p>
+            <a class="button" href="/rooms/@Model.Floor.Room.Slug">Enter @Model.Floor.Room.Name →</a>
+        }
+        else
+        {
+            <p><strong>@Model.CorrectCount of @Model.Floor.Riddles.Length correct.</strong> The questions you missed have a hint if you need one.</p>
+        }
+    </div>
+}
+
+<form method="post" class="riddle">
+    @for (var q = 0; q < Model.Floor.Riddles.Length; q++)
+    {
+        var riddle = Model.Floor.Riddles[q];
+        var chosen = Model.Answers.Length > q ? Model.Answers[q] : (int?)null;
+        <fieldset class="question @(Model.Graded ? (chosen == riddle.CorrectIndex ? "right" : "wrong") : "")">
+            <legend>@(q + 1). @riddle.Prompt</legend>
+            @for (var o = 0; o < riddle.Options.Length; o++)
+            {
+                <label class="option">
+                    <input type="radio" name="Answers[@q]" value="@o" required checked="@(chosen == o)" />
+                    @if (riddle.Options[o].Contains('(') || riddle.Options[o].Contains('"'))
+                    {
+                        <code>@riddle.Options[o]</code>
+                    }
+                    else
+                    {
+                        <span>@riddle.Options[o]</span>
+                    }
+                </label>
+            }
+            @if (Model.Graded && chosen == riddle.CorrectIndex)
+            {
+                <p class="explanation">Correct. @riddle.Explanation</p>
+            }
+            else if (Model.Graded)
+            {
+                <p class="explanation">Not quite. Pick another answer and try again.</p>
+                var hintCost = Rewards.HelpCost(Model.Floor.Number, Rewards.HintCost);
+                <details class="hint" data-help-key="hint:@Model.Floor.Slug:@q" data-help-cost="@hintCost">
+                    <summary>Need a hint? @(hintCost == 0 ? "(free on this floor)" : $"(−{hintCost} XP)")</summary>
+                    <p>@riddle.Hint</p>
+                </details>
+            }
+        </fieldset>
+    }
+    <button type="submit">Answer the riddle</button>
+</form>
+</div>
+
+@section Scripts {
+    <script>
+        // Charge for a hint the first time it's opened.
+        document.querySelectorAll("details[data-help-key]").forEach(hint => {
+            hint.addEventListener("toggle", () => {
+                if (hint.open) {
+                    Dungeon.useHelp(hint.dataset.helpKey, Number(hint.dataset.helpCost));
+                }
+            });
+        });
+    </script>
+    @if (Model.Passed)
+    {
+        <script>
+            if (Dungeon.isOpen(@Model.Floor.Number)) {
+                Dungeon.mark("riddles", "@Model.Floor.Slug");
+            }
+        </script>
+    }
+}
