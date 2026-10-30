@@ -19,6 +19,11 @@ public class ViewModel(IPlayerRecords records, DungeonCatalog catalog) : PageMod
         {
             return NotFound();
         }
+        if (certificate.Id != id)
+        {
+            // An old ID: send links already shared (LinkedIn, say) to the current one.
+            return RedirectPermanent($"/certificates/{certificate.Id}");
+        }
         Certificate = certificate;
         Floors = catalog.Floors.Take(certificate.Floors).ToList();
         IsOwner = User.FindFirstValue(ClaimTypes.NameIdentifier) == certificate.PlayerId;

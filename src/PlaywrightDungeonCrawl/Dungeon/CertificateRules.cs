@@ -1,11 +1,16 @@
 using System.Security.Cryptography;
+using System.Text.RegularExpressions;
 
 namespace PlaywrightDungeonCrawl.Dungeon;
 
-/// <summary>A certificate for clearing every open floor, with the name the player chose to print.</summary>
-public sealed record Certificate(string Id, string PlayerId, string Login, string Name, int Floors, int Score, DateTimeOffset IssuedAt);
+/// <summary>
+/// A certificate for clearing every open floor, with the name the player chose to print.
+/// <paramref name="PreviousId"/> keeps an older ID's links working after an upgrade.
+/// </summary>
+public sealed record Certificate(string Id, string PlayerId, string Login, string Name, int Floors, int Score, DateTimeOffset IssuedAt,
+    string? PreviousId = null);
 
-public static class CertificateRules
+public static partial class CertificateRules
 {
     public const int MaxNameLength = 60;
     public const string Title = "Certificate of Survival";
@@ -23,8 +28,18 @@ public static class CertificateRules
         return trimmed.Length is > 0 and <= MaxNameLength && !trimmed.Any(char.IsControl) ? trimmed : null;
     }
 
-    /// <summary>Short, unguessable, and fine in a URL.</summary>
-    public static string NewId() => Convert.ToHexString(RandomNumberGenerator.GetBytes(8)).ToLowerInvariant();
+    // Crockford's base 32: no I, L, O or U, so an ID read aloud or retyped can't be misread.
+    private const string IdAlphabet = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+
+    /// <summary>Like PDC-20261030-K7Q2M9XA: the issue date, then 40 random bits so IDs can't be guessed.</summary>
+    public static string NewId(DateTimeOffset issuedAt) =>
+        $"PDC-{issuedAt.UtcDateTime:yyyyMMdd}-{RandomNumberGenerator.GetString(IdAlphabet, 8)}";
+
+    /// <summary>The first certificates had 16 hex digits; reprinting one moves it to the new format.</summary>
+    public static bool IsLegacyId(string id) => LegacyId().IsMatch(id);
+
+    [GeneratedRegex("^[0-9a-f]{16}$")]
+    private static partial Regex LegacyId();
 
     /// <summary>LinkedIn's "Add to profile" form, filled in for this certificate.</summary>
     public static string LinkedInUrl(Certificate certificate, string verifyUrl) =>
