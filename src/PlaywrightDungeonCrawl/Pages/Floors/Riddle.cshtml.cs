@@ -17,7 +17,7 @@ public class RiddleModel(DungeonCatalog catalog) : PageModel
 
     public IActionResult OnGet(string slug) => Load(slug) ? Page() : NotFound();
 
-    public IActionResult OnPost(string slug)
+    public async Task<IActionResult> OnPostAsync(string slug)
     {
         if (!Load(slug))
         {
@@ -25,6 +25,10 @@ public class RiddleModel(DungeonCatalog catalog) : PageModel
         }
         Graded = true;
         CorrectCount = Grade(Floor, Answers);
+        if (Passed)
+        {
+            await Leaderboard.RecordIfSignedInAsync(HttpContext, Achievement.Riddle, Floor.Slug);
+        }
         return Page();
     }
 

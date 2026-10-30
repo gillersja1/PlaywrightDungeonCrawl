@@ -59,6 +59,8 @@ public interface IProgressStore
     /// <summary>Merges <paramref name="incoming"/> into the player's saved progress and returns the result.</summary>
     Task<PlayerProgress> MergeAsync(string playerId, string login, PlayerProgress incoming, CancellationToken ct = default);
 
+    Task<PlayerProgress> GetAsync(string playerId, CancellationToken ct = default);
+
     Task ResetAsync(string playerId, CancellationToken ct = default);
 }
 
@@ -69,6 +71,9 @@ public sealed class InMemoryProgressStore : IProgressStore
 
     public Task<PlayerProgress> MergeAsync(string playerId, string login, PlayerProgress incoming, CancellationToken ct = default) =>
         Task.FromResult(players.AddOrUpdate(playerId, incoming, (_, saved) => saved.Merge(incoming)));
+
+    public Task<PlayerProgress> GetAsync(string playerId, CancellationToken ct = default) =>
+        Task.FromResult(players.TryGetValue(playerId, out var saved) ? saved : PlayerProgress.Empty);
 
     public Task ResetAsync(string playerId, CancellationToken ct = default)
     {
@@ -105,6 +110,15 @@ public sealed class PostgresProgressStore(NpgsqlDataSource db) : IProgressStore
 
         await transaction.CommitAsync(ct);
         return merged;
+    }
+
+    public async Task<PlayerProgress> GetAsync(string playerId, CancellationToken ct = default)
+    {
+        await using var select = db.CreateCommand("select progress from player_progress where github_id = $1");
+        select.Parameters.Add(new() { Value = playerId });
+        return await select.ExecuteScalarAsync(ct) is string json
+            ? JsonSerializer.Deserialize<PlayerProgress>(json, JsonSerializerOptions.Web) ?? PlayerProgress.Empty
+            : PlayerProgress.Empty;
     }
 
     public async Task ResetAsync(string playerId, CancellationToken ct = default)
@@ -157,6 +171,16 @@ public static class PostgresDatabase
             create table if not exists data_protection_keys (
                 name text primary key,
                 xml text not null);
+            create table if not exists player_profiles (
+                github_id text primary key,
+                login text not null,
+                on_leaderboard boolean not null default false);
+            create table if not exists player_achievements (
+                github_id text not null,
+                kind text not null,
+                slug text not null,
+                earned_at timestamptz not null default now(),
+                primary key (github_id, kind, slug));
             """);
         await create.ExecuteNonQueryAsync(ct);
     }

@@ -1,0 +1,80 @@
+@page
+@model LeaderboardModel
+@{
+    ViewData["Title"] = "Leaderboard";
+}
+
+<section class="hero">
+    <p class="eyebrow">Playwright Dungeon Crawl</p>
+    <h1>Leaderboard</h1>
+    <p class="lead">
+        Crawlers ranked by floors cleared, then score. A floor counts once its riddle is answered and its
+        treasure is claimed while signed in, so the dungeon has seen it with its own eyes.
+    </p>
+</section>
+
+<section class="panel" aria-labelledby="you-heading">
+    <h2 id="you-heading">You</h2>
+    @if (Model.Mine is { } mine)
+    {
+        <p>
+            Verified so far: <strong>@mine.FloorsCleared of @Model.FloorCount floors</strong> cleared,
+            score <strong>@mine.Score XP</strong>.
+        </p>
+        <form method="post" asp-page-handler="Listing">
+            <input type="hidden" name="show" value="@((!Model.MineIsListed).ToString().ToLowerInvariant())" />
+            @if (Model.MineIsListed)
+            {
+                <p>You're on the leaderboard as <strong>@@@mine.Login</strong>.</p>
+                <button type="submit" class="secondary">Take me off the leaderboard</button>
+            }
+            else
+            {
+                <p>You're not on the leaderboard. Join to show your GitHub name and verified progress to everyone.</p>
+                <button type="submit">Put me on the leaderboard</button>
+            }
+        </form>
+        <p class="breakdown">
+            Treasure you claimed or riddles you answered before signing in don't count yet: claim those flags and
+            answer those riddles again while signed in.
+        </p>
+    }
+    else if (Model.AccountsOn)
+    {
+        <p><a href="/signin?returnUrl=/leaderboard">Sign in with GitHub</a> to have your progress verified and join the leaderboard.</p>
+    }
+    else
+    {
+        <p>Sign-in isn't set up on this copy of the dungeon, so there's no leaderboard here.</p>
+    }
+</section>
+
+<section class="panel" aria-labelledby="board-heading">
+    <h2 id="board-heading">Top crawlers</h2>
+    @if (Model.Rows.Count == 0)
+    {
+        <p>Nobody has joined the leaderboard yet. The first name up there could be yours.</p>
+    }
+    else
+    {
+        <table class="lesson-table leaderboard">
+            <thead>
+                <tr><th scope="col">Rank</th><th scope="col">Crawler</th><th scope="col">Floors cleared</th><th scope="col">Score</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var (rank, standing) in Model.Rows)
+                {
+                    <tr class="@(Model.Mine?.Login == standing.Login ? "me" : "")">
+                        <td>@rank</td>
+                        <th scope="row">
+                            <img src="https://github.com/@(standing.Login).png?size=48" alt="" width="24" height="24" loading="lazy" />
+                            @@@standing.Login
+                        </th>
+                        <td>@standing.FloorsCleared / @Model.FloorCount</td>
+                        <td>@standing.Score XP</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</section>
