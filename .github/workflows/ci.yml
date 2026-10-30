@@ -34,10 +34,19 @@ jobs:
       - name: Run tests
         env:
           DUNGEON_TEST_POSTGRES: Host=localhost;Database=postgres;Username=postgres;Password=postgres
-        run: dotnet test tests/PlaywrightDungeonCrawl.Tests -c Release --no-build
+        run: dotnet test tests/PlaywrightDungeonCrawl.Tests -c Release --no-build --logger "trx;LogFileName=unit.trx" --results-directory TestResults
 
       # The reference solutions crawl the Docker image, so one run checks the
       # image starts, serves the site, and every room can still be cleared.
+      - name: Send test results to Grafana
+        if: always()
+        uses: gillersja1/test-results-otel@v1
+        with:
+          results: TestResults/unit.trx
+          suite: unit
+          otlp-endpoint: ${{ secrets.OTEL_EXPORTER_OTLP_ENDPOINT }}
+          otlp-headers: ${{ secrets.OTEL_EXPORTER_OTLP_HEADERS }}
+
       - name: Build Docker image
         run: docker build -t playwright-dungeon-crawl .
 
@@ -57,7 +66,16 @@ jobs:
       - name: Run reference solutions
         env:
           DUNGEON_URL: http://localhost:8080
-        run: dotnet test tests/PlaywrightDungeonCrawl.Solutions -c Release --no-build
+        run: dotnet test tests/PlaywrightDungeonCrawl.Solutions -c Release --no-build --logger "trx;LogFileName=solutions.trx" --results-directory TestResults
+
+      - name: Send test results to Grafana
+        if: always()
+        uses: gillersja1/test-results-otel@v1
+        with:
+          results: TestResults/solutions.trx
+          suite: reference-solutions
+          otlp-endpoint: ${{ secrets.OTEL_EXPORTER_OTLP_ENDPOINT }}
+          otlp-headers: ${{ secrets.OTEL_EXPORTER_OTLP_HEADERS }}
 
       - name: Dungeon logs
         if: failure()
