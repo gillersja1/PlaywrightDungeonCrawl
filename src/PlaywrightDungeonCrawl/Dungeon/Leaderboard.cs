@@ -43,7 +43,10 @@ public interface IPlayerRecords
 
     Task<Certificate?> CertificateForAsync(string playerId, CancellationToken ct = default);
 
-    /// <summary>Issues the player's certificate, or reprints their existing one with a new name (same id and date).</summary>
+    /// <summary>
+    /// Issues the player's certificate, or reprints their existing one: the name and ID may change, the date doesn't.
+    /// <see cref="CertificateAsync"/> also finds a certificate by its previous ID.
+    /// </summary>
     Task<Certificate> IssueCertificateAsync(Certificate certificate, CancellationToken ct = default);
 }
 
@@ -159,14 +162,18 @@ public sealed class InMemoryPlayerRecords(TimeProvider clock) : IPlayerRecords
     }
 
     public Task<Certificate?> CertificateAsync(string id, CancellationToken ct = default) =>
-        Task.FromResult(certificates.Values.FirstOrDefault(c => c.Id == id));
+        Task.FromResult(certificates.Values.FirstOrDefault(c => c.Id == id) ?? certificates.Values.FirstOrDefault(c => c.PreviousId == id));
 
     public Task<Certificate?> CertificateForAsync(string playerId, CancellationToken ct = default) =>
         Task.FromResult(certificates.TryGetValue(playerId, out var certificate) ? certificate : null);
 
     public Task<Certificate> IssueCertificateAsync(Certificate certificate, CancellationToken ct = default) =>
         Task.FromResult(certificates.AddOrUpdate(certificate.PlayerId, certificate,
-            (_, saved) => saved with { Name = certificate.Name, Login = certificate.Login }));
+            (_, saved) => saved with
+            {
+                Id = certificate.Id, Name = certificate.Name, Login = certificate.Login,
+                PreviousId = certificate.PreviousId ?? saved.PreviousId,
+            }));
 }
 
 public sealed class PostgresPlayerRecords(NpgsqlDataSource db) : IPlayerRecords
@@ -217,7 +224,8 @@ public sealed class PostgresPlayerRecords(NpgsqlDataSource db) : IPlayerRecords
     }
 
     public async Task<Certificate?> CertificateAsync(string id, CancellationToken ct = default) =>
-        await LoadCertificateAsync("id = $1", id, ct);
+        // Its current ID first, then an ID it had before an upgrade.
+        await LoadCertificateAsync("id = $1 or previous_id = $1 order by (id = $1) desc limit 1", id, ct);
 
     public async Task<Certificate?> CertificateForAsync(string playerId, CancellationToken ct = default) =>
         await LoadCertificateAsync("github_id = $1", playerId, ct);
@@ -225,13 +233,15 @@ public sealed class PostgresPlayerRecords(NpgsqlDataSource db) : IPlayerRecords
     public async Task<Certificate> IssueCertificateAsync(Certificate certificate, CancellationToken ct = default)
     {
         await using var upsert = db.CreateCommand("""
-            insert into certificates (id, github_id, login, name, floors, score, issued_at) values ($1, $2, $3, $4, $5, $6, $7)
-            on conflict (github_id) do update set name = excluded.name, login = excluded.login
+            insert into certificates (id, github_id, login, name, floors, score, issued_at, previous_id)
+            values ($1, $2, $3, $4, $5, $6, $7, $8)
+            on conflict (github_id) do update set id = excluded.id, name = excluded.name, login = excluded.login,
+                previous_id = coalesce(excluded.previous_id, certificates.previous_id)
             """);
-        foreach (var value in new object[] { certificate.Id, certificate.PlayerId, certificate.Login, certificate.Name,
-                     certificate.Floors, certificate.Score, certificate.IssuedAt })
+        foreach (var value in new object?[] { certificate.Id, certificate.PlayerId, certificate.Login, certificate.Name,
+                     certificate.Floors, certificate.Score, certificate.IssuedAt, certificate.PreviousId })
         {
-            upsert.Parameters.Add(new() { Value = value });
+            upsert.Parameters.Add(new() { Value = value ?? DBNull.Value });
         }
         await upsert.ExecuteNonQueryAsync(ct);
         return (await CertificateForAsync(certificate.PlayerId, ct))!;
@@ -240,12 +250,13 @@ public sealed class PostgresPlayerRecords(NpgsqlDataSource db) : IPlayerRecords
     private async Task<Certificate?> LoadCertificateAsync(string where, string value, CancellationToken ct)
     {
         await using var select = db.CreateCommand(
-            $"select id, github_id, login, name, floors, score, issued_at from certificates where {where}");
+            $"select id, github_id, login, name, floors, score, issued_at, previous_id from certificates where {where}");
         select.Parameters.Add(new() { Value = value });
         await using var reader = await select.ExecuteReaderAsync(ct);
         return await reader.ReadAsync(ct)
             ? new(reader.GetString(0), reader.GetString(1), reader.GetString(2), reader.GetString(3),
-                reader.GetInt32(4), reader.GetInt32(5), reader.GetFieldValue<DateTimeOffset>(6))
+                reader.GetInt32(4), reader.GetInt32(5), reader.GetFieldValue<DateTimeOffset>(6),
+                reader.IsDBNull(7) ? null : reader.GetString(7))
             : null;
     }
 

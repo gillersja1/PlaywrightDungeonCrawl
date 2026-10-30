@@ -189,6 +189,7 @@ public static class PostgresDatabase
                 floors integer not null,
                 score integer not null,
                 issued_at timestamptz not null);
+            alter table certificates add column if not exists previous_id text;
             """);
         await create.ExecuteNonQueryAsync(ct);
     }

@@ -67,7 +67,7 @@ public class CertificateTests
         Assert.Multiple(() =>
         {
             Assert.That(reply.StatusCode, Is.EqualTo(HttpStatusCode.Redirect));
-            Assert.That(url, Does.Match("^/certificates/[0-9a-f]{16}$"));
+            Assert.That(url, Does.Match($"^/certificates/PDC-{DateTime.UtcNow:yyyyMMdd}-[0-9A-HJKMNP-TV-Z]{{8}}$"));
             Assert.That(stranger, Does.Contain("Ada Lovelace").And.Contain("Certificate of Survival")
                 .And.Contain("@ada").And.Contain(Catalog.Floors[^1].Skill));
             Assert.That(stranger, Does.Not.Contain("Add to LinkedIn"), "only the owner gets the share buttons");
@@ -104,6 +104,42 @@ public class CertificateTests
         await player.DeleteAsync("/api/progress");
 
         Assert.That(await Records.CertificateForAsync("id-ada"), Is.Not.Null);
+    }
+
+    [Test]
+    public async Task ReprintingAnOldStyleIdUpgradesItAndRedirectsTheOldLink()
+    {
+        var player = dungeon.ClientFor("ada");
+        await ClearFloorsAsync("ada", Catalog.Floors.Count);
+        var issuedAt = new DateTimeOffset(2026, 10, 30, 12, 0, 0, TimeSpan.Zero);
+        await Records.IssueCertificateAsync(new("f83e4b36c2981004", "id-ada", "ada", "Ada", 6, 510, issuedAt));
+
+        await IssueAsync(player, "Ada Lovelace");
+        var upgraded = await Records.CertificateForAsync("id-ada");
+        var oldLink = await dungeon.ClientFor(null).GetAsync("/certificates/f83e4b36c2981004");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(upgraded!.Id, Does.Match("^PDC-20261030-[0-9A-HJKMNP-TV-Z]{8}$"), "keeps the original issue date");
+            Assert.That(upgraded.IssuedAt, Is.EqualTo(issuedAt));
+            Assert.That(oldLink.StatusCode, Is.EqualTo(HttpStatusCode.MovedPermanently));
+            Assert.That(oldLink.Headers.Location!.OriginalString, Is.EqualTo($"/certificates/{upgraded.Id}"));
+        });
+    }
+
+    [Test]
+    public void NewIdsCarryTheDateAndAreUnambiguous()
+    {
+        var ids = Enumerable.Range(0, 200).Select(_ => CertificateRules.NewId(new DateTimeOffset(2026, 10, 30, 23, 0, 0, TimeSpan.FromHours(-4)))).ToList();
+
+        Assert.Multiple(() =>
+        {
+            // 23:00 in UTC-4 is already the 31st in UTC.
+            Assert.That(ids, Has.All.Match("^PDC-20261031-[0-9A-HJKMNP-TV-Z]{8}$"));
+            Assert.That(ids.Distinct().Count(), Is.EqualTo(ids.Count));
+            Assert.That(CertificateRules.IsLegacyId("f83e4b36c2981004"), Is.True);
+            Assert.That(CertificateRules.IsLegacyId(ids[0]), Is.False);
+        });
     }
 
     [Test]

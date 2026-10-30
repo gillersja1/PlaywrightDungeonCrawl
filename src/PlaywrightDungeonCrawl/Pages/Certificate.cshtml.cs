@@ -48,10 +48,14 @@ public class CertificateModel(IPlayerRecords records, IProgressStore progress, D
             return Page();
         }
 
+        var issuedAt = Existing?.IssuedAt ?? clock.GetUtcNow();
+        var upgrade = Existing is not null && CertificateRules.IsLegacyId(Existing.Id);
+        var id = Existing is null || upgrade ? CertificateRules.NewId(issuedAt) : Existing.Id;
         var issued = await records.IssueCertificateAsync(new Certificate(
-            Existing?.Id ?? CertificateRules.NewId(), playerId, User.Identity!.Name ?? "", name,
-            Mine!.FloorsCleared, Mine.Score, Existing?.IssuedAt ?? clock.GetUtcNow()), HttpContext.RequestAborted);
-        logger.LogInformation("Certificate {CertificateId} {Action}", issued.Id, Existing is null ? "issued" : "renamed");
+            id, playerId, User.Identity!.Name ?? "", name, Mine!.FloorsCleared, Mine.Score, issuedAt,
+            upgrade ? Existing!.Id : Existing?.PreviousId), HttpContext.RequestAborted);
+        logger.LogInformation("Certificate {CertificateId} {Action}", issued.Id,
+            Existing is null ? "issued" : upgrade ? "upgraded" : "renamed");
         return Redirect($"/certificates/{issued.Id}");
     }
 

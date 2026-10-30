@@ -86,23 +86,27 @@ public class PostgresTests
     }
 
     [Test]
-    public async Task CertificatesAreIssuedOnceAndReprinted()
+    public async Task CertificatesAreReprintedAndOldIdsStillFindThem()
     {
         var records = new PostgresPlayerRecords(db);
         var player = $"test-{Guid.NewGuid()}";
         var issuedAt = new DateTimeOffset(2026, 10, 30, 12, 0, 0, TimeSpan.Zero);
+        var legacyId = Convert.ToHexString(Guid.NewGuid().ToByteArray())[..16].ToLowerInvariant();
 
-        var first = await records.IssueCertificateAsync(new(CertificateRules.NewId(), player, "ada", "Ada", 6, 900, issuedAt));
-        // A reprint arrives with a fresh id and date; the stored ones win.
-        var reprint = await records.IssueCertificateAsync(new(CertificateRules.NewId(), player, "ada", "Ada Lovelace", 6, 950, issuedAt.AddDays(1)));
-        var byId = await records.CertificateAsync(first.Id);
+        await records.IssueCertificateAsync(new(legacyId, player, "ada", "Ada", 6, 900, issuedAt));
+        // An upgrade: new id and name, the old id kept. The stored date stays.
+        var upgraded = await records.IssueCertificateAsync(new(
+            CertificateRules.NewId(issuedAt), player, "ada", "Ada Lovelace", 6, 950, issuedAt.AddDays(1), legacyId));
+        // A plain rename later doesn't lose the old id.
+        var renamed = await records.IssueCertificateAsync(new(upgraded.Id, player, "ada", "Ada L.", 6, 950, issuedAt));
+        var byOldId = await records.CertificateAsync(legacyId);
 
         Assert.Multiple(() =>
         {
-            Assert.That(reprint.Id, Is.EqualTo(first.Id));
-            Assert.That(reprint.IssuedAt, Is.EqualTo(issuedAt));
-            Assert.That(reprint.Name, Is.EqualTo("Ada Lovelace"));
-            Assert.That(byId, Is.EqualTo(reprint));
+            Assert.That(upgraded.Id, Does.StartWith("PDC-20261030-"));
+            Assert.That(upgraded.IssuedAt, Is.EqualTo(issuedAt));
+            Assert.That(renamed.PreviousId, Is.EqualTo(legacyId));
+            Assert.That(byOldId, Is.EqualTo(renamed));
         });
     }
 
