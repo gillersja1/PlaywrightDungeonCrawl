@@ -35,6 +35,7 @@ var flagSecret = builder.Configuration["Dungeon:FlagSecret"] ?? "local-dungeon-s
 builder.Services.AddSingleton(new FlagService(flagSecret));
 
 builder.AddAccounts();
+builder.AddTelemetry();
 
 var app = builder.Build();
 await app.PrepareAccountsAsync();

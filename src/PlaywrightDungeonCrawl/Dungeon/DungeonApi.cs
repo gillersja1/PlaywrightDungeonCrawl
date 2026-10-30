@@ -20,6 +20,7 @@ public static class DungeonApi
                 return Results.NotFound();
             }
             var attempt = attempts.Start(floor.Room, Random.Shared);
+            Telemetry.AttemptStarted(slug);
             return Results.Ok(new
             {
                 AttemptId = attempt.Id,
@@ -35,14 +36,25 @@ public static class DungeonApi
                 : Results.StatusCode(425));
 
         api.MapPost("/rooms/{slug}/attempts/{id:guid}/answer",
-            (string slug, Guid id, AnswerRequest body, AttemptStore attempts, FlagService flags) =>
-                attempts.Answer(slug, id, body.Answer ?? "") switch
+            (string slug, Guid id, AnswerRequest body, AttemptStore attempts, FlagService flags, ILoggerFactory logs) =>
+            {
+                var outcome = attempts.Answer(slug, id, body.Answer ?? "");
+                var name = outcome switch
                 {
-                    AnswerOutcome.Correct => Results.Ok(new { Outcome = "correct", Flag = flags.ForRoom(slug) }),
-                    AnswerOutcome.UnknownAttempt => Results.NotFound(new { Outcome = "unknown-attempt" }),
-                    AnswerOutcome.TooSlow => Results.UnprocessableEntity(new { Outcome = "too-slow" }),
-                    _ => Results.UnprocessableEntity(new { Outcome = "wrong" }),
-                });
+                    AnswerOutcome.Correct => "correct",
+                    AnswerOutcome.UnknownAttempt => "unknown-attempt",
+                    AnswerOutcome.TooSlow => "too-slow",
+                    _ => "wrong",
+                };
+                Telemetry.Answered(slug, name);
+                logs.CreateLogger("PlaywrightDungeonCrawl.Rooms").LogInformation("Answer in {Room}: {Outcome}", slug, name);
+                return outcome switch
+                {
+                    AnswerOutcome.Correct => Results.Ok(new { Outcome = name, Flag = flags.ForRoom(slug) }),
+                    AnswerOutcome.UnknownAttempt => Results.NotFound(new { Outcome = name }),
+                    _ => Results.UnprocessableEntity(new { Outcome = name }),
+                };
+            });
 
         api.MapPost("/treasure/claim", (ClaimRequest body, DungeonCatalog catalog, FlagService flags) =>
         {
@@ -50,6 +62,7 @@ public static class DungeonApi
             // Accept a flag on its own: find which room it belongs to.
             var floor = catalog.Floors.FirstOrDefault(f =>
                 (body.Room is null || f.Room.Slug == body.Room) && flags.IsValid(f.Room.Slug, flag));
+            Telemetry.TreasureClaimed(floor?.Room.Slug);
             return floor is null
                 ? Results.Ok(new { Valid = false })
                 : Results.Ok(new { Valid = true, Room = floor.Room.Slug, Floor = floor.Number, Treasure = floor.Room.Name });
