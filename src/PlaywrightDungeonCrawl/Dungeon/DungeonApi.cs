@@ -12,6 +12,9 @@ public static class DungeonApi
     public static void MapDungeonApi(this WebApplication app)
     {
         var api = app.MapGroup("/api");
+        // One log line per game event: Grafana counts these for plays, solve rate
+        // and claims, which stays exact even though Render restarts the app.
+        var events = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("PlaywrightDungeonCrawl.Rooms");
 
         api.MapPost("/rooms/{slug}/attempts", (string slug, DungeonCatalog catalog, AttemptStore attempts) =>
         {
@@ -21,6 +24,7 @@ public static class DungeonApi
             }
             var attempt = attempts.Start(floor.Room, Random.Shared);
             Telemetry.AttemptStarted(slug);
+            events.LogInformation("Attempt in {Room}", slug);
             return Results.Ok(new
             {
                 AttemptId = attempt.Id,
@@ -36,7 +40,7 @@ public static class DungeonApi
                 : Results.StatusCode(425));
 
         api.MapPost("/rooms/{slug}/attempts/{id:guid}/answer",
-            (string slug, Guid id, AnswerRequest body, AttemptStore attempts, FlagService flags, ILoggerFactory logs) =>
+            (string slug, Guid id, AnswerRequest body, AttemptStore attempts, FlagService flags) =>
             {
                 var outcome = attempts.Answer(slug, id, body.Answer ?? "");
                 var name = outcome switch
@@ -47,7 +51,7 @@ public static class DungeonApi
                     _ => "wrong",
                 };
                 Telemetry.Answered(slug, name);
-                logs.CreateLogger("PlaywrightDungeonCrawl.Rooms").LogInformation("Answer in {Room}: {Outcome}", slug, name);
+                events.LogInformation("Answer in {Room}: {Outcome}", slug, name);
                 return outcome switch
                 {
                     AnswerOutcome.Correct => Results.Ok(new { Outcome = name, Flag = flags.ForRoom(slug) }),
@@ -63,6 +67,7 @@ public static class DungeonApi
             var floor = catalog.Floors.FirstOrDefault(f =>
                 (body.Room is null || f.Room.Slug == body.Room) && flags.IsValid(f.Room.Slug, flag));
             Telemetry.TreasureClaimed(floor?.Room.Slug);
+            events.LogInformation("Treasure claim for {Room}", floor?.Room.Slug ?? "invalid");
             return floor is null
                 ? Results.Ok(new { Valid = false })
                 : Results.Ok(new { Valid = true, Room = floor.Room.Slug, Floor = floor.Number, Treasure = floor.Room.Name });
