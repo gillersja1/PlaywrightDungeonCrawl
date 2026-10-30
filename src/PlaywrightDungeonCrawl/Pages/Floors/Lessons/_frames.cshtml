@@ -1,3 +1,63 @@
 <section>
-    <p class="tip"><strong>This scroll is still being written.</strong> The riddle works already. The full lesson and the trap room are coming soon.</p>
+    <h2>Frames: a page inside the page</h2>
+    <p>
+        An <code>&lt;iframe&gt;</code> is a whole separate document: a payment form, an embedded editor, a widget
+        from another team. Page-level locators only search the page's own document, so they never find
+        anything inside a frame.
+    </p>
+<pre><code>// Finds nothing: the button lives in the frame's document.
+await Page.GetByRole(AriaRole.Button, new() { Name = "Pay" }).ClickAsync();
+
+// Scope the search to the frame first.
+var payment = Page.FrameLocator("#payment");
+await payment.GetByRole(AriaRole.Button, new() { Name = "Pay" }).ClickAsync();</code></pre>
+    <p>
+        <code>FrameLocator</code> takes a selector for the <code>&lt;iframe&gt;</code> element, and everything you
+        chain after it searches inside that frame. It waits for the frame to load, like any other locator.
+    </p>
+</section>
+
+<section>
+    <h2>Shadow DOM: Playwright looks inside for you</h2>
+    <p>
+        Web components hide their insides in a <em>shadow root</em>, so the page's styles and scripts can't
+        reach in by accident. In some tools you have to dig through <code>shadowRoot</code> by hand.
+        In Playwright you don't: role, text, label and CSS locators all look inside open shadow roots.
+    </p>
+<pre><code>// The button is inside &lt;magic-widget&gt;'s shadow root. No extra steps needed.
+await Page.GetByRole(AriaRole.Button, new() { Name = "Open" }).ClickAsync();</code></pre>
+    <p class="tip">
+        <strong>The exception:</strong> XPath doesn't go into shadow roots. One more reason to prefer
+        user-facing locators.
+    </p>
+</section>
+
+<section>
+    <h2>Dialogs: say yes before you're asked</h2>
+    <p>
+        <code>alert()</code>, <code>confirm()</code> and <code>prompt()</code> open native browser dialogs. Nobody is
+        there to click OK during a test, so Playwright <strong>dismisses</strong> them: <code>confirm()</code>
+        returns <code>false</code>, and the page carries on as if the user clicked Cancel. The test doesn't fail.
+        The page just quietly doesn't do the thing.
+    </p>
+    <p>To accept instead, register a handler <em>before</em> the action that opens the dialog:</p>
+<pre><code>Page.Dialog += async (_, dialog) =>
+{
+    TestContext.Out.WriteLine($"Dialog said: {dialog.Message}");
+    await dialog.AcceptAsync();
+};
+
+await Page.GetByRole(AriaRole.Button, new() { Name = "Delete" }).ClickAsync();</code></pre>
+    <p>
+        The handler runs for every dialog from then on, including ones opened inside frames. For a
+        <code>prompt()</code>, pass the text to type: <code>dialog.AcceptAsync("my answer")</code>.
+    </p>
+</section>
+
+<section>
+    <h2>All three at once</h2>
+    <p>
+        In the trap room there's a mirror. It's in a frame. What's in the frame is in a shadow root. And breaking
+        it asks if you're sure. You have eight seconds, and your reflection is watching.
+    </p>
 </section>
