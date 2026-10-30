@@ -31,12 +31,14 @@ public static class Accounts
             var db = NpgsqlDataSource.Create(PostgresDatabase.NormalizeConnectionString(connectionString));
             services.AddSingleton(db);
             services.AddSingleton<IProgressStore, PostgresProgressStore>();
+            services.AddSingleton<IPlayerRecords, PostgresPlayerRecords>();
             services.AddDataProtection().SetApplicationName("PlaywrightDungeonCrawl");
             services.Configure<KeyManagementOptions>(options => options.XmlRepository = new PostgresXmlRepository(db));
         }
         else
         {
             services.AddSingleton<IProgressStore, InMemoryProgressStore>();
+            services.AddSingleton<IPlayerRecords, InMemoryPlayerRecords>();
         }
 
         var auth = services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -98,9 +100,10 @@ public static class Accounts
         progress.MapPut("", async (PlayerProgress body, ClaimsPrincipal user, DungeonCatalog catalog, IProgressStore store) =>
             Results.Ok(await store.MergeAsync(PlayerId(user), user.Identity!.Name ?? "", body.Sanitize(catalog))));
 
-        progress.MapDelete("", async (ClaimsPrincipal user, IProgressStore store) =>
+        progress.MapDelete("", async (ClaimsPrincipal user, IProgressStore store, IPlayerRecords records) =>
         {
             await store.ResetAsync(PlayerId(user));
+            await records.ResetAsync(PlayerId(user));
             return Results.NoContent();
         });
     }

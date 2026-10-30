@@ -58,6 +58,34 @@ public class PostgresTests
     }
 
     [Test]
+    public async Task VerifiedAchievementsAndListingPersist()
+    {
+        var records = new PostgresPlayerRecords(db);
+        var player = $"test-{Guid.NewGuid()}";
+
+        await records.RecordAsync(player, "ada", Achievement.Treasure, "welcome-matt");
+        var first = (await records.GetAsync(player))!.Achievements.Single().EarnedAt;
+        await records.RecordAsync(player, "ada", Achievement.Treasure, "welcome-matt");
+        await records.RecordAsync(player, "ada", Achievement.Riddle, "setup");
+        var unlisted = await records.ListedAsync();
+        await records.SetOnLeaderboardAsync(player, "ada", true);
+        var listed = await records.ListedAsync();
+        var saved = await records.GetAsync(player);
+        await records.ResetAsync(player);
+        var afterReset = await records.GetAsync(player);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(unlisted.Select(r => r.PlayerId), Does.Not.Contain(player));
+            Assert.That(listed.Select(r => r.PlayerId), Does.Contain(player));
+            Assert.That(saved!.Achievements, Has.Count.EqualTo(2), "recording twice keeps one entry");
+            Assert.That(saved.Achievements.Single(a => a.Kind == Achievement.Treasure).EarnedAt, Is.EqualTo(first));
+            Assert.That(afterReset!.Achievements, Is.Empty);
+            Assert.That(afterReset.OnLeaderboard, Is.True, "a reset keeps the leaderboard choice");
+        });
+    }
+
+    [Test]
     public void CookieKeysSurviveARestart()
     {
         var name = $"key-{Guid.NewGuid()}";

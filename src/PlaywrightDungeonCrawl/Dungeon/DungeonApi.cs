@@ -40,7 +40,7 @@ public static class DungeonApi
                 : Results.StatusCode(425));
 
         api.MapPost("/rooms/{slug}/attempts/{id:guid}/answer",
-            (string slug, Guid id, AnswerRequest body, AttemptStore attempts, FlagService flags) =>
+            async (string slug, Guid id, AnswerRequest body, AttemptStore attempts, FlagService flags, HttpContext context) =>
             {
                 var outcome = attempts.Answer(slug, id, body.Answer ?? "");
                 var name = outcome switch
@@ -52,6 +52,10 @@ public static class DungeonApi
                 };
                 Telemetry.Answered(slug, name);
                 events.LogInformation("Answer in {Room}: {Outcome}", slug, name);
+                if (outcome == AnswerOutcome.Correct)
+                {
+                    await Leaderboard.RecordIfSignedInAsync(context, Achievement.Treasure, slug);
+                }
                 return outcome switch
                 {
                     AnswerOutcome.Correct => Results.Ok(new { Outcome = name, Flag = flags.ForRoom(slug) }),
@@ -60,7 +64,7 @@ public static class DungeonApi
                 };
             });
 
-        api.MapPost("/treasure/claim", (ClaimRequest body, DungeonCatalog catalog, FlagService flags) =>
+        api.MapPost("/treasure/claim", async (ClaimRequest body, DungeonCatalog catalog, FlagService flags, HttpContext context) =>
         {
             var flag = body.Flag?.Trim();
             // Accept a flag on its own: find which room it belongs to.
@@ -68,6 +72,11 @@ public static class DungeonApi
                 (body.Room is null || f.Room.Slug == body.Room) && flags.IsValid(f.Room.Slug, flag));
             Telemetry.TreasureClaimed(floor?.Room.Slug);
             events.LogInformation("Treasure claim for {Room}", floor?.Room.Slug ?? "invalid");
+            if (floor is not null)
+            {
+                // The flag is signed by this server, so a valid one proves the room was cleared.
+                await Leaderboard.RecordIfSignedInAsync(context, Achievement.Treasure, floor.Room.Slug);
+            }
             return floor is null
                 ? Results.Ok(new { Valid = false })
                 : Results.Ok(new { Valid = true, Room = floor.Room.Slug, Floor = floor.Number, Treasure = floor.Room.Name });
