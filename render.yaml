@@ -22,3 +22,9 @@ services:
       # Neon's connection string (the postgresql://... URL is fine).
       - key: ConnectionStrings__Dungeon
         sync: false
+      # Traces, metrics and logs to Grafana Cloud. Leave both unset to turn
+      # telemetry off; the values come from Grafana's OpenTelemetry (OTLP) page.
+      - key: OTEL_EXPORTER_OTLP_ENDPOINT
+        sync: false
+      - key: OTEL_EXPORTER_OTLP_HEADERS
+        sync: false
