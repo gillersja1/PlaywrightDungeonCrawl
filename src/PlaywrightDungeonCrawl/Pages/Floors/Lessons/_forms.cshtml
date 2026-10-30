@@ -1,3 +1,69 @@
 <section>
-    <p class="tip"><strong>This scroll is still being written.</strong> The riddle works already. The full lesson and the trap room are coming soon.</p>
+    <h2>Fill forms the way a user reads them</h2>
+    <p>
+        A user finds a field by the words next to it, so your test should too. <code>GetByLabel</code> finds an
+        input by its <code>&lt;label&gt;</code>, and keeps working when someone renames an id or reorders the form.
+    </p>
+<pre><code>await Page.GetByLabel("Adventurer name").FillAsync("Merin Ashgrove");</code></pre>
+    <p>
+        <code>FillAsync</code> clears the field first, then types the whole value and fires the same input events
+        a real keyboard would. It's the right call for nearly every text-like input.
+    </p>
+</section>
+
+<section>
+    <h2>One method per kind of input</h2>
+    <table class="lesson-table">
+        <thead><tr><th scope="col">Input</th><th scope="col">Method</th><th scope="col">Example</th></tr></thead>
+        <tbody>
+            <tr><td>Text, email, password</td><td><code>FillAsync</code></td><td><code>.FillAsync("Merin")</code></td></tr>
+            <tr><td>Number</td><td><code>FillAsync</code>, as text</td><td><code>.FillAsync("7")</code></td></tr>
+            <tr><td>Date</td><td><code>FillAsync</code>, as <code>yyyy-MM-dd</code></td><td><code>.FillAsync("2026-05-03")</code></td></tr>
+            <tr><td>Dropdown (<code>&lt;select&gt;</code>)</td><td><code>SelectOptionAsync</code></td><td><code>.SelectOptionAsync("Cartographers")</code></td></tr>
+            <tr><td>Checkbox</td><td><code>CheckAsync</code> / <code>UncheckAsync</code></td><td><code>.CheckAsync()</code></td></tr>
+            <tr><td>Radio button</td><td><code>CheckAsync</code></td><td><code>GetByRole(AriaRole.Radio, new() { Name = "Ranger" }).CheckAsync()</code></td></tr>
+        </tbody>
+    </table>
+    <p>
+        A date input always takes <code>yyyy-MM-dd</code>, whatever format the browser shows on screen. A number
+        input still takes a string: <code>FillAsync(torches.ToString())</code>.
+    </p>
+    <p class="tip">
+        <strong>Why <code>CheckAsync</code> and not <code>ClickAsync</code>?</strong> A click toggles: on a box
+        that's already ticked, it unticks it. <code>CheckAsync</code> makes sure the box ends up checked, and fails
+        if it can't.
+    </p>
+</section>
+
+<section>
+    <h2>Reading values from the page</h2>
+    <p>
+        Forms are often filled from data that's on the page too: a table, a summary, an email preview. Read it
+        with locators, then use it:
+    </p>
+<pre><code>// A table row's accessible name is its cells' text, so "Guild" finds the Guild row.
+var guild = await Page.GetByRole(AriaRole.Row, new() { Name = "Guild" })
+    .GetByRole(AriaRole.Cell)
+    .TextContentAsync();
+
+await Page.GetByLabel("Guild").SelectOptionAsync(guild!.Trim());</code></pre>
+    <p>
+        Read every value you need first, then fill the form in one go. On a page that's racing a timer, that's
+        the difference between a cleared room and a sprung trap.
+    </p>
+</section>
+
+<section>
+    <h2>Check what you entered</h2>
+    <p>
+        Before you submit, or when a test fails and you're not sure why, assert on the field itself.
+        These are web-first assertions, so they wait like the ones on floor 3:
+    </p>
+<pre><code>await Expect(Page.GetByLabel("Adventurer name")).ToHaveValueAsync("Merin Ashgrove");
+await Expect(Page.GetByLabel("Guild")).ToHaveValueAsync("Cartographers");
+await Expect(Page.GetByLabel("I swear this registration is true")).ToBeCheckedAsync();</code></pre>
+    <p>
+        In the trap room, a scribe keeps a ledger and won't let you through unless your registration matches it
+        exactly. Six seconds. Every kind of input on this scroll, in one form.
+    </p>
 </section>

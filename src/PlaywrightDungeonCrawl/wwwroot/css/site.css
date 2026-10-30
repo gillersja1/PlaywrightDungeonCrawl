@@ -166,6 +166,20 @@ button:disabled { opacity: 0.6; cursor: default; }
 .door:hover { background: linear-gradient(#6d4a2c, #4a301b); color: #fff; }
 .door.sealed { background: var(--stone-700); border-color: var(--stone-600); color: var(--stone-400); cursor: not-allowed; }
 .door.sealed::after { content: " 🔒"; }
+.lesson-table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 0.95rem; }
+.lesson-table th, .lesson-table td { border-bottom: 1px solid rgba(43, 33, 24, 0.2); padding: 6px 10px; text-align: left; vertical-align: top; }
+/* Floor 4: the Scribe's Ledger */
+.scribe-voice { font-style: italic; color: var(--stone-400); }
+.ledger { border-collapse: collapse; margin: 8px 0 16px; background: var(--parchment); color: var(--ink); border-radius: 8px; overflow: hidden; font-family: var(--serif); }
+.ledger caption { text-align: left; font-weight: 600; color: var(--bone); padding-bottom: 4px; }
+.ledger th, .ledger td { padding: 6px 14px; border-bottom: 1px solid rgba(43, 33, 24, 0.2); text-align: left; }
+.ledger th { font-weight: 600; }
+.ledger-form { display: grid; grid-template-columns: 10rem minmax(0, 320px); justify-content: start; gap: 10px 14px; align-items: center; max-width: 480px; }
+.ledger-form fieldset, .ledger-form .ledger-oath, .ledger-form button { grid-column: 1 / -1; }
+.ledger-form fieldset { border: 1px solid var(--stone-600); border-radius: 8px; display: flex; flex-wrap: wrap; gap: 6px 16px; }
+.ledger-form input, .ledger-form select { background: var(--stone-900); color: var(--bone); border: 1px solid var(--stone-600); border-radius: 6px; padding: 6px 8px; font: inherit; }
+.ledger-form button { justify-self: start; }
+.ledger-choice { display: inline-flex; gap: 6px; align-items: center; }
 .room-result:empty { display: none; }
 .room-result { border-radius: 8px; padding: 10px 14px; }
 .room-result.cleared { background: rgba(111, 191, 115, 0.12); border: 1px solid var(--moss); }
