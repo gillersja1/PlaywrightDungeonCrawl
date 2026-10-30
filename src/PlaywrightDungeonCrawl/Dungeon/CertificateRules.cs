@@ -17,6 +17,9 @@ public static partial class CertificateRules
     public const string CourseName = "Playwright Dungeon Crawl: Playwright for .NET";
     public const string Issuer = "Playwright Dungeon Crawl";
 
+    /// <summary>The Playwright Dungeon Crawl LinkedIn Page: using it shows its logo next to the certification.</summary>
+    public const string LinkedInOrganizationId = "144076964";
+
     /// <summary>Earned once every floor the dungeon has open is verified as cleared.</summary>
     public static bool IsEligible(Standing standing, DungeonCatalog catalog) =>
         standing.FloorsCleared >= catalog.Floors.Count;
@@ -45,7 +48,7 @@ public static partial class CertificateRules
     public static string LinkedInUrl(Certificate certificate, string verifyUrl) =>
         "https://www.linkedin.com/profile/add?startTask=CERTIFICATION_NAME" +
         $"&name={Uri.EscapeDataString(CourseName)}" +
-        $"&organizationName={Uri.EscapeDataString(Issuer)}" +
+        $"&organizationId={LinkedInOrganizationId}" +
         $"&issueYear={certificate.IssuedAt.Year}&issueMonth={certificate.IssuedAt.Month}" +
         $"&certUrl={Uri.EscapeDataString(verifyUrl)}" +
         $"&certId={Uri.EscapeDataString(certificate.Id)}";

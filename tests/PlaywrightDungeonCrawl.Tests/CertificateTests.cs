@@ -71,7 +71,8 @@ public class CertificateTests
             Assert.That(stranger, Does.Contain("Ada Lovelace").And.Contain("Certificate of Survival")
                 .And.Contain("@ada").And.Contain(Catalog.Floors[^1].Skill));
             Assert.That(stranger, Does.Not.Contain("Add to LinkedIn"), "only the owner gets the share buttons");
-            Assert.That(owner, Does.Contain("linkedin.com/profile/add").And.Contain("certId=" + url.Split('/')[^1]));
+            Assert.That(owner, Does.Contain("linkedin.com/profile/add").And.Contain("certId=" + url.Split('/')[^1])
+                .And.Contain("organizationId=" + CertificateRules.LinkedInOrganizationId));
         });
     }
 
