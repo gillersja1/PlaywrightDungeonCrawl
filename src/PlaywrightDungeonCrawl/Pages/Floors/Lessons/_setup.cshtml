@@ -186,6 +186,13 @@ public class TrainingDummyTests : DungeonTest
     <p class="tip">
         <strong>Stuck?</strong> The room's <em>Give me a nudge</em> button has hints, and on this floor they're free.
     </p>
+    <p class="tip">
+        <strong>Did it work?</strong> When your test takes the treasure, the browser stays open for 3 seconds so
+        you can see the door give it up. Change or turn off that pause with <code>VictoryPauseSeconds</code> in
+        <code>dungeon.runsettings</code>. To watch every step instead, add <code>await Page.PauseAsync();</code>
+        at the top of the test and step through it in the Inspector (step 5), or turn on <code>SlowMo</code>.
+        The Welcome Matt gives you 10 minutes, so there's no rush.
+    </p>
 </section>
 
 <section>
