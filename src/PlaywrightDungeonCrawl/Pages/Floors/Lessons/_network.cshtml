@@ -1,3 +1,73 @@
 <section>
-    <p class="tip"><strong>This scroll is still being written.</strong> The riddle works already. The full lesson and the trap room are coming soon.</p>
+    <h2>The page is talking behind your back</h2>
+    <p>
+        Most of what a modern page shows arrives over the network after it loads: JSON from an API, filled into
+        the page by JavaScript. Some of what arrives is never shown at all. A test that can read those responses
+        can check data the user never sees, find out why a page shows the wrong thing, and wait for exactly the
+        call it cares about.
+    </p>
+</section>
+
+<section>
+    <h2>Catch a response as it happens</h2>
+    <p>
+        <code>RunAndWaitForResponseAsync</code> starts listening, runs an action, and returns the first response
+        that matches:
+    </p>
+<pre><code>var response = await Page.RunAndWaitForResponseAsync(
+    () => Page.GetByRole(AriaRole.Button, new() { Name = "Search" }).ClickAsync(),
+    r => r.Url.Contains("/api/search") &amp;&amp; r.Status == 200);</code></pre>
+    <p class="tip">
+        <strong>Order matters.</strong> If you navigate or click first and only then start waiting, a fast
+        response can come and go before you're listening, and your test waits for something that already
+        happened. Wrapping the action means you're listening before it starts.
+    </p>
+    <p>
+        It works for a page load too: put the navigation inside, and you'll catch requests the page makes as it
+        opens:
+    </p>
+<pre><code>var response = await Page.RunAndWaitForResponseAsync(
+    () => Page.GotoAsync("https://example.com/dashboard"),
+    r => r.Url.Contains("/api/profile"));</code></pre>
+</section>
+
+<section>
+    <h2>Read what came back</h2>
+    <p>A response knows its URL, status and headers, and can give you its body:</p>
+<pre><code>TestContext.Out.WriteLine($"{response.Status} {response.Url}");
+
+var json = await response.JsonAsync();          // JsonElement?
+var name = json?.GetProperty("user").GetProperty("name").GetString();
+
+var text = await response.TextAsync();          // the raw body, if it isn't JSON</code></pre>
+    <p>
+        Not sure which request you need? Log them all while you explore:
+        <code>Page.Response += (_, r) =&gt; TestContext.Out.WriteLine($"{r.Status} {r.Url}");</code>
+    </p>
+</section>
+
+<section>
+    <h2>Step into the wire with routes</h2>
+    <p>
+        Listening is half of it. <code>RouteAsync</code> lets a test answer a request itself: return fake data,
+        simulate a failure, or block a slow third-party script. It's how you test the error message a page shows
+        when the API is down, without taking the API down.
+    </p>
+<pre><code>await Page.RouteAsync("**/api/profile", route => route.FulfillAsync(new()
+{
+    Status = 500,
+    Body = "{\"error\":\"boom\"}",
+    ContentType = "application/json",
+}));
+
+await Page.GotoAsync("https://example.com/dashboard");
+await Expect(Page.GetByRole(AriaRole.Alert)).ToHaveTextAsync("Couldn't load your profile");</code></pre>
+</section>
+
+<section>
+    <h2>Listen to the vault</h2>
+    <p>
+        The vault in this floor's trap room whispers its combination as you walk in, over the wire, and never
+        writes it on the wall. What you can see on the page are echoes, and echoes lie. Five seconds.
+    </p>
 </section>
