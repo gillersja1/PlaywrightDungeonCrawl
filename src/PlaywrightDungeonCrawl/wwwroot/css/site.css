@@ -19,6 +19,9 @@
 
 * { box-sizing: border-box; }
 
+/* Classes that set display (like .next-step's flex) would otherwise show hidden elements. */
+[hidden] { display: none !important; }
+
 body {
     margin: 0;
     background: radial-gradient(ellipse at top, #2a2230 0%, var(--stone-900) 60%) fixed;
