@@ -181,6 +181,14 @@ public static class PostgresDatabase
                 slug text not null,
                 earned_at timestamptz not null default now(),
                 primary key (github_id, kind, slug));
+            create table if not exists certificates (
+                id text primary key,
+                github_id text not null unique,
+                login text not null,
+                name text not null,
+                floors integer not null,
+                score integer not null,
+                issued_at timestamptz not null);
             """);
         await create.ExecuteNonQueryAsync(ct);
     }

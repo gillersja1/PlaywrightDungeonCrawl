@@ -86,6 +86,27 @@ public class PostgresTests
     }
 
     [Test]
+    public async Task CertificatesAreIssuedOnceAndReprinted()
+    {
+        var records = new PostgresPlayerRecords(db);
+        var player = $"test-{Guid.NewGuid()}";
+        var issuedAt = new DateTimeOffset(2026, 10, 30, 12, 0, 0, TimeSpan.Zero);
+
+        var first = await records.IssueCertificateAsync(new(CertificateRules.NewId(), player, "ada", "Ada", 6, 900, issuedAt));
+        // A reprint arrives with a fresh id and date; the stored ones win.
+        var reprint = await records.IssueCertificateAsync(new(CertificateRules.NewId(), player, "ada", "Ada Lovelace", 6, 950, issuedAt.AddDays(1)));
+        var byId = await records.CertificateAsync(first.Id);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(reprint.Id, Is.EqualTo(first.Id));
+            Assert.That(reprint.IssuedAt, Is.EqualTo(issuedAt));
+            Assert.That(reprint.Name, Is.EqualTo("Ada Lovelace"));
+            Assert.That(byId, Is.EqualTo(reprint));
+        });
+    }
+
+    [Test]
     public void CookieKeysSurviveARestart()
     {
         var name = $"key-{Guid.NewGuid()}";

@@ -1,0 +1,54 @@
+@page
+@model CertificateModel
+@using PlaywrightDungeonCrawl.Dungeon
+@{
+    ViewData["Title"] = "Your certificate";
+}
+
+<section class="hero">
+    <p class="eyebrow">Playwright Dungeon Crawl</p>
+    <h1>Your certificate</h1>
+    <p class="lead">
+        Clear every open floor and the dungeon will vouch for you in writing: a @CertificateRules.Title with its own
+        page anyone can check, ready for your LinkedIn profile.
+    </p>
+</section>
+
+<section class="panel">
+    @if (Model.Mine is null)
+    {
+        <p>Certificates are for signed-in crawlers, so the dungeon knows whose name it's vouching for.
+            <a href="/signin?returnUrl=/certificate">Sign in with GitHub</a> to start.</p>
+    }
+    else if (!Model.Eligible)
+    {
+        <h2>Not yet</h2>
+        <p>
+            Verified so far: <strong>@Model.Mine.FloorsCleared of @Model.FloorCount floors</strong>. A floor counts once
+            its riddle is answered and its treasure is claimed while you're signed in.
+        </p>
+        <p><a class="button" href="/">Back to the map</a> <a class="button secondary" href="/leaderboard">See the leaderboard</a></p>
+    }
+    else
+    {
+        <h2>@(Model.Existing is null ? "You've earned it" : "Change the printed name")</h2>
+        @if (Model.Existing is null)
+        {
+            <p>All @Model.FloorCount floors verified. Score: <strong>@Model.Mine.Score XP</strong>. Choose the name to print.</p>
+        }
+        else
+        {
+            <p>Your certificate stays at the same address with the same date; only the name changes.
+                <a href="/certificates/@Model.Existing.Id">View it</a>.</p>
+        }
+        <form method="post" class="inline-form">
+            <label for="cert-name">Name on the certificate</label>
+            <input id="cert-name" name="Name" value="@Model.Name" maxlength="@CertificateRules.MaxNameLength" required autocomplete="name" />
+            <button type="submit">@(Model.Existing is null ? "Issue my certificate" : "Reprint")</button>
+        </form>
+    }
+    @if (Model.Error is not null)
+    {
+        <p class="bad" role="alert">@Model.Error</p>
+    }
+</section>
