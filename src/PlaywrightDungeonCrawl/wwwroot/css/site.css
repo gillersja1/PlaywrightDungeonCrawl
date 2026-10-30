@@ -290,3 +290,7 @@ button:disabled { opacity: 0.6; cursor: default; }
     body > header, body > footer, .certificate-actions, .dungeon-ai-toast { display: none !important; }
     .certificate { box-shadow: none; border: 2px solid #7a5230; margin: 0 auto; }
 }
+
+/* Trap rooms: the way to the claim form */
+.claim-callout { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.claim-callout .button { margin-left: auto; }
