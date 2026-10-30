@@ -255,3 +255,38 @@ button:disabled { opacity: 0.6; cursor: default; }
 .leaderboard th, .leaderboard td { border-bottom-color: var(--stone-600); }
 .leaderboard img { border-radius: 50%; }
 .leaderboard tr.me { background: rgba(242, 163, 58, 0.12); }
+
+/* Certificate */
+.certificate {
+    position: relative; max-width: 760px; margin: 24px auto; padding: 48px 56px 36px; text-align: center;
+    background: radial-gradient(ellipse at center, #f8efda 0%, var(--parchment) 60%, #e6d6b2 100%);
+    color: var(--ink); font-family: var(--serif); border-radius: 6px;
+    box-shadow: 0 0 0 10px #e6d6b2, 0 0 0 12px var(--torch-dim), 0 18px 40px rgba(0, 0, 0, 0.5);
+}
+.certificate h1 { font-size: 2.4rem; margin: 6px 0 18px; color: var(--ink); }
+.certificate-banner { letter-spacing: 0.25em; text-transform: uppercase; font-size: 0.85rem; color: #7a5230; margin: 0; }
+.certificate-intro { font-style: italic; margin: 0; }
+.certificate-name { font-size: 2.1rem; font-weight: 700; margin: 6px auto 14px; padding-bottom: 6px; border-bottom: 2px solid #7a5230; display: inline-block; min-width: 60%; }
+.certificate-skills { list-style: none; padding: 0; margin: 10px 0 18px; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 10px; }
+.certificate-skills li { border: 1px solid #b8a37a; border-radius: 999px; padding: 2px 12px; font-size: 0.95rem; }
+.certificate-facts { display: flex; justify-content: center; gap: 36px; margin: 0 0 10px; }
+.certificate-facts dt { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; color: #7a5230; }
+.certificate-facts dd { margin: 0; font-weight: 600; }
+.certificate-seal {
+    width: 84px; height: 84px; margin: 14px auto 6px; border-radius: 50%; display: grid; place-items: center;
+    font-size: 2.2rem; color: #f3e9d2; background: radial-gradient(circle at 35% 30%, #c0392b, #7b1d14 70%);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4), inset 0 0 0 4px rgba(255, 255, 255, 0.12);
+}
+.certificate-signoff { margin: 8px 0 18px; font-style: italic; }
+.certificate-signoff p { margin: 0; }
+.certificate-signoff footer { font-style: normal; font-size: 0.85rem; color: #7a5230; }
+.certificate-verify { font-family: var(--sans); font-size: 0.8rem; color: #5a4a3a; margin: 0; }
+.certificate-verify a { color: #7a5230; }
+.certificate .mono { font-family: var(--mono); word-break: break-all; }
+.certificate-actions { max-width: 760px; margin: 0 auto; }
+
+@media print {
+    body { background: #fff; }
+    body > header, body > footer, .certificate-actions, .dungeon-ai-toast { display: none !important; }
+    .certificate { box-shadow: none; border: 2px solid #7a5230; margin: 0 auto; }
+}

@@ -19,6 +19,9 @@ public static class DungeonAi
 
     public static string FloorIntro(string floorSlug) => FloorIntros.GetValueOrDefault(floorSlug, "");
 
+    /// <summary>The Dungeon AI's endorsement, printed on every certificate.</summary>
+    public const string CertificateSignOff = "Adequate. Genuinely, unsettlingly adequate.";
+
     /// <summary>Said under the sealed floors on the map.</summary>
     public const string SealedFloors =
         "Floors seven to eighteen are under construction. The Dungeon AI apologizes for the inconvenience. It does not apologize for what's down there.";

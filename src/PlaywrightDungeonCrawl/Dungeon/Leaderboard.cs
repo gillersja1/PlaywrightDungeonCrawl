@@ -36,8 +36,15 @@ public interface IPlayerRecords
     /// <summary>Everyone who chose to appear on the leaderboard.</summary>
     Task<IReadOnlyList<PlayerRecord>> ListedAsync(CancellationToken ct = default);
 
-    /// <summary>Clears achievements (a progress reset); the leaderboard choice stays.</summary>
+    /// <summary>Clears achievements (a progress reset); the leaderboard choice and any certificate stay.</summary>
     Task ResetAsync(string playerId, CancellationToken ct = default);
+
+    Task<Certificate?> CertificateAsync(string id, CancellationToken ct = default);
+
+    Task<Certificate?> CertificateForAsync(string playerId, CancellationToken ct = default);
+
+    /// <summary>Issues the player's certificate, or reprints their existing one with a new name (same id and date).</summary>
+    Task<Certificate> IssueCertificateAsync(Certificate certificate, CancellationToken ct = default);
 }
 
 public sealed record Standing(string Login, int FloorsCleared, int Score, DateTimeOffset? ReachedAt);
@@ -119,6 +126,7 @@ public static class Leaderboard
 public sealed class InMemoryPlayerRecords(TimeProvider clock) : IPlayerRecords
 {
     private readonly ConcurrentDictionary<string, PlayerRecord> players = new();
+    private readonly ConcurrentDictionary<string, Certificate> certificates = new();
 
     public Task RecordAsync(string playerId, string login, string kind, string slug, CancellationToken ct = default)
     {
@@ -149,6 +157,16 @@ public sealed class InMemoryPlayerRecords(TimeProvider clock) : IPlayerRecords
         players.AddOrUpdate(playerId, _ => PlayerRecord.Empty(playerId, ""), (_, saved) => saved with { Achievements = [] });
         return Task.CompletedTask;
     }
+
+    public Task<Certificate?> CertificateAsync(string id, CancellationToken ct = default) =>
+        Task.FromResult(certificates.Values.FirstOrDefault(c => c.Id == id));
+
+    public Task<Certificate?> CertificateForAsync(string playerId, CancellationToken ct = default) =>
+        Task.FromResult(certificates.TryGetValue(playerId, out var certificate) ? certificate : null);
+
+    public Task<Certificate> IssueCertificateAsync(Certificate certificate, CancellationToken ct = default) =>
+        Task.FromResult(certificates.AddOrUpdate(certificate.PlayerId, certificate,
+            (_, saved) => saved with { Name = certificate.Name, Login = certificate.Login }));
 }
 
 public sealed class PostgresPlayerRecords(NpgsqlDataSource db) : IPlayerRecords
@@ -196,6 +214,39 @@ public sealed class PostgresPlayerRecords(NpgsqlDataSource db) : IPlayerRecords
         await using var delete = db.CreateCommand("delete from player_achievements where github_id = $1");
         delete.Parameters.Add(new() { Value = playerId });
         await delete.ExecuteNonQueryAsync(ct);
+    }
+
+    public async Task<Certificate?> CertificateAsync(string id, CancellationToken ct = default) =>
+        await LoadCertificateAsync("id = $1", id, ct);
+
+    public async Task<Certificate?> CertificateForAsync(string playerId, CancellationToken ct = default) =>
+        await LoadCertificateAsync("github_id = $1", playerId, ct);
+
+    public async Task<Certificate> IssueCertificateAsync(Certificate certificate, CancellationToken ct = default)
+    {
+        await using var upsert = db.CreateCommand("""
+            insert into certificates (id, github_id, login, name, floors, score, issued_at) values ($1, $2, $3, $4, $5, $6, $7)
+            on conflict (github_id) do update set name = excluded.name, login = excluded.login
+            """);
+        foreach (var value in new object[] { certificate.Id, certificate.PlayerId, certificate.Login, certificate.Name,
+                     certificate.Floors, certificate.Score, certificate.IssuedAt })
+        {
+            upsert.Parameters.Add(new() { Value = value });
+        }
+        await upsert.ExecuteNonQueryAsync(ct);
+        return (await CertificateForAsync(certificate.PlayerId, ct))!;
+    }
+
+    private async Task<Certificate?> LoadCertificateAsync(string where, string value, CancellationToken ct)
+    {
+        await using var select = db.CreateCommand(
+            $"select id, github_id, login, name, floors, score, issued_at from certificates where {where}");
+        select.Parameters.Add(new() { Value = value });
+        await using var reader = await select.ExecuteReaderAsync(ct);
+        return await reader.ReadAsync(ct)
+            ? new(reader.GetString(0), reader.GetString(1), reader.GetString(2), reader.GetString(3),
+                reader.GetInt32(4), reader.GetInt32(5), reader.GetFieldValue<DateTimeOffset>(6))
+            : null;
     }
 
     private async Task<List<PlayerRecord>> LoadAsync(string where, object[] args, CancellationToken ct)
