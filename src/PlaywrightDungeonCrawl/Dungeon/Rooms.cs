@@ -325,6 +325,41 @@ public sealed class WhisperingVault : Room
 }
 
 /// <summary>
+/// Floor 8: the price is only ever written on the far side of a portal, a link that opens a new tab.
+/// That tab first shows a decoy toll, then moves on to the merchant's stall, where the real price is.
+/// A test has to catch the new page, wait for it to arrive, read it, and pay back on the first page.
+/// </summary>
+public sealed class PortalBazaar : Room
+{
+    public override string[] Nudges { get; } =
+    {
+        "The price is never written in this room. Step through the portal: it opens in a new tab.",
+        "A new tab is a new page, and Page still points at the old one. Catch the new one as it opens. Then don't trust the first thing you read there: the portal moves you on to the merchant's stall.",
+        "var stall = await Page.RunAndWaitForPopupAsync(() => Page.GetByRole(AriaRole.Link, new() { Name = \"Step through the portal\" }).ClickAsync()); await stall.WaitForURLAsync(\"**/stall\"); read stall.GetByTestId(\"price\"), then pay on Page, not on stall.",
+    };
+
+    public override string[] TypeScriptNudges { get; } =
+    {
+        "The price is never written in this room. Step through the portal: it opens in a new tab.",
+        "A new tab is a new page, and page still points at the old one. Catch the new one as it opens. Then don't trust the first thing you read there: the portal moves you on to the merchant's stall.",
+        "Start waiting, then click: const opening = page.waitForEvent('popup'); await page.getByRole('link', { name: 'Step through the portal' }).click(); const stall = await opening; await stall.waitForURL('**/stall'); read stall.getByTestId('price'), then pay on page, not on stall.",
+    };
+
+    public override string Slug => "portal-bazaar";
+    public override string Name => "The Merchant's Portal";
+    public override string Objective =>
+        "The merchant won't say his price in this room. He writes it on the far side of a portal. Step through, read it, come back and pay.";
+    public override TimeSpan TimeLimit => TimeSpan.FromSeconds(8);
+
+    public override RoomPuzzle Generate(Random rng)
+    {
+        var price = Rune(rng, 6);
+        var toll = Rune(rng, 6);
+        return new RoomPuzzle(new { }, price, Reveal: new { Price = price, Toll = toll });
+    }
+}
+
+/// <summary>
 /// Floor 7, the first boss: five trials in one run, one for each skill so far.
 /// The server checks every trial before it hands over what the next one needs,
 /// so the only way through is in order, at script speed.

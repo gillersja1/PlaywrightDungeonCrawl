@@ -29,6 +29,7 @@ builder.Services.AddSingleton<Room, ScribesLedger>();
 builder.Services.AddSingleton<Room, MirrorChamber>();
 builder.Services.AddSingleton<Room, WhisperingVault>();
 builder.Services.AddSingleton<Room, WardensGauntlet>();
+builder.Services.AddSingleton<Room, PortalBazaar>();
 builder.Services.AddSingleton<DungeonCatalog>();
 
 // Set Dungeon__FlagSecret in any shared deployment; the default only suits local play.

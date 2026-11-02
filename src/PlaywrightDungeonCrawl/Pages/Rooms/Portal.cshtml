@@ -1,0 +1,29 @@
+@page "/portal/{id:guid}/{stage?}"
+@{
+    var id = Guid.Parse((string)RouteData.Values["id"]!);
+    var atStall = string.Equals(RouteData.Values["stage"] as string, "stall", StringComparison.OrdinalIgnoreCase);
+    ViewData["Title"] = atStall ? "The merchant's stall" : "Through the portal";
+}
+@* Floor 8's trap room opens this in a new tab. The first stop shows a decoy toll, then moves on to the stall. *@
+
+<section class="panel portal" data-portal="@id" data-stage="@(atStall ? "stall" : "portal")">
+    @if (atStall)
+    {
+        <p class="eyebrow">The Portal Bazaar</p>
+        <h1>The merchant's stall</h1>
+        <p class="portal-status">The ledger is still drying…</p>
+        <p class="portal-price"></p>
+        <p class="breakdown">Pay it in the room you came from. This tab is only for reading.</p>
+    }
+    else
+    {
+        <p class="eyebrow">The Portal Bazaar</p>
+        <h1>Through the portal</h1>
+        <p class="portal-status">The portal swirls. You're nearly there…</p>
+        <p class="portal-toll"></p>
+    }
+</section>
+
+@section Scripts {
+    <script src="~/js/portal.js" asp-append-version="true"></script>
+}

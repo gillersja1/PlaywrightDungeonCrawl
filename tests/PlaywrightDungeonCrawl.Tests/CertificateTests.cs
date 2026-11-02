@@ -17,6 +17,7 @@ public class CertificateTests
 
     private IPlayerRecords Records => dungeon.Services.GetRequiredService<IPlayerRecords>();
     private DungeonCatalog Catalog => dungeon.Services.GetRequiredService<DungeonCatalog>();
+    private static int Apprentice => CertificateRules.For(CertificateTier.Apprentice).Floors;
 
     private async Task ClearFloorsAsync(string login, int count)
     {
@@ -80,16 +81,16 @@ public class CertificateTests
     }
 
     [Test]
-    public async Task NotEligibleUntilEveryFloorIsVerified()
+    public async Task NotEligibleUntilEveryApprenticeFloorIsVerified()
     {
         var player = dungeon.ClientFor("ada");
-        await ClearFloorsAsync("ada", Catalog.Floors.Count - 1);
+        await ClearFloorsAsync("ada", Apprentice - 1);
 
         var page = await player.GetStringAsync("/certificate");
 
         Assert.Multiple(async () =>
         {
-            Assert.That(page, Does.Contain("Not yet").And.Contain($"{Catalog.Floors.Count - 1} of {Catalog.Floors.Count} floors"));
+            Assert.That(page, Does.Contain("Not yet").And.Contain($"{Apprentice - 1} of {Catalog.Floors.Count} floors"));
             Assert.That(await Records.CertificateForAsync("id-ada"), Is.Null);
         });
     }
@@ -110,7 +111,7 @@ public class CertificateTests
             Assert.That(reply.StatusCode, Is.EqualTo(HttpStatusCode.Redirect));
             Assert.That(url, Does.Match($"^/certificates/PDC-{DateTime.UtcNow:yyyyMMdd}-[0-9A-HJKMNP-TV-Z]{{8}}$"));
             Assert.That(stranger, Does.Contain("Ada Lovelace").And.Contain("Certificate of Survival")
-                .And.Contain("@ada").And.Contain(Catalog.Floors[^1].Skill));
+                .And.Contain("@ada").And.Contain(Catalog.Floors[Apprentice - 1].Skill).And.Not.Contain(Catalog.Floors[Apprentice].Skill));
             Assert.That(stranger, Does.Not.Contain("Add to LinkedIn"), "only the owner gets the share buttons");
             Assert.That(owner, Does.Contain("linkedin.com/profile/add").And.Contain("certId=" + url.Split('/')[^1])
                 .And.Contain("organizationId=" + CertificateRules.LinkedInOrganizationId));

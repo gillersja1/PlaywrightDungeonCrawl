@@ -1,0 +1,64 @@
+<section>
+    <h2>One test, many tabs</h2>
+    <p>
+        Real sites send you elsewhere all the time: a "Pay with…" button opens a provider's window, a help link opens
+        in a new tab, a sign-in hops through three addresses before it lands. Your test starts with one tab,
+        <code>Page</code>, and <code>Page</code> stays pointed at it, whatever opens next. Following the user means
+        catching the new tab, waiting for it to arrive, and remembering which tab you're acting on.
+    </p>
+</section>
+
+<section>
+    <h2>Catch a tab as it opens</h2>
+    <p>
+        <code>RunAndWaitForPopupAsync</code> starts listening, runs an action, and hands you the page it opened:
+    </p>
+<pre><code>var help = await Page.RunAndWaitForPopupAsync(
+    () =&gt; Page.GetByRole(AriaRole.Link, new() { Name = "Help center" }).ClickAsync());
+
+await Expect(help.GetByRole(AriaRole.Heading, new() { Name = "How can we help?" })).ToBeVisibleAsync();</code></pre>
+    <p class="tip">
+        <strong>Order matters, again.</strong> Like waiting for a response on floor 6, the listening has to start
+        before the click. Wrap the click and you can't miss the tab, however fast it opens.
+    </p>
+    <p>
+        <code>help</code> is a full <code>IPage</code>: locators, <code>Expect</code>, screenshots, all of it.
+        <code>Page</code> is still the tab you started in, so you can go back to it whenever you like, with no
+        switching. Done with the new one? <code>await help.CloseAsync();</code>
+    </p>
+</section>
+
+<section>
+    <h2>Wait for where you're going</h2>
+    <p>
+        Some pages send you on as soon as they load: a redirect after sign-in, a "processing…" screen. Reading the
+        first page you land on gets you the wrong one. Wait for the address instead:
+    </p>
+<pre><code>await Page.WaitForURLAsync("**/order/confirmed");          // a glob
+await Page.WaitForURLAsync(new Regex(@@"/order/\d+$"));     // or a regex</code></pre>
+    <p>
+        For moving yourself, there's <code>GotoAsync</code>, <code>GoBackAsync</code>, <code>GoForwardAsync</code>
+        and <code>ReloadAsync</code>, the browser's own buttons. Locators and <code>Expect</code> wait for the new
+        page on their own, so you rarely need more than that.
+    </p>
+</section>
+
+<section>
+    <h2>Every tab in one place</h2>
+    <p>
+        Tabs belong to a browser context, a private browser profile your test gets to itself.
+        <code>Page.Context.Pages</code> lists every open tab, and its <code>Page</code> event fires for each new one,
+        however it opened. Handy when a site opens something you didn't click, or when you want to check that a
+        stray tab didn't appear.
+    </p>
+<pre><code>Assert.That(Page.Context.Pages, Has.Count.EqualTo(2));</code></pre>
+</section>
+
+<section>
+    <h2>Pay the merchant</h2>
+    <p>
+        This floor's merchant won't say his price in the room. He writes it on the far side of a portal, which opens
+        in a new tab, and the portal doesn't drop you at his stall straight away. Read the right sign, then pay where
+        you came from. Eight seconds.
+    </p>
+</section>
