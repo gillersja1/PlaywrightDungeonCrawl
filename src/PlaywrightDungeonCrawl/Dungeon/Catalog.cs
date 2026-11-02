@@ -4,7 +4,17 @@ namespace PlaywrightDungeonCrawl.Dungeon;
 /// <param name="Explanation">Shown once the question is answered correctly.</param>
 public sealed record QuizQuestion(string Prompt, string[] Options, int CorrectIndex, string Explanation, string Hint);
 
-public sealed record Floor(int Number, string Slug, string Title, string Skill, string Tagline, Room Room, QuizQuestion[] Riddles);
+public sealed record Floor(int Number, string Slug, string Title, string Skill, string Tagline, Room Room, QuizQuestion[] Riddles)
+{
+    /// <summary>The riddles in TypeScript, once this floor has been written for it.</summary>
+    public QuizQuestion[]? TypeScriptRiddles { get; init; }
+
+    /// <summary>Whether this floor's scroll, riddles and room are taught in TypeScript yet.</summary>
+    public bool HasTypeScript => TypeScriptRiddles is not null;
+
+    public QuizQuestion[] RiddlesIn(CodeLanguage language) =>
+        language == CodeLanguage.TypeScript && TypeScriptRiddles is { } ts ? ts : Riddles;
+}
 
 /// <summary>
 /// XP for each kind of progress, and the rank titles they unlock. The
@@ -93,7 +103,48 @@ public sealed class DungeonCatalog
                         1,
                         "Anything written with TestContext.Out.WriteLine is stored with the test result and shown in its details.",
                         "Output isn't an error, and it isn't in the browser. It's saved with the test result itself."),
-                }),
+                })
+            {
+                TypeScriptRiddles = new[]
+                {
+                    new QuizQuestion(
+                        "You click the run button next to a test in VS Code and a browser opens by itself. What opened it?",
+                        new[]
+                        {
+                            "VS Code's built-in browser preview",
+                            "Your test: Playwright Test starts a browser and gives every test a fresh page",
+                            "Windows, because the test touched a website",
+                            "The dungeon website",
+                        },
+                        1,
+                        "Playwright Test launches the browser, hands each test a new page (the page fixture), and closes it afterwards.",
+                        "Look at what your test function receives: async ({ page, dungeon }) => ... Where did that page come from?"),
+                    new QuizQuestion(
+                        "Where does the starter kit keep the dungeon's address?",
+                        new[]
+                        {
+                            "Hard-coded in every test",
+                            "In Windows environment settings",
+                            "In playwright.config.ts, as use.baseURL",
+                            "In the browser's bookmarks",
+                        },
+                        2,
+                        "One setting for the whole project. With a baseURL set, dungeon.enter('/rooms/...') and page.goto('/...') only need the path.",
+                        "It's a file in the starter kit with \"config\" in its name."),
+                    new QuizQuestion(
+                        "Your test printed a flag. Where do you find it in VS Code?",
+                        new[]
+                        {
+                            "In the Problems panel",
+                            "In the Test Results panel, which shows what the test printed",
+                            "In the browser's console",
+                            "It's emailed to you",
+                        },
+                        1,
+                        "Anything written with console.log in a test shows in the Test Results panel, or in the terminal if you ran npx playwright test.",
+                        "Output isn't a problem, and it isn't in the browser. It's shown with the results of the run."),
+                },
+            },
             new Floor(2, "locators", "The Hall of Doors", "Locators",
                 "Every door looks alike. Learn to find exactly the one you mean.",
                 bySlug["hall-of-doors"],

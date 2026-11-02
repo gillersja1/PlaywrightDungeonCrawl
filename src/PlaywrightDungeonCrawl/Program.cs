@@ -42,6 +42,7 @@ var app = builder.Build();
 await app.PrepareAccountsAsync();
 
 app.UseForwardedHeaders();
+app.UseLanguageSwitch();
 
 if (!app.Environment.IsDevelopment())
 {

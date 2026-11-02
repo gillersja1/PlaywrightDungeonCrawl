@@ -15,6 +15,7 @@
 <div data-page-gate="@Model.Floor.Number">
 <h1>The riddle of @Model.Floor.Title</h1>
 <p class="lead">Answer all three correctly to pass.</p>
+<partial name="_TypeScriptComingSoon" model="Model.Floor" />
 
 @if (Model.Graded)
 {
@@ -26,15 +27,16 @@
         }
         else
         {
-            <p><strong>@Model.CorrectCount of @Model.Floor.Riddles.Length correct.</strong> The questions you missed have a hint if you need one.</p>
+            <p><strong>@Model.CorrectCount of @Model.Riddles.Length correct.</strong> The questions you missed have a hint if you need one.</p>
         }
     </div>
 }
 
 <form method="post" class="riddle">
-    @for (var q = 0; q < Model.Floor.Riddles.Length; q++)
+    <input type="hidden" name="Lang" value="@Model.Language.Code()" />
+    @for (var q = 0; q < Model.Riddles.Length; q++)
     {
-        var riddle = Model.Floor.Riddles[q];
+        var riddle = Model.Riddles[q];
         var chosen = Model.Answers.Length > q ? Model.Answers[q] : (int?)null;
         <fieldset class="question @(Model.Graded ? (chosen == riddle.CorrectIndex ? "right" : "wrong") : "")">
             <legend>@(q + 1). @riddle.Prompt</legend>

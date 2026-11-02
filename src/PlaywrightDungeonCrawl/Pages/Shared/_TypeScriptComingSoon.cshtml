@@ -1,0 +1,13 @@
+@using PlaywrightDungeonCrawl.Dungeon
+@model Floor
+@if (Languages.Current(Context) == CodeLanguage.TypeScript && !Model.HasTypeScript)
+{
+    <aside class="panel lang-notice" role="note">
+        <p>
+            <strong>This floor hasn't been translated into TypeScript yet.</strong> The scribes are on it. Until then
+            it's shown in C#. The trap room works the same whichever language your test is in, so the Playwright
+            calls carry over: <code>Page.GetByRole(AriaRole.Button, ...)</code> is <code>page.getByRole('button', ...)</code>,
+            and <code>ClickAsync()</code> is <code>click()</code>.
+        </p>
+    </aside>
+}

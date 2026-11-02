@@ -14,7 +14,12 @@ public class RoomModel(DungeonCatalog catalog, IWebHostEnvironment env, IConfigu
     /// <summary>Rooms with a long limit (like the setup floor) show no countdown.</summary>
     public bool IsTimed => Floor.Room.TimeLimit < TimeSpan.FromMinutes(5);
 
-    public string StarterRepoUrl => StarterKit.RepoUrl(config);
+    /// <summary>The language this room is taught in: TypeScript only once the floor has it.</summary>
+    public CodeLanguage Language { get; private set; }
+
+    public string[] Nudges => Floor.Room.NudgesIn(Language);
+
+    public string StarterRepoUrl => StarterKit.RepoUrl(config, Language);
 
     /// <summary>e.g. "hall-of-doors" becomes "HallOfDoorsTests".</summary>
     public string TestClassName =>
@@ -27,6 +32,7 @@ public class RoomModel(DungeonCatalog catalog, IWebHostEnvironment env, IConfigu
             return NotFound();
         }
         Floor = floor;
+        Language = floor.For(Languages.Current(HttpContext));
         IsBuilt = env.WebRootFileProvider.GetFileInfo($"js/rooms/{slug}.js").Exists;
         return Page();
     }

@@ -1,0 +1,12 @@
+@using PlaywrightDungeonCrawl.Dungeon
+@{
+    var current = Languages.Current(Context);
+}
+@* Switching goes through ?lang=, which saves the choice and comes back to this page. *@
+<div class="lang-switch" role="group" aria-label="Test language">
+    @foreach (var language in new[] { CodeLanguage.CSharp, CodeLanguage.TypeScript })
+    {
+        <a href="@(Context.Request.Path)?lang=@language.Code()" aria-current="@(language == current ? "true" : null)"
+           title="Teach me in @language.DisplayName()">@language.DisplayName()</a>
+    }
+</div>

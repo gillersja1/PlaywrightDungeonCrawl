@@ -20,6 +20,8 @@
     <p class="lead">@room.Objective</p>
 </header>
 
+<partial name="_TypeScriptComingSoon" model="Model.Floor" />
+
 @if (room.Plaque is { } plaque)
 {
     <aside class="plaque" aria-label="Plaque">
@@ -66,9 +68,9 @@ else
         <h2 id="nudge-heading">Stuck?</h2>
         <p>Nudges get more specific each time, and each one costs a little more XP. Take only as many as you need.</p>
         <ol class="nudge-list">
-            @for (var i = 0; i < room.Nudges.Length; i++)
+            @for (var i = 0; i < Model.Nudges.Length; i++)
             {
-                <li hidden data-help-key="nudge:@room.Slug:@i" data-help-cost="@Rewards.NudgeCost(Model.Floor.Number, i)">@room.Nudges[i]</li>
+                <li hidden data-help-key="nudge:@room.Slug:@i" data-help-cost="@Rewards.NudgeCost(Model.Floor.Number, i)">@Model.Nudges[i]</li>
             }
         </ol>
         <button type="button" id="nudge-button" class="secondary">Give me a nudge</button>
@@ -76,6 +78,29 @@ else
 
     <details class="panel starter">
         <summary>How to beat it with a script</summary>
+        @if (Model.Language == CodeLanguage.TypeScript)
+        {
+            <p>
+                This room is meant for a Playwright test, not your mouse. In your
+                <a href="@Model.StarterRepoUrl">starter kit</a>, add a file called <code>tests/@(room.Slug).spec.ts</code>
+                like this one (new to this? <a href="/floors/setup">floor 1</a> walks you through it), then fill in your moves:
+            </p>
+<pre><code>import { test, expect } from './dungeon';
+
+test('clear the room', async ({ page, dungeon }) =&gt; {
+  await dungeon.enter('/rooms/@room.Slug');
+
+  // Your moves here.
+
+  await dungeon.takeTreasure();
+});</code></pre>
+            <p>
+                <code>takeTreasure()</code> waits for the flag and prints it in the test's output.
+                Paste it into <a href="/#treasure">Claim treasure</a> in the Respawn Room.
+            </p>
+        }
+        else
+        {
         <p>
             This room is meant for a Playwright test, not your mouse. In your
             <a href="@Model.StarterRepoUrl">starter kit</a> project, add a test class like this one
@@ -97,6 +122,7 @@ else
             <code>TakeTreasureAsync()</code> waits for the flag and prints it in the test's output.
             Paste it into <a href="/#treasure">Claim treasure</a> in the Respawn Room.
         </p>
+        }
         @if (Model.IsTimed)
         {
             <p class="tip">

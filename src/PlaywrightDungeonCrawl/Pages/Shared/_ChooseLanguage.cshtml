@@ -1,0 +1,21 @@
+@using PlaywrightDungeonCrawl.Dungeon
+@{
+    var current = Languages.Current(Context);
+}
+<section class="panel choose-language" aria-labelledby="choose-language-heading">
+    <h2 id="choose-language-heading">Choose your weapon</h2>
+    <p>
+        The dungeon doesn't care what drives the browser. Pick the language you want to write your tests in, and
+        every scroll, riddle and hint will speak it. You can switch any time with the toggle at the top of the page.
+    </p>
+    <div class="weapons">
+        <a class="weapon" href="?lang=csharp" aria-current="@(current == CodeLanguage.CSharp ? "true" : null)">
+            <strong>C#</strong>
+            <span>Playwright for .NET, in Visual Studio</span>
+        </a>
+        <a class="weapon" href="?lang=ts" aria-current="@(current == CodeLanguage.TypeScript ? "true" : null)">
+            <strong>TypeScript</strong>
+            <span>Playwright Test, in VS Code</span>
+        </a>
+    </div>
+</section>
