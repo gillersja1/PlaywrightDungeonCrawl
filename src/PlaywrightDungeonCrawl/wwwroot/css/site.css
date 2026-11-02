@@ -317,3 +317,18 @@ button:disabled { opacity: 0.6; cursor: default; }
 /* Trap rooms: the way to the claim form */
 .claim-callout { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
 .claim-callout .button { margin-left: auto; }
+
+/* Feedback */
+.feedback-form { display: grid; gap: 8px; max-width: 680px; }
+.feedback-form label { font-weight: 600; margin-top: 8px; }
+.feedback-form textarea { font: inherit; padding: 10px; border-radius: 6px; border: 1px solid var(--stone-600); background: var(--stone-900); color: var(--bone); resize: vertical; }
+.feedback-form button { justify-self: start; margin-top: 8px; }
+.feedback-form .rating { border: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; }
+.feedback-form .rating legend { font-weight: 600; margin-bottom: 6px; }
+.feedback-form .rating label { font-weight: 400; margin: 0; display: inline-flex; gap: 4px; align-items: center; }
+.feedback-form .rating-ends { font-size: 0.85rem; opacity: 0.7; }
+.optional { font-weight: 400; opacity: 0.7; }
+.form-error { color: #ff8a7a; }
+.form-error:empty, .form-error ul:empty { display: none; }
+.form-note, .subtle-note { font-size: 0.9rem; opacity: 0.8; }
+.trap-field { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }

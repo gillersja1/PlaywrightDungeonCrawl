@@ -124,4 +124,23 @@ public class PostgresTests
 
         Assert.That(keys.Select(k => (string?)k.Attribute("id")), Does.Contain(name));
     }
+
+    [Test]
+    public async Task FeedbackIsStored()
+    {
+        var message = $"test-{Guid.NewGuid()}";
+        await new PostgresFeedbackStore(db).AddAsync(new(5, message, null, "/rooms/welcome-matt", "ada", DateTimeOffset.UtcNow));
+
+        await using var read = db.CreateCommand("select rating, email, page, login from feedback where message = $1");
+        read.Parameters.AddWithValue(message);
+        await using var row = await read.ExecuteReaderAsync();
+        Assert.That(await row.ReadAsync(), Is.True);
+        Assert.Multiple(() =>
+        {
+            Assert.That(row.GetInt16(0), Is.EqualTo(5));
+            Assert.That(row.IsDBNull(1), Is.True);
+            Assert.That(row.GetString(2), Is.EqualTo("/rooms/welcome-matt"));
+            Assert.That(row.GetString(3), Is.EqualTo("ada"));
+        });
+    }
 }

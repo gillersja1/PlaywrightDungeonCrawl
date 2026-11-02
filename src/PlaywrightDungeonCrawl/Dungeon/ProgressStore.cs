@@ -191,6 +191,14 @@ public static class PostgresDatabase
                 issued_at timestamptz not null);
             alter table certificates add column if not exists previous_id text;
             alter table certificates add column if not exists language text not null default 'csharp';
+            create table if not exists feedback (
+                id bigserial primary key,
+                rating smallint,
+                message text not null,
+                email text,
+                page text not null,
+                login text,
+                created_at timestamptz not null default now());
             """);
         await create.ExecuteNonQueryAsync(ct);
     }

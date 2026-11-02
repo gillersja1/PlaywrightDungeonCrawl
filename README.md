@@ -97,4 +97,4 @@ CI runs both on every pull request. The reference solutions crawl the real Docke
 
 ## Feedback
 
-Stuck on a room, found a bug, or have an idea for a new floor? [Open an issue](https://github.com/gillersja1/PlaywrightDungeonCrawl/issues).
+Stuck on a room, found a bug, or have an idea for a new floor? Use [Send feedback](https://playwright-dungeon-crawl.onrender.com/feedback) on any page, or [open an issue](https://github.com/gillersja1/PlaywrightDungeonCrawl-Starter/issues) on the starter kit.
