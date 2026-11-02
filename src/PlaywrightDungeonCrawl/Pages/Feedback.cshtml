@@ -1,0 +1,59 @@
+@page
+@model FeedbackModel
+@{
+    ViewData["Title"] = "Send feedback";
+}
+
+<section class="hero">
+    <p class="eyebrow">The Suggestion Box</p>
+    <h1>Send feedback</h1>
+    <p class="lead">
+        Stuck on a room, loved a floor, found a typo? The dungeon reads everything. Probably out loud, in a mocking voice.
+    </p>
+</section>
+
+@if (Model.Sent)
+{
+    <section class="panel feedback-sent" role="status">
+        <h2>Thanks, crawler.</h2>
+        <p>Your note is in the box. The Dungeon AI has filed it under "humans, opinions of".</p>
+        <p><a class="button secondary" href="@Model.ReturnPath">Back to where you were</a></p>
+    </section>
+}
+else
+{
+    <form method="post" class="panel feedback-form" novalidate>
+        <input type="hidden" asp-for="From" value="@Model.ReturnPath" />
+        <div asp-validation-summary="ModelOnly" class="form-error" role="alert"></div>
+
+        <fieldset class="rating">
+            <legend>How's the crawl so far? <span class="optional">(optional)</span></legend>
+            @for (var i = 1; i <= 5; i++)
+            {
+                <label><input type="radio" name="Rating" value="@i" checked="@(Model.Rating == i)" /> @i</label>
+            }
+            <span class="rating-ends" aria-hidden="true">1 = grim, 5 = glorious</span>
+        </fieldset>
+
+        <label for="feedback-message">Your feedback</label>
+        <textarea id="feedback-message" asp-for="Message" rows="6" maxlength="2000" required
+                  placeholder="What worked, what didn't, what you'd like to see next."></textarea>
+        <span asp-validation-for="Message" class="form-error"></span>
+
+        <label for="feedback-email">Email <span class="optional">(optional, only if you'd like a reply)</span></label>
+        <input id="feedback-email" asp-for="Email" type="email" autocomplete="email" maxlength="200" />
+        <span asp-validation-for="Email" class="form-error"></span>
+
+        <div class="trap-field" aria-hidden="true">
+            <label for="feedback-website">Leave this empty</label>
+            <input id="feedback-website" asp-for="Website" tabindex="-1" autocomplete="off" />
+        </div>
+
+        <p class="form-note">Sent from <code>@Model.ReturnPath</code>, so we know which part of the dungeon you mean.</p>
+        <button type="submit">Send feedback</button>
+    </form>
+}
+
+<p class="subtle-note">
+    Found a bug you can reproduce? You can also <a href="@Model.IssuesUrl">open an issue on GitHub</a>.
+</p>

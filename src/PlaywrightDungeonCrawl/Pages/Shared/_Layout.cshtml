@@ -59,6 +59,7 @@
 
     <footer class="site-footer">
         <p>A free, hands-on way to learn Playwright, in C# or TypeScript. Docs: <a href="@docsUrl">@docsName</a>. @(player is not null ? "Your progress is saved to your GitHub account." : accountsOn ? "Progress is saved in this browser. Sign in with GitHub to keep it everywhere." : "Progress is saved in this browser only.")</p>
+        <p><a href="/feedback?from=@Uri.EscapeDataString(Context.Request.Path.Value ?? "/")">Send feedback</a></p>
     </footer>
 
     <script id="dungeon-rules" type="application/json">@Html.Raw(System.Text.Json.JsonSerializer.Serialize(new
