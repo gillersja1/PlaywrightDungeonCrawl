@@ -1,0 +1,91 @@
+<section>
+    <h2>One test, five traps</h2>
+    <p>
+        Real tests rarely check one thing. They sign in, find a record, fill a form, wait for a save, and check what
+        came back, all in one run. Every skill from the floors above is in this boss room, in order, and you need all
+        of them in a single test. This scroll has nothing new to memorize. It's about putting the pieces together so
+        the test stays readable, and finding out what went wrong when it doesn't pass.
+    </p>
+</section>
+
+<section>
+    <h2>Build it one trial at a time</h2>
+    <p>
+        Don't write the whole test and then run it. Write the first step, run it, and watch it pass. Then add the next.
+        When a long test fails, you want to know it was the step you just added.
+    </p>
+    <p>
+        Between steps, wait for the page to show you've moved on. A web-first assertion on the new heading or the new
+        form does it, and it doubles as a checkpoint: when it fails, the error tells you which step never finished.
+    </p>
+<pre><code>await Page.GetByRole(AriaRole.Button, new() { Name = "Save" }).ClickAsync();
+await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Step 2 of 3" })).ToBeVisibleAsync();</code></pre>
+</section>
+
+<section>
+    <h2>Set your listeners before you act</h2>
+    <p>
+        Two things from earlier floors only work if they're set up <em>before</em> the action that triggers them:
+        a dialog handler, and listening for a response. Dialog handlers can go at the very top of the test, where
+        they can't be forgotten. Responses are caught by wrapping the action that sends the request:
+    </p>
+<pre><code>Page.Dialog += async (_, dialog) =&gt; await dialog.AcceptAsync();
+
+// ... many steps later ...
+
+var response = await Page.RunAndWaitForResponseAsync(
+    () =&gt; Page.GetByRole(AriaRole.Button, new() { Name = "Submit" }).ClickAsync(),
+    r =&gt; r.Url.Contains("/api/orders"));</code></pre>
+</section>
+
+<section>
+    <h2>Keep it readable</h2>
+    <p>
+        Five steps in one method gets long fast. Give each step a small helper with a name that says what it does, so
+        the test reads like the plan:
+    </p>
+<pre><code>[Test]
+public async Task CheckoutWorks()
+{
+    await SignInAsync();
+    await AddToBasketAsync("Lantern");
+    await PayAsync();
+    await Expect(Page.GetByText("Order confirmed")).ToBeVisibleAsync();
+}
+
+private Task SignInAsync() =&gt; ...;</code></pre>
+    <p>Locators and values can still pass from one step to the next as arguments and return values.</p>
+</section>
+
+<section>
+    <h2>When it fails too fast to watch: tracing</h2>
+    <p>
+        The Inspector is great, until the page has a clock. Stepping line by line takes minutes; the boss gives you
+        seconds. Instead, let the test run at full speed and record a <strong>trace</strong>: every action, a snapshot
+        of the page before and after it, the network and the console.
+    </p>
+<pre><code>[SetUp]
+public async Task StartTracing() =&gt;
+    await Context.Tracing.StartAsync(new() { Screenshots = true, Snapshots = true, Sources = true });
+
+[TearDown]
+public async Task StopTracing() =&gt;
+    await Context.Tracing.StopAsync(new()
+    {
+        Path = Path.Combine(TestContext.CurrentContext.WorkDirectory, "trace.zip"),
+    });</code></pre>
+    <p>
+        The file lands in your test project's build folder (<code>bin\Debug\</code>, then your .NET version). Drop it
+        on <a href="https://trace.playwright.dev">trace.playwright.dev</a>; the trace is opened in your browser, not
+        uploaded. Click any step to see the page exactly as it was, and open the Network tab to see every request and
+        its response.
+    </p>
+</section>
+
+<section>
+    <h2>Face the Warden</h2>
+    <p>
+        Five trials: a gate with a sealed twin, an eye that opens once, an oath, a mirror that asks if you're sure, and a
+        name that's only ever whispered. Get one wrong and you start again. Fifteen seconds.
+    </p>
+</section>

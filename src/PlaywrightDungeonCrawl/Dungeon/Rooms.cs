@@ -6,7 +6,17 @@ namespace PlaywrightDungeonCrawl.Dungeon;
 /// A freshly generated puzzle. <see cref="Briefing"/> is sent to the browser;
 /// <see cref="Answer"/> never leaves the server.
 /// </summary>
-public sealed record RoomPuzzle(object Briefing, string Answer, object? Reveal = null, TimeSpan RevealAfter = default);
+public sealed record RoomPuzzle(object Briefing, string Answer, object? Reveal = null, TimeSpan RevealAfter = default)
+{
+    /// <summary>
+    /// Steps a room makes you clear, in order, before its final answer counts.
+    /// Each one is checked on the server, and only then hands over what the next one needs.
+    /// </summary>
+    public IReadOnlyList<Trial> Trials { get; init; } = [];
+}
+
+/// <summary>One step of a multi-step room. <see cref="Unlocks"/> is sent to the browser once it's cleared.</summary>
+public sealed record Trial(Func<string, bool> Accepts, object Unlocks);
 
 /// <summary>
 /// A trap room. Each attempt gets a new random puzzle and a deadline that is
@@ -264,4 +274,107 @@ public sealed class WhisperingVault : Room
             rune,
             Reveal: new { Vault = "sealed", Whispers = new { Combination = rune, Echoes = decoys } });
     }
+}
+
+/// <summary>
+/// Floor 7, the first boss: five trials in one run, one for each skill so far.
+/// The server checks every trial before it hands over what the next one needs,
+/// so the only way through is in order, at script speed.
+/// </summary>
+public sealed class WardensGauntlet : Room
+{
+    public override string[] Nudges { get; } =
+    {
+        "Don't try to write it in one go. Get trial 1 passing, then add trial 2, and so on. Each trial shows a heading like \"Trial 2 of 5\": wait for it before you act.",
+        "Everything you learned on floors 2 to 6 is in here, in order: a strict locator, a sigil that appears for a moment, a form, a mirror in a frame that asks \"are you sure?\", and a name that's only ever whispered over the network.",
+        "Register the dialog handler before anything else. For the last trial, wrap the click that speaks the mirror's rune: Page.RunAndWaitForResponseAsync(() => speak.ClickAsync(), r => r.Url.Contains(\"/trials\")), then read unlocks.whispers.trueName from the JSON.",
+    };
+
+    private static readonly string[] Gates =
+    {
+        "Iron Gate", "Bone Gate", "Ash Gate", "Rust Gate", "Gloom Gate", "Thorn Gate", "Salt Gate", "Raven Gate",
+        "Storm Gate", "Dusk Gate", "Wyrm Gate", "Veil Gate", "Grave Gate", "Quartz Gate", "Shade Gate", "Tide Gate",
+        "Flint Gate", "Spire Gate", "Ochre Gate", "Rook Gate", "Fen Gate", "Gilt Gate", "Pike Gate", "Crypt Gate",
+    };
+
+    private static readonly string[] Titles =
+    {
+        "Vexmoor the Unblinking", "Ossric of the Long Watch", "Malgrave the Patient", "Thessaly Ninelocks",
+        "Corvane the Keyless", "Ysmera of the Last Door",
+    };
+
+    public override string Slug => "wardens-gauntlet";
+    public override string Name => "The Warden's Gauntlet";
+    public override string Objective =>
+        "The Warden guards the way down. Five trials, one after another, each built from a floor you've already beaten. " +
+        "Clear them all, then speak the Warden's true name. Nobody has ever heard it said out loud.";
+    public override TimeSpan TimeLimit => TimeSpan.FromSeconds(15);
+
+    public override RoomPuzzle Generate(Random rng)
+    {
+        // Trial 1, locators: the gate's name appears twice, and one of the pair is sealed.
+        var names = Gates.OrderBy(_ => rng.Next()).Take(16).ToList();
+        var target = names[0];
+        names[1] = target;
+        var gates = names
+            .Select((label, i) => new HallOfDoors.Door($"gate-{Rune(rng, 4).ToLowerInvariant()}", label, i == 1))
+            .OrderBy(_ => rng.Next())
+            .ToList();
+        var open = gates.Single(g => g.Label == target && !g.Sealed).Id;
+
+        // Trial 2, waiting: the sigil shows for a moment, after a delay nobody can predict.
+        var sigil = Rune(rng);
+
+        // Trial 3, forms: swear the oath exactly as the Warden reads it out.
+        var oath = new OathEntry(
+            Titles[rng.Next(Titles.Length)],
+            ScribesLedger.Guilds[rng.Next(ScribesLedger.Guilds.Length)],
+            rng.Next(2, 13));
+
+        // Trial 4, frames: the rune behind the mirror. Trial 5, network: the true name, never shown.
+        var mirrorRune = Rune(rng);
+        var trueName = Rune(rng, 8);
+        var echoes = Enumerable.Range(0, 3).Select(_ => Rune(rng, 8)).ToArray();
+
+        return new RoomPuzzle(new { Target = target, Gates = gates }, trueName)
+        {
+            Trials =
+            [
+                new(answer => answer.Trim() == open,
+                    new { DelayMs = rng.Next(1000, 2500), VisibleMs = 600, Sigil = sigil }),
+                new(answer => answer.Trim() == sigil,
+                    new { Oath = new[]
+                    {
+                        new { Label = "Warden's title", Value = oath.Title },
+                        new { Label = "Guild", Value = oath.Guild },
+                        new { Label = "Torches carried", Value = oath.Torches.ToString() },
+                    }, ScribesLedger.Guilds }),
+                new(answer => Swears(answer, oath),
+                    new { MirrorRune = mirrorRune }),
+                new(answer => answer.Trim() == mirrorRune,
+                    new { Warden = "listening", Whispers = new { TrueName = trueName, Echoes = echoes } }),
+            ],
+        };
+    }
+
+    private static bool Swears(string answer, OathEntry expected)
+    {
+        try
+        {
+            var sworn = JsonSerializer.Deserialize<OathSubmission>(answer, new JsonSerializerOptions(JsonSerializerDefaults.Web));
+            return sworn is not null
+                && sworn.Sworn
+                && string.Equals(sworn.Title?.Trim(), expected.Title, StringComparison.Ordinal)
+                && sworn.Guild == expected.Guild
+                && sworn.Torches == expected.Torches;
+        }
+        catch (JsonException)
+        {
+            return false;
+        }
+    }
+
+    private sealed record OathEntry(string Title, string Guild, int Torches);
+
+    public sealed record OathSubmission(string? Title, string? Guild, int? Torches, bool Sworn);
 }

@@ -250,6 +250,10 @@ button:disabled { opacity: 0.6; cursor: default; }
 .mirror-intro { font-style: italic; color: var(--stone-400); }
 .mirror-frame { display: block; width: min(100%, 360px); height: 300px; border: 0; margin: 8px 0 14px; }
 
+/* Floor 7: the Warden's Gauntlet */
+.warden-voice { font-style: italic; color: var(--stone-400); }
+.trial-heading { font-size: 1.15rem; margin: 4px 0 12px; color: var(--bone); }
+
 /* Leaderboard */
 .leaderboard th[scope=row] { display: flex; align-items: center; gap: 8px; font-weight: 600; }
 .leaderboard th, .leaderboard td { border-bottom-color: var(--stone-600); }

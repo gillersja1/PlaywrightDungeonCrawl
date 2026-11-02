@@ -94,7 +94,7 @@ public class LeaderboardTests
         {
             Assert.That(before, Does.Not.Contain("@ada"));
             Assert.That(join.StatusCode, Is.EqualTo(HttpStatusCode.Redirect));
-            Assert.That(listed, Does.Contain("@ada").And.Contain("1 / 6"));
+            Assert.That(listed, Does.Contain("@ada").And.Contain($"1 / {Catalog.Floors.Count}"));
             Assert.That(after, Does.Not.Contain("@ada"));
         });
     }
@@ -114,7 +114,7 @@ public class LeaderboardTests
         var board = await dungeon.ClientFor("grace").GetStringAsync("/leaderboard");
 
         // Scrolls are self-reported anyway, so they score; nothing else does.
-        Assert.That(board, Does.Contain("@ada").And.Contain("0 / 6").And.Contain($"{floors.Count * Rewards.Scroll} XP"));
+        Assert.That(board, Does.Contain("@ada").And.Contain($"0 / {floors.Count}").And.Contain($"{floors.Count * Rewards.Scroll} XP"));
     }
 
     [Test]
