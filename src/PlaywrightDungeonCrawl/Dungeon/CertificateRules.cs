@@ -18,9 +18,11 @@ public sealed record TierRules(CertificateTier Tier, string Name, int Floors, st
 /// <paramref name="PreviousId"/> keeps an older ID's links working after an upgrade.
 /// <paramref name="Language"/> is the one the player cleared the dungeon in, which the certificate names.
 /// Certificates issued before tiers existed are Apprentice certificates.
+/// <paramref name="UpdatedAt"/> is when an early certificate was brought up to its full tier; the issue date and ID never change.
 /// </summary>
 public sealed record Certificate(string Id, string PlayerId, string Login, string Name, int Floors, int Score, DateTimeOffset IssuedAt,
-    string? PreviousId = null, CodeLanguage Language = CodeLanguage.CSharp, CertificateTier Tier = CertificateTier.Apprentice);
+    string? PreviousId = null, CodeLanguage Language = CodeLanguage.CSharp, CertificateTier Tier = CertificateTier.Apprentice,
+    DateTimeOffset? UpdatedAt = null);
 
 public static partial class CertificateRules
 {

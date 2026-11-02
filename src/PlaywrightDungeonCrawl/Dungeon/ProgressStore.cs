@@ -224,6 +224,12 @@ public static class PostgresDatabase
             alter table certificates add column if not exists tier text not null default 'apprentice';
             alter table certificates drop constraint if exists certificates_github_id_key;
             create unique index if not exists certificates_github_id_tier on certificates (github_id, tier);
+            -- When an early certificate was brought up to its full tier.
+            alter table certificates add column if not exists updated_at timestamptz;
+            -- Certificates upgraded before this column existed: Apprentice ones that cover floor 7 but were issued
+            -- before floor 7 opened (2026-11-02 00:50 UTC) can only have been upgraded, and that happened on 2 November.
+            update certificates set updated_at = '2026-11-02T20:30:00Z'
+                where updated_at is null and tier = 'apprentice' and floors >= 7 and issued_at < '2026-11-02T00:50:00Z';
             create table if not exists feedback (
                 id bigserial primary key,
                 rating smallint,

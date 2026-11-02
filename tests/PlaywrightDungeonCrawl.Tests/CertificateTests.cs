@@ -368,6 +368,10 @@ public class CertificateTests
             Assert.That(CertificateRules.IsEarlyIssue(completed), Is.False);
             Assert.That(page, Does.Contain($"cleared floors 1 to {Apprentice} of the dungeon by writing"));
             Assert.That(page, Does.Contain(Catalog.Floors[Apprentice - 1].Skill));
+            // Still issued on the 30th, and says when it was brought up to date.
+            Assert.That(completed.UpdatedAt, Is.Not.Null);
+            Assert.That(page, Does.Contain("<dt>Issued</dt><dd>30 October 2026</dd>"));
+            Assert.That(page, Does.Contain($"<dt>Updated</dt><dd>{completed.UpdatedAt!.Value:d MMMM yyyy}</dd>"));
         });
     }
 
@@ -385,6 +389,7 @@ public class CertificateTests
             Assert.That(renamed!.Name, Is.EqualTo("Ada Lovelace"));
             Assert.That(renamed.Floors, Is.EqualTo(6));
             Assert.That(renamed.Score, Is.EqualTo(510));
+            Assert.That(renamed.UpdatedAt, Is.Null, "a rename isn't an update to what it certifies");
         });
     }
 }
