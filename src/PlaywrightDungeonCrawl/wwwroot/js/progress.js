@@ -1,7 +1,10 @@
 // Learner progress, kept in this browser's localStorage.
 // Shape: { scrolls: [floorSlug], riddles: [floorSlug], treasures: [roomSlug],
-//          help: { "hint:locators:0": 5, "nudge:hall-of-doors:1": 10, ... } }
-// Score = XP earned minus the XP spent on help.
+//          help: { "hint:locators:0": 5, "nudge:hall-of-doors:1": 10, ... },
+//          loot: { "torch-ghostfire": 50, ... }, equipped: { title: "title-lockpicker", torch: "" } }
+// Score = XP earned minus the XP spent on help. The wallet is the score minus
+// what the loot shop has had; shopping never lowers the score.
+// An empty string in equipped means "took it off", so that choice survives a sync.
 // Signed in with GitHub, every save is also sent to the server, which merges
 // it with the account's progress and sends back the combined copy.
 (function () {
@@ -9,7 +12,7 @@
     const rules = JSON.parse(document.getElementById("dungeon-rules").textContent);
 
     function empty() {
-        return { scrolls: [], riddles: [], treasures: [], help: {} };
+        return { scrolls: [], riddles: [], treasures: [], help: {}, loot: {}, equipped: {} };
     }
 
     function load() {
@@ -96,6 +99,51 @@
         }
     }
 
+    function lootSpent(progress = load()) {
+        return Object.values(progress.loot).reduce((sum, price) => sum + price, 0);
+    }
+
+    // XP left to spend in the shop. It can dip below zero if help is taken after shopping.
+    function wallet(progress = load()) {
+        return xp(progress) - lootSpent(progress);
+    }
+
+    function owns(id, progress = load()) {
+        return id in progress.loot;
+    }
+
+    function worn(slot, progress = load()) {
+        const id = progress.equipped[slot];
+        return id && owns(id, progress) ? rules.shop.find(i => i.id === id) : undefined;
+    }
+
+    // Buys an item at its list price and puts it on. Returns false if the wallet can't cover it.
+    function buy(id) {
+        const item = rules.shop.find(i => i.id === id);
+        const progress = load();
+        if (!item || owns(id, progress)) {
+            return !!item;
+        }
+        if (wallet(progress) < item.price) {
+            return false;
+        }
+        progress.loot[id] = item.price;
+        progress.equipped[item.slot] = id;
+        save(progress);
+        document.dispatchEvent(new CustomEvent("dungeon:loot", { detail: { item, progress } }));
+        return true;
+    }
+
+    // Wears an owned item in its slot, or takes the slot off with id = "".
+    function equip(slot, id) {
+        const progress = load();
+        if (id && !owns(id, progress)) {
+            return;
+        }
+        progress.equipped[slot] = id;
+        save(progress);
+    }
+
     function rank(points = xp()) {
         return rules.ranks.filter(r => points >= r.minXp).at(-1).title;
     }
@@ -149,8 +197,20 @@
         const progress = load();
         const points = xp(progress);
         const badge = document.getElementById("xp-badge");
+        const title = worn("title", progress);
         if (badge) {
-            badge.textContent = `${points} XP · ${rank(points)}`;
+            badge.textContent = `${points} XP · ${title ? title.name : rank(points)}`;
+        }
+        const torch = worn("torch", progress);
+        const root = document.documentElement.style;
+        if (torch) {
+            root.setProperty("--torch", torch.color);
+            root.setProperty("--torch-dim", torch.dim);
+            root.setProperty("--torch-bright", `color-mix(in srgb, ${torch.color} 70%, white)`);
+        } else {
+            root.removeProperty("--torch");
+            root.removeProperty("--torch-dim");
+            root.removeProperty("--torch-bright");
         }
         document.querySelectorAll("[data-progress]").forEach(el => {
             const [kind, slug] = el.dataset.progress.split(":");
@@ -184,7 +244,8 @@
         document.dispatchEvent(new CustomEvent("dungeon:progress", { detail: { progress, xp: points, rank: rank(points) } }));
     }
 
-    window.Dungeon = { rules, load, mark, earned, helpSpent, xp, rank, reset, render, isComplete, isOpen, nextSteps, hasUsedHelp, useHelp };
+    window.Dungeon = { rules, load, mark, earned, helpSpent, xp, rank, reset, render, isComplete, isOpen, nextSteps, hasUsedHelp, useHelp,
+        lootSpent, wallet, owns, worn, buy, equip };
     document.addEventListener("DOMContentLoaded", () => {
         render();
         sync();

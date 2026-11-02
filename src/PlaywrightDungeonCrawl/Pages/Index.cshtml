@@ -57,7 +57,28 @@
             Titles, torch colors and other questionable finery, paid for from your wallet. Spending never
             lowers your score.
         </p>
-        <p class="closed-sign">Closed for stocktaking. The quartermaster says "soon", in the tone of someone who means "eventually".</p>
+        <p class="wallet">Wallet: <strong id="wallet">0 XP</strong> to spend. Your score stays <span id="wallet-score">0</span> XP.</p>
+        @foreach (var group in Shop.Items.GroupBy(i => i.Slot))
+        {
+            <h3>@(group.Key == LootSlot.Title ? "Titles" : "Torches")</h3>
+            <ul class="loot-list">
+                @foreach (var item in group)
+                {
+                    <li class="loot" data-loot="@item.Id" data-slot="@item.Slot.ToString().ToLowerInvariant()">
+                        @if (item.Color is { } color)
+                        {
+                            <span class="swatch" style="--swatch: @color" aria-hidden="true"></span>
+                        }
+                        <span class="loot-text">
+                            <strong>@item.Name</strong>
+                            <span class="loot-description">@item.Description</span>
+                        </span>
+                        <button type="button" class="loot-button" aria-label="Buy @item.Name for @item.Price XP">@item.Price XP</button>
+                    </li>
+                }
+            </ul>
+        }
+        <p id="shop-status" class="shop-status" role="status"></p>
     </section>
 </div>
 
@@ -99,4 +120,5 @@
 
 @section Scripts {
     <script src="~/js/map.js" asp-append-version="true"></script>
+    <script src="~/js/shop.js" asp-append-version="true"></script>
 }

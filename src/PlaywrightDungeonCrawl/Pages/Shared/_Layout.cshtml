@@ -71,6 +71,7 @@
         floors = Catalog.Floors.Select(f => new { number = f.Number, slug = f.Slug, room = f.Room.Slug, roomName = f.Room.Name, title = f.Title }),
         account = new { enabled = accountsOn, player },
         ranks = Rewards.RanksFor(DungeonCatalog.MaxXp(Catalog.Floors.Count)).Select(r => new { minXp = r.MinXp, title = r.Title }),
+        shop = Shop.Items.Select(i => new { id = i.Id, slot = i.Slot.ToString().ToLowerInvariant(), name = i.Name, price = i.Price, color = i.Color, dim = i.Dim }),
     }))</script>
     <script src="~/js/progress.js" asp-append-version="true"></script>
     <script src="~/js/dungeon-ai.js" asp-append-version="true"></script>
