@@ -1,4 +1,4 @@
-﻿@page
+@page
 @model IndexModel
 @using PlaywrightDungeonCrawl.Dungeon
 @{
@@ -29,35 +29,51 @@
     <p class="breakdown">Stuck? Hints and nudges are there, for a few XP. Help on floor 1 is free.</p>
 </section>
 
+<section class="panel claim-bar" aria-labelledby="treasure">
+    <h2 id="treasure">Claim treasure</h2>
+    <p>Cleared a trap room with a script? Paste the flag it printed to hang the treasure on the wall.</p>
+    <form id="claim-form" class="inline-form">
+        <label for="flag-input">Flag</label>
+        <input id="flag-input" name="flag" placeholder="PDC{...}" autocomplete="off" required />
+        <button type="submit">Claim treasure</button>
+    </form>
+    <p id="claim-result" role="status" aria-live="polite"></p>
+    <div class="next-step" id="claim-next" data-next-after="treasures" hidden></div>
+</section>
+
 <div class="lobby-grid">
     <section id="progress" class="panel progress-panel" aria-labelledby="progress-heading">
-        <p class="station">The Trophy Wall</p>
-        <h2 id="progress-heading">Your progress</h2>
-        <p class="rank-line"><span id="rank-title">Novice Delver</span> · score <span id="xp-total">0</span> / @Model.MaxXp XP</p>
-        <div class="xp-bar" role="progressbar" aria-label="Experience" aria-valuemin="0" aria-valuemax="@Model.MaxXp" aria-valuenow="0">
-            <div class="xp-fill"></div>
-        </div>
+        <details class="rollup" data-rollup="progress">
+        <summary>
+            <span class="station">The Trophy Wall</span>
+            <h2 id="progress-heading">Your progress</h2>
+            <p class="rank-line"><span id="rank-title">Novice Delver</span> · score <span id="xp-total">0</span> / @Model.MaxXp XP</p>
+            <div class="xp-bar" role="progressbar" aria-label="Experience" aria-valuemin="0" aria-valuemax="@Model.MaxXp" aria-valuenow="0">
+                <div class="xp-fill"></div>
+            </div>
+        </summary>
         <p class="breakdown">Earned <span id="xp-earned">0</span> XP, spent <span id="xp-help">0</span> on hints and nudges.</p>
-
-        <h3 id="treasure">Claim treasure</h3>
-        <p>Cleared a trap room with a script? Paste the flag it printed to hang the treasure on the wall.</p>
-        <form id="claim-form" class="inline-form">
-            <label for="flag-input">Flag</label>
-            <input id="flag-input" name="flag" placeholder="PDC{...}" autocomplete="off" required />
-            <button type="submit">Claim treasure</button>
-        </form>
-        <p id="claim-result" role="status" aria-live="polite"></p>
-        <div class="next-step" id="claim-next" data-next-after="treasures" hidden></div>
+        <h3>Ranks</h3>
+        <ol class="rank-ladder">
+            @foreach (var (minXp, title) in Rewards.RanksFor(Model.MaxXp))
+            {
+                <li data-rank-xp="@minXp"><span>@title</span> <span class="breakdown">@minXp XP</span></li>
+            }
+        </ol>
+        </details>
     </section>
 
     <section class="panel quartermaster" aria-labelledby="shop-heading">
-        <p class="station">The Quartermaster's Counter</p>
-        <h2 id="shop-heading">Loot shop</h2>
+        <details class="rollup" data-rollup="shop">
+        <summary>
+            <span class="station">The Quartermaster's Counter</span>
+            <h2 id="shop-heading">Loot shop</h2>
+            <p class="wallet">Wallet: <strong id="wallet">0 XP</strong> to spend. Your score stays <span id="wallet-score">0</span> XP.</p>
+        </summary>
         <p>
-            Titles, torch colors and other questionable finery, paid for from your wallet. Spending never
-            lowers your score.
+            Titles, torches and other questionable finery, paid for from your wallet. Spending never lowers your
+            score. A torch recolors the dungeon and lights it up while you wear it.
         </p>
-        <p class="wallet">Wallet: <strong id="wallet">0 XP</strong> to spend. Your score stays <span id="wallet-score">0</span> XP.</p>
         @foreach (var group in Shop.Items.GroupBy(i => i.Slot))
         {
             <h3>@(group.Key == LootSlot.Title ? "Titles" : "Torches")</h3>
@@ -79,6 +95,7 @@
             </ul>
         }
         <p id="shop-status" class="shop-status" role="status"></p>
+        </details>
     </section>
 </div>
 
@@ -121,4 +138,5 @@
 @section Scripts {
     <script src="~/js/map.js" asp-append-version="true"></script>
     <script src="~/js/shop.js" asp-append-version="true"></script>
+    <script src="~/js/rollup.js" asp-append-version="true"></script>
 }

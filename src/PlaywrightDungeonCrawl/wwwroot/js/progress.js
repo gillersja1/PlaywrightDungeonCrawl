@@ -204,10 +204,12 @@
         const torch = worn("torch", progress);
         const root = document.documentElement.style;
         if (torch) {
+            document.documentElement.dataset.torch = torch.id;
             root.setProperty("--torch", torch.color);
             root.setProperty("--torch-dim", torch.dim);
             root.setProperty("--torch-bright", `color-mix(in srgb, ${torch.color} 70%, white)`);
         } else {
+            delete document.documentElement.dataset.torch;
             root.removeProperty("--torch");
             root.removeProperty("--torch-dim");
             root.removeProperty("--torch-bright");

@@ -1,4 +1,4 @@
-﻿@using PlaywrightDungeonCrawl.Dungeon
+@using PlaywrightDungeonCrawl.Dungeon
 @inject DungeonCatalog Catalog
 @inject IConfiguration Config
 @{
@@ -14,6 +14,24 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    @* Put the worn torch on before the page paints, so it doesn't flash the default colour first. *@
+    <script>
+        (function () {
+            const torches = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Shop.Items.Where(i => i.Slot == LootSlot.Torch).ToDictionary(i => i.Id, i => new[] { i.Color, i.Dim })));
+            try {
+                const saved = JSON.parse(localStorage.getItem("pdc-progress")) || {};
+                const id = saved.equipped && saved.equipped.torch;
+                const colors = id && saved.loot && id in saved.loot && torches[id];
+                if (colors) {
+                    const root = document.documentElement;
+                    root.dataset.torch = id;
+                    root.style.setProperty("--torch", colors[0]);
+                    root.style.setProperty("--torch-dim", colors[1]);
+                    root.style.setProperty("--torch-bright", `color-mix(in srgb, ${colors[0]} 70%, white)`);
+                }
+            } catch { }
+        })();
+    </script>
     <title>@(ViewData["Title"] is string title ? $"{title} · Playwright Dungeon Crawl" : "Playwright Dungeon Crawl")</title>
     <meta name="description" content="Learn Playwright by crawling a dungeon: lessons, riddles and trap rooms you beat with tests in C# or TypeScript." />
     @* Link previews (LinkedIn, Slack, ...) need absolute URLs. *@
@@ -56,6 +74,14 @@
     <main id="main" class="page">
         @RenderBody()
     </main>
+
+    <div class="torch-fx" aria-hidden="true">
+        @for (var i = 0; i < 16; i++)
+        {
+            // Spread out, but the same on every page load, so nothing jumps when you navigate.
+            <span style="--x: @((i * 37 + 11) % 100)%; --y: @((i * 53 + 7) % 90)%; --delay: -@((i * 1.7) % 9)s; --dur: @(6 + i % 5)s; --drift: @((i % 2 == 0 ? 1 : -1) * (10 + i * 3))px"></span>
+        }
+    </div>
 
     <footer class="site-footer">
         <p>A free, hands-on way to learn Playwright, in C# or TypeScript. Docs: <a href="@docsUrl">@docsName</a>. @(player is not null ? "Your progress is saved to your GitHub account." : accountsOn ? "Progress is saved in this browser. Sign in with GitHub to keep it everywhere." : "Progress is saved in this browser only.")</p>
