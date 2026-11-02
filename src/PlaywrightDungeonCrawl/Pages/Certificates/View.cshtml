@@ -14,7 +14,7 @@
     <p class="certificate-intro">This certifies that</p>
     <p class="certificate-name">@cert.Name</p>
     <p>
-        cleared @(cert.Floors == 1 ? "the first floor" : $"floors 1 to {cert.Floors}") of the dungeon by writing
+        cleared @(cert.Floors == 1 ? "the first floor" : $"floors 1 to {cert.Floors}") of the dungeon@(CertificateRules.IsEarlyIssue(cert) ? ", every floor open when it was issued," : "") by writing
         Playwright tests in @cert.Language.DisplayName():
     </p>
     <ul class="certificate-skills">

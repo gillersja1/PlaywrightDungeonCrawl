@@ -41,7 +41,21 @@ else
             {
                 case CertificateModel.TierState.Earned:
                     <p class="tier-state">Earned @earned!.IssuedAt.ToString("d MMMM yyyy"). <a href="/certificates/@earned.Id">View your certificate</a>.</p>
-                    <details>
+                    @if (CertificateRules.IsEarlyIssue(earned))
+                    {
+                        <p class="tier-note">
+                            It covers floors 1 to @earned.Floors, every floor open when it was issued.
+                            @if (Model.CanComplete(earned))
+                            {
+                                <strong>You've now cleared all @tier.Floors: reprint it below to bring it up to the full tier.</strong>
+                            }
+                            else
+                            {
+                                <span>Clear floors 1 to @tier.Floors while signed in, then reprint it to bring it up to the full tier. It keeps its ID and date.</span>
+                            }
+                        </p>
+                    }
+                    <details open="@Model.CanComplete(earned)">
                         <summary>Change the name or language</summary>
                         <p>It stays at the same address with the same date.</p>
                         <partial name="_CertificateForm" model="(Model, tier, true)" />

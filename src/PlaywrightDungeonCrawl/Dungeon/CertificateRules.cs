@@ -46,6 +46,12 @@ public static partial class CertificateRules
     /// <summary>The Playwright Dungeon Crawl LinkedIn Page: using it shows its logo next to the certification.</summary>
     public const string LinkedInOrganizationId = "144076964";
 
+    /// <summary>
+    /// Issued before every floor of its tier was built (the first certificates covered floors 1 to 6, before floor 7
+    /// existed). It stays valid, and says so; reprinting it once the rest are cleared brings it up to the full tier.
+    /// </summary>
+    public static bool IsEarlyIssue(Certificate certificate) => certificate.Floors < For(certificate.Tier).Floors;
+
     /// <summary>A tier opens once the dungeon has built every floor it covers.</summary>
     public static bool IsOpen(TierRules tier, DungeonCatalog catalog) => catalog.Floors.Count >= tier.Floors;
 

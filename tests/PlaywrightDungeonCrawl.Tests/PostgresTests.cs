@@ -164,4 +164,23 @@ public class PostgresTests
             Assert.That((await records.CertificateAsync(journeyman.Id))!.Tier, Is.EqualTo(CertificateTier.Journeyman));
         });
     }
+
+    [Test]
+    public async Task AReprintCanBringAnEarlyCertificateUpToTheFullTier()
+    {
+        var records = new PostgresPlayerRecords(db);
+        var player = $"test-{Guid.NewGuid()}";
+        var issuedAt = new DateTimeOffset(2026, 10, 30, 12, 0, 0, TimeSpan.Zero);
+        var id = CertificateRules.NewId(issuedAt);
+
+        await records.IssueCertificateAsync(new(id, player, "ada", "Ada", 6, 510, issuedAt));
+        var completed = await records.IssueCertificateAsync(new(id, player, "ada", "Ada", 7, 640, issuedAt));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(completed.Floors, Is.EqualTo(7));
+            Assert.That(completed.Score, Is.EqualTo(640));
+            Assert.That(completed.Id, Is.EqualTo(id));
+        });
+    }
 }

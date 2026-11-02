@@ -198,6 +198,7 @@ public sealed class InMemoryPlayerRecords(TimeProvider clock) : IPlayerRecords
             (_, saved) => saved with
             {
                 Id = certificate.Id, Name = certificate.Name, Login = certificate.Login,
+                Floors = certificate.Floors, Score = certificate.Score,
                 PreviousId = certificate.PreviousId ?? saved.PreviousId, Language = certificate.Language,
             }));
 }
@@ -265,6 +266,7 @@ public sealed class PostgresPlayerRecords(NpgsqlDataSource db) : IPlayerRecords
             insert into certificates (id, github_id, login, name, floors, score, issued_at, previous_id, language, tier)
             values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
             on conflict (github_id, tier) do update set id = excluded.id, name = excluded.name, login = excluded.login,
+                floors = excluded.floors, score = excluded.score,
                 previous_id = coalesce(excluded.previous_id, certificates.previous_id), language = excluded.language
             """);
         foreach (var value in new object?[] { certificate.Id, certificate.PlayerId, certificate.Login, certificate.Name,
