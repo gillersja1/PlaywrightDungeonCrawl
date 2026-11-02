@@ -1,6 +1,6 @@
 @page "/portal/{id:guid}/{stage?}"
 @{
-    var id = (Guid)RouteData.Values["id"]!;
+    var id = Guid.Parse((string)RouteData.Values["id"]!);
     var atStall = string.Equals(RouteData.Values["stage"] as string, "stall", StringComparison.OrdinalIgnoreCase);
     ViewData["Title"] = atStall ? "The merchant's stall" : "Through the portal";
 }
