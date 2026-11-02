@@ -8,6 +8,9 @@ public class LessonModel(DungeonCatalog catalog) : PageModel
 {
     public Floor Floor { get; private set; } = null!;
 
+    /// <summary>The language this floor is taught in: TypeScript only once it's been written.</summary>
+    public CodeLanguage Language { get; private set; }
+
     public IActionResult OnGet(string slug)
     {
         if (catalog.Find(slug) is not { } floor)
@@ -15,6 +18,7 @@ public class LessonModel(DungeonCatalog catalog) : PageModel
             return NotFound();
         }
         Floor = floor;
+        Language = floor.For(Languages.Current(HttpContext));
         return Page();
     }
 }

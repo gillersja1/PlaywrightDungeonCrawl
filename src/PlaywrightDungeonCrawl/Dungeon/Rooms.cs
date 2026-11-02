@@ -35,6 +35,12 @@ public abstract class Room
     /// </summary>
     public abstract string[] Nudges { get; }
 
+    /// <summary>The nudges in TypeScript, once this room has been written for it.</summary>
+    public virtual string[]? TypeScriptNudges => null;
+
+    public string[] NudgesIn(CodeLanguage language) =>
+        language == CodeLanguage.TypeScript && TypeScriptNudges is { } ts ? ts : Nudges;
+
     /// <summary>An optional plaque on the room's wall, e.g. a dedication.</summary>
     public virtual string? Plaque => null;
 
@@ -67,6 +73,13 @@ public sealed class WelcomeMatt : Room
         "Clicking Knock yourself won't work: the door checks whether a test is driving the browser. You need to run a test from Visual Studio.",
         "Start from the training dummy test in step 6 of this floor's scroll. Copy it into a WelcomeMattTests class, then change where it goes, what it clicks and how it ends.",
         "Your test needs three lines: EnterAsync(\"/rooms/welcome-matt\"), a click on Page.GetByRole(AriaRole.Button, new() { Name = \"Knock\" }), then await TakeTreasureAsync().",
+    };
+
+    public override string[] TypeScriptNudges { get; } =
+    {
+        "Clicking Knock yourself won't work: the door checks whether a test is driving the browser. You need to run a test from VS Code.",
+        "Start from the training dummy test in step 6 of this floor's scroll. Copy it into a new file, tests/welcome-matt.spec.ts, then change where it goes, what it clicks and how it ends.",
+        "Your test needs three lines: await dungeon.enter('/rooms/welcome-matt'), a click on page.getByRole('button', { name: 'Knock' }), then await dungeon.takeTreasure().",
     };
 
     public override string Slug => "welcome-matt";

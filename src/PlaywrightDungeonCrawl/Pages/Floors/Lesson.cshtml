@@ -18,7 +18,15 @@
     <p class="lead">@Model.Floor.Tagline</p>
     <partial name="_DungeonAi" model="PlaywrightDungeonCrawl.Dungeon.DungeonAi.FloorIntro(Model.Floor.Slug)" />
 
-    <partial name="Lessons/_@Model.Floor.Slug" />
+    <partial name="_TypeScriptComingSoon" model="Model.Floor" />
+    @if (Model.Language == PlaywrightDungeonCrawl.Dungeon.CodeLanguage.TypeScript)
+    {
+        <partial name="Lessons/_@(Model.Floor.Slug)-ts" />
+    }
+    else
+    {
+        <partial name="Lessons/_@Model.Floor.Slug" />
+    }
 
     <footer class="scroll-footer">
         <button type="button" id="mark-read" data-floor="@Model.Floor.Slug">Mark scroll as read</button>

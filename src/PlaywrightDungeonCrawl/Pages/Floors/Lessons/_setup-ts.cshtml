@@ -1,0 +1,174 @@
+@using PlaywrightDungeonCrawl.Dungeon
+@inject IConfiguration Config
+@{
+    var starterUrl = StarterKit.RepoUrl(Config, CodeLanguage.TypeScript);
+    var dungeonUrl = $"{Context.Request.Scheme}://{Context.Request.Host}";
+}
+<partial name="_ChooseLanguage" />
+<section>
+    <p>
+        No experience needed. By the end of this floor you'll have VS Code set up, a test project open, and a test of
+        your own driving a browser through the dungeon. Every floor after this one adds a test to the same project.
+    </p>
+</section>
+
+<section>
+    <h2>1. Install Node.js and VS Code</h2>
+    <ol>
+        <li>Install <strong>Node.js</strong>, the LTS version, from <a href="https://nodejs.org/">nodejs.org</a>.
+            It runs your tests, and brings <code>npm</code>, which fetches Playwright.</li>
+        <li>Install <strong>VS Code</strong> (free) from <a href="https://code.visualstudio.com/">code.visualstudio.com</a>.</li>
+        <li>On Windows, also install <a href="https://git-scm.com/downloads">Git</a> if you don't have it. VS Code
+            needs it to clone the starter kit. (On a Mac, VS Code offers to install it for you.)</li>
+    </ol>
+</section>
+
+<section>
+    <h2>2. Clone the starter kit</h2>
+    <p>The starter kit is a test project that's already set up for this dungeon.</p>
+    <ol>
+        <li>Open VS Code. On the Welcome page, choose <strong>Clone Git Repository</strong>.</li>
+        <li>Paste <code>@starterUrl</code> and press <strong>Enter</strong>.</li>
+        <li>Pick a folder to put it in. When VS Code asks, choose <strong>Open</strong>, and trust the folder.</li>
+        <li>VS Code offers to install the recommended <strong>Playwright Test for VS Code</strong> extension. Click
+            <strong>Install</strong>. (Missed it? Open the Extensions view and search for <em>Playwright Test</em>.)</li>
+        <li>Open a terminal with <strong>Terminal › New Terminal</strong> and run these two commands. The second
+            downloads the browser Playwright drives, which takes about a minute.</li>
+    </ol>
+<pre><code>npm install
+npm run setup</code></pre>
+    <p class="tip">
+        <strong>Red text saying "running scripts is disabled on this system"?</strong> That's Windows PowerShell being
+        careful. Use <code>npm.cmd install</code> and <code>npm.cmd run setup</code> instead, or pick
+        <em>Command Prompt</em> from the <strong>+</strong> menu in the terminal panel.
+    </p>
+</section>
+
+<section>
+    <h2>3. Point it at this dungeon</h2>
+    <p>
+        Open <strong>playwright.config.ts</strong>. The <code>baseURL</code> line says where your tests will send the
+        browser. It should match the address of this site:
+    </p>
+<pre><code>baseURL: process.env.DUNGEON_URL ?? '@dungeonUrl',</code></pre>
+    <p>If it's different, change it and save. That's the only setting you'll ever need to touch.</p>
+</section>
+
+<section>
+    <h2>4. Run the example test</h2>
+    <ol>
+        <li>Click the <strong>Testing</strong> icon (a flask) in the bar on the left. You'll see
+            <code>example.spec.ts</code> with <code>the dungeon is open</code> inside it.</li>
+        <li>At the bottom of that view, in the <strong>Playwright</strong> section, tick <strong>Show browser</strong>
+            so you can watch.</li>
+        <li>Hover over <code>the dungeon is open</code> and click its run button (the triangle).</li>
+        <li>A browser opens on the dungeon map. A green tick next to the test means your setup works.</li>
+    </ol>
+    <p class="tip">
+        <strong>Red cross saying it "can't reach the dungeon"?</strong> The address in step 3 doesn't match this site,
+        or the dungeon isn't running. <strong>Saying the browser "doesn't exist"?</strong> Run
+        <code>npm run setup</code> again.
+    </p>
+</section>
+
+<section>
+    <h2>5. Slow it down with UI mode</h2>
+    <p>
+        That was quick. Tests are meant to be fast, but while you're learning you'll want to see every step.
+        Playwright's <strong>UI mode</strong> runs a test and lets you travel back through it afterwards.
+    </p>
+    <ol>
+        <li>In the terminal, run <code>npm run ui</code>. A Playwright window opens with your tests on the left.</li>
+        <li>Click the run button next to <code>the dungeon is open</code>.</li>
+        <li>Click any step in the <strong>Actions</strong> list, like <code>page.goto</code> or <code>expect.toHaveTitle</code>.
+            The big picture shows the page exactly as it was at that moment. Try the <strong>Before</strong> and
+            <strong>After</strong> tabs.</li>
+        <li>Click <strong>Pick locator</strong> (the target icon above the picture), then hover over the big heading on the
+            page and click it. You'll get the code to find it, something like
+            <code>getByRole('heading', { name: 'The Respawn Room' })</code>. You'll lean on this a lot on floor 2.</li>
+        <li>Close the window, or press <strong>Ctrl+C</strong> in the terminal, when you're done.</li>
+    </ol>
+    <p class="tip">
+        <strong>Want to stop partway through one of your own tests?</strong> Add <code>await page.pause();</code> where you
+        want it to stop and run it with <strong>Show browser</strong> ticked: the Playwright Inspector opens, and you can
+        step one line at a time. Delete the line when you're done, or the test waits for you forever.
+    </p>
+</section>
+
+<section>
+    <h2>6. Write your first test</h2>
+    <p>
+        This floor's trap room is a door that refuses to open for humans. It only opens for a browser that a test is
+        driving. Before you face it, warm up on this training dummy. It's just as picky: poke it yourself and see.
+    </p>
+    <div class="training-dummy">
+        <p class="dummy-art" aria-hidden="true">🎯</p>
+        <button type="button">Poke</button>
+        <p class="dummy-voice" data-testid="dummy-voice" aria-live="polite"></p>
+    </div>
+    <script src="~/js/training-dummy.js" asp-append-version="true"></script>
+    <p>Now poke it with a test:</p>
+    <ol>
+        <li>In the Explorer, right-click the <strong>tests</strong> folder and choose <strong>New File…</strong>.</li>
+        <li>Name it <code>training-dummy.spec.ts</code>. The <code>.spec.ts</code> ending is how Playwright knows it's a test.</li>
+        <li>Paste in:</li>
+    </ol>
+<pre><code>import { test, expect } from './dungeon';
+
+test('poke the dummy', async ({ page, dungeon }) =&gt; {
+  // Open this scroll, where the dummy stands.
+  await dungeon.enter('/floors/setup');
+
+  // Find the button whose label is "Poke", and click it.
+  await page.getByRole('button', { name: 'Poke' }).click();
+
+  // Check the dummy flinched. expect(...) waits for it to answer.
+  await expect(page.getByTestId('dummy-voice')).toContainText('Ow!');
+});</code></pre>
+    <p>What's going on:</p>
+    <ul>
+        <li><code>import { test, expect } from './dungeon'</code> brings in Playwright's <code>test</code>, with the dungeon helpers added.</li>
+        <li><code>test('poke the dummy', ...)</code> is a test, and its name is what the Testing view shows.</li>
+        <li><code>{ page, dungeon }</code> is what each test is handed: a fresh browser tab, and the helpers.</li>
+        <li><code>await</code> means "wait for this step to finish before the next one". Every Playwright action needs it.</li>
+        <li><code>getByRole</code> finds an element the way a person would: by what it is (a button) and what it says.</li>
+    </ul>
+    <p>
+        Save the file. It appears in the Testing view: run <code>poke the dummy</code> and watch the browser poke it.
+        A green tick means it flinched.
+    </p>
+</section>
+
+<section>
+    <h2>7. Knock on the Welcome Matt</h2>
+    <p>
+        Now the real thing. The <a href="/rooms/welcome-matt">Welcome Matt</a> is this floor's trap room: the same kind of
+        trap as the dummy, in a different place. Write a second test, in a new file called
+        <code>tests/welcome-matt.spec.ts</code>, that does what the dummy test does, with three changes:
+    </p>
+    <ul>
+        <li><strong>Where:</strong> the door is at <code>/rooms/welcome-matt</code>.</li>
+        <li><strong>What to click:</strong> visit the door and read its button, or use <strong>Pick locator</strong> from step 5.</li>
+        <li><strong>How it ends:</strong> instead of checking for a reply, finish with <code>await dungeon.takeTreasure();</code>.
+            It waits for the treasure flag to appear and prints it in the test's output.</li>
+    </ul>
+    <p class="tip">
+        <strong>Stuck?</strong> The room's <em>Give me a nudge</em> button has hints, and on this floor they're free.
+    </p>
+    <p class="tip">
+        <strong>Did it work?</strong> When your test takes the treasure, the browser stays open for 3 seconds so you can
+        see the door give it up. Change or turn off that pause with <code>victoryPauseSeconds</code> in
+        <code>playwright.config.ts</code>. The Welcome Matt gives you 10 minutes, so there's no rush.
+    </p>
+</section>
+
+<section>
+    <h2>8. Claim the treasure</h2>
+    <ol>
+        <li>Run your new test. When it goes green, open the <strong>Test Results</strong> panel at the bottom of VS Code
+            (<strong>View › Open View… › Test Results</strong> if you can't see it).</li>
+        <li>You'll see <code>Treasure flag: PDC{…}</code>.</li>
+        <li>Copy the flag, including the braces, and paste it into <a href="/#treasure">Claim treasure</a> on the Trophy Wall in the Respawn Room.</li>
+    </ol>
+    <p>Then answer this floor's riddle, and take the stairs down.</p>
+</section>

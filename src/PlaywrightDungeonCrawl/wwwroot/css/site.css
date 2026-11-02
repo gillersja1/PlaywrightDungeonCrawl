@@ -55,6 +55,17 @@ button.link-button { background: none; border: none; padding: 0; color: var(--to
 button.link-button:hover { background: none; color: #ffc56e; }
 .xp-badge { background: var(--stone-700); border: 1px solid var(--torch-dim); border-radius: 999px; padding: 3px 12px; font-size: 0.9rem; color: var(--bone) !important; }
 
+/* Test language: the header toggle and floor 1's chooser */
+.lang-switch { display: inline-flex; border: 1px solid var(--stone-600); border-radius: 999px; overflow: hidden; font-size: 0.85rem; }
+.lang-switch a { padding: 3px 10px; color: var(--stone-400); }
+.lang-switch a[aria-current="true"] { background: var(--torch-dim); color: var(--stone-900); font-weight: 600; }
+.choose-language .weapons { display: flex; flex-wrap: wrap; gap: 12px; }
+.weapon { flex: 1 1 200px; display: flex; flex-direction: column; gap: 4px; padding: 12px 16px; border: 1px solid var(--stone-600); border-radius: var(--radius); background: var(--stone-900); color: var(--bone); text-decoration: none; }
+.weapon strong { font-size: 1.15rem; }
+.weapon span { color: var(--stone-400); font-size: 0.9rem; }
+.weapon[aria-current="true"] { border-color: var(--torch-dim); box-shadow: 0 0 0 1px var(--torch-dim) inset; }
+.lang-notice { border-left: 3px solid var(--torch-dim); }
+
 .page { max-width: 960px; margin: 0 auto; padding: 24px 16px 48px; }
 .site-footer { text-align: center; color: var(--stone-400); padding: 24px 16px; border-top: 1px solid var(--stone-700); font-size: 0.9rem; }
 
