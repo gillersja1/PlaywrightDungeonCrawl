@@ -93,7 +93,7 @@ jobs:
           cd ts-kit
           npm ci
           npx playwright install --with-deps chromium
-          npx tsc -p .
+          npx --yes -p typescript tsc -p .
           npx playwright test --reporter=list
 
       - name: Dungeon logs
