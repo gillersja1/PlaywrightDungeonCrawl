@@ -1,0 +1,64 @@
+<section>
+    <h2>Pages don't run on your schedule</h2>
+    <p>
+        A real page loads data, animates, and shows things when it's ready. A test that assumes everything is
+        there the instant it navigates will pass on your machine and fail in CI. The fix isn't to slow down:
+        it's to wait for the right <em>thing</em>.
+    </p>
+<pre><code>// Don't: guess how long it takes
+await page.waitForTimeout(3000);
+await page.getByRole('button', { name: 'Open' }).click();
+
+// Do: just act. Playwright waits for the button to be visible, enabled and stable first.
+await page.getByRole('button', { name: 'Open' }).click();</code></pre>
+    <p>
+        A fixed sleep is wrong twice over: too long when the page is fast (your suite crawls) and too short
+        when it's slow (your test flakes).
+    </p>
+</section>
+
+<section>
+    <h2>Auto-waiting: actions wait for you</h2>
+    <p>
+        Every action (<code>click</code>, <code>fill</code>, <code>check</code> and friends)
+        waits until its element is attached, visible, stable and able to receive the action. You rarely need to
+        wait for anything before acting.
+    </p>
+</section>
+
+<section>
+    <h2>Web-first assertions: checks that retry</h2>
+    <p>
+        <code>expect(locator)</code> assertions keep checking until they pass or time out (5 seconds by default),
+        so they work on pages that are still changing:
+    </p>
+<pre><code>await expect(page.getByRole('status')).toHaveText('Saved');
+await expect(page.getByText('Loading')).toBeHidden();
+
+// Need longer for one slow check? Say so, for just that check.
+await expect(report).toBeVisible({ timeout: 15_000 });</code></pre>
+    <p class="tip">
+        <strong>Trap:</strong> reading a value and checking it yourself doesn't retry.
+        <code>expect(await status.textContent()).toBe('Saved')</code> reads once, maybe too early.
+        <code>await expect(status).toHaveText('Saved')</code> waits for it. The difference is where the
+        <code>await</code> goes: on the assertion, not inside it.
+    </p>
+</section>
+
+<section>
+    <h2>Waiting for something to appear</h2>
+    <p>
+        Sometimes you don't want to act or assert, you just want to know the moment something shows up, so you
+        can read it. That's <code>waitFor()</code>:
+    </p>
+<pre><code>const banner = page.getByRole('alert');
+await banner.waitFor();                          // returns the moment it's visible
+const message = await banner.textContent();      // read it straight away</code></pre>
+    <p>
+        <code>waitFor()</code> can also wait for other states, like an element being removed:
+        <code>waitFor({ state: 'detached' })</code>.
+    </p>
+    <p>
+        You'll need exactly this in the trap room. Something appears when it likes, and doesn't stay long.
+    </p>
+</section>

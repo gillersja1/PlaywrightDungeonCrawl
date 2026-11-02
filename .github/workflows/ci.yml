@@ -77,6 +77,25 @@ jobs:
           otlp-endpoint: ${{ secrets.OTEL_EXPORTER_OTLP_ENDPOINT }}
           otlp-headers: ${{ secrets.OTEL_EXPORTER_OTLP_HEADERS }}
 
+      # The same rooms, cleared in TypeScript from a fresh copy of the TypeScript
+      # starter kit, so the kit, the TypeScript hints and the rooms stay in step.
+      - uses: actions/setup-node@v5
+        with:
+          node-version: lts/*
+
+      - name: Run TypeScript reference solutions
+        env:
+          DUNGEON_URL: http://localhost:8080
+          CI: true
+        run: |
+          git clone --depth 1 https://github.com/gillersja1/PlaywrightDungeonCrawl-Starter-TS ts-kit
+          cp tests/ts-solutions/*.spec.ts ts-kit/tests/
+          cd ts-kit
+          npm ci
+          npx playwright install --with-deps chromium
+          npx --yes -p typescript tsc -p .
+          npx playwright test --reporter=list
+
       - name: Dungeon logs
         if: failure()
         run: docker logs dungeon

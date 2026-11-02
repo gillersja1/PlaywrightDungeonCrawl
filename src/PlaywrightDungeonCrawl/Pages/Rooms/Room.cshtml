@@ -123,7 +123,16 @@ test('clear the room', async ({ page, dungeon }) =&gt; {
             Paste it into <a href="/#treasure">Claim treasure</a> in the Respawn Room.
         </p>
         }
-        @if (Model.IsTimed)
+        @if (Model.IsTimed && Model.Language == CodeLanguage.TypeScript)
+        {
+            <p class="tip">
+                <strong>Using UI mode or <code>page.pause()</code> here?</strong> The clock starts the moment the room
+                loads, so stepping through will run out of time. To study the room, open it in your own browser and
+                look around, or use <strong>Pick locator</strong>, then write the test and run it at full speed (with
+                <code>slowMo</code> at 0). When it fails, its trace shows you why: <code>npx playwright show-report</code>.
+            </p>
+        }
+        else if (Model.IsTimed)
         {
             <p class="tip">
                 <strong>Using the Playwright Inspector here?</strong> The clock starts the moment the room loads,

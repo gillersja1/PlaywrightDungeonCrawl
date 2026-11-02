@@ -1,0 +1,60 @@
+<section>
+    <h2>Find elements the way a user does</h2>
+    <p>
+        A <strong>locator</strong> describes how to find an element. It doesn't grab the element
+        straight away: Playwright looks it up fresh every time you act on it, and waits for it to be
+        ready. Prefer locators based on what a user sees, in this order:
+    </p>
+    <ol>
+        <li><code>getByRole</code>: the element's role and accessible name. Your first choice.</li>
+        <li><code>getByLabel</code>, <code>getByPlaceholder</code>: form fields.</li>
+        <li><code>getByText</code>: non-interactive content.</li>
+        <li><code>getByTestId</code>: when there's nothing a user could identify it by.</li>
+        <li>CSS or XPath with <code>locator()</code>: last resort. They break when the markup changes.</li>
+    </ol>
+<pre><code>// A button whose accessible name is "Enter the dungeon"
+await page.getByRole('button', { name: 'Enter the dungeon' }).click();
+
+// A link, matched exactly (not "Map of the realm")
+await page.getByRole('link', { name: 'Map', exact: true }).click();</code></pre>
+</section>
+
+<section>
+    <h2>Strictness: one locator, one element</h2>
+    <p>
+        If a locator matches more than one element, any action on it throws a
+        <em>strict mode violation</em>. That's a feature: Playwright refuses to guess which one you
+        meant. Narrow the locator by something meaningful, not by position.
+    </p>
+<pre><code>// Two "Ember Gate" doors, one disabled: filter on state
+const door = page.getByRole('button', { name: 'Ember Gate', disabled: false });
+
+// Or scope to a region first, then search inside it
+const hall = page.getByRole('region', { name: 'Hall' });
+await hall.getByRole('button', { name: 'Ember Gate' }).click();</code></pre>
+    <p class="tip">
+        <strong>Not sure what to write?</strong> Run <code>npm run ui</code> and use <strong>Pick locator</strong>,
+        or click <strong>Pick locator</strong> in the Testing view's Playwright section in VS Code: hover over an
+        element and it suggests a locator, usually a role-based one. Check it's strict enough before you copy it.
+    </p>
+    <p class="tip">
+        <strong>Trap:</strong> <code>.first()</code>, <code>.last()</code> and <code>.nth(i)</code> make
+        the error go away, but they depend on order. When the page shuffles, they pick the wrong
+        element without telling you.
+    </p>
+</section>
+
+<section>
+    <h2>Reading what a locator found</h2>
+<pre><code>const sign = await page.getByTestId('target-sign').textContent();
+const count = await page.getByRole('button').count();</code></pre>
+    <p>
+        You'll need this in the trap room: the sign you're looking for changes on every visit,
+        so read it first, then build your locator from it.
+    </p>
+    <p class="tip">
+        <strong>TypeScript tip:</strong> <code>textContent()</code> returns <code>string | null</code>, because the
+        element might have no text. When you know it does, add <code>!</code> to say so:
+        <code>{ name: sign!, exact: true }</code>.
+    </p>
+</section>

@@ -63,14 +63,34 @@ public class LanguageTests
     }
 
     [Test]
-    public async Task UntranslatedFloorsSayItAndShowCSharp()
+    public async Task EveryFloorTeachesTypeScript()
     {
         var client = await SpeakingAsync("ts");
+        var catalog = dungeon.Services.GetRequiredService<DungeonCatalog>();
 
-        var lesson = await client.GetStringAsync("/floors/locators");
+        foreach (var floor in catalog.Floors)
+        {
+            Assert.That(floor.HasTypeScript, $"floor {floor.Number} has TypeScript riddles");
+            Assert.That(floor.Room.TypeScriptNudges, Has.Length.EqualTo(floor.Room.Nudges.Length), $"{floor.Room.Slug} nudges");
 
-        Assert.That(lesson, Does.Contain("hasn't been translated into TypeScript yet"));
-        Assert.That(lesson, Does.Contain("Page.GetByRole"));
+            var lesson = await client.GetStringAsync($"/floors/{floor.Slug}");
+            Assert.That(lesson, Does.Not.Contain("translated into TypeScript yet"), floor.Slug);
+            Assert.That(lesson, Does.Not.Contain("Async("), $"{floor.Slug} scroll has no C# calls");
+
+            var room = await client.GetStringAsync($"/rooms/{floor.Room.Slug}");
+            Assert.That(room, Does.Contain($"tests/{floor.Room.Slug}.spec.ts"), floor.Room.Slug);
+            Assert.That(room, Does.Not.Contain("Async("), $"{floor.Room.Slug} room has no C# calls");
+        }
+    }
+
+    [Test]
+    public async Task TypeScriptRiddlesAndNudgesHaveNoCSharpCalls()
+    {
+        var catalog = dungeon.Services.GetRequiredService<DungeonCatalog>();
+        var text = catalog.Floors.SelectMany(f => f.TypeScriptRiddles!.SelectMany(r => r.Options.Append(r.Prompt).Append(r.Explanation).Append(r.Hint))
+            .Concat(f.Room.TypeScriptNudges!));
+
+        Assert.That(text, Has.None.Contains("Async(").And.None.Contains("AriaRole"));
     }
 
     [Test]
