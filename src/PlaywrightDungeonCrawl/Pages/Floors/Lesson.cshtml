@@ -19,7 +19,7 @@
     <partial name="_DungeonAi" model="PlaywrightDungeonCrawl.Dungeon.DungeonAi.FloorIntro(Model.Floor.Slug)" />
 
     <partial name="_TypeScriptComingSoon" model="Model.Floor" />
-    @if (Model.Floor.For(PlaywrightDungeonCrawl.Dungeon.Languages.Current(Context)) == PlaywrightDungeonCrawl.Dungeon.CodeLanguage.TypeScript)
+    @if (Model.Language == PlaywrightDungeonCrawl.Dungeon.CodeLanguage.TypeScript)
     {
         <partial name="Lessons/_@(Model.Floor.Slug)-ts" />
     }
