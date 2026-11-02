@@ -198,7 +198,7 @@ public sealed class InMemoryPlayerRecords(TimeProvider clock) : IPlayerRecords
             (_, saved) => saved with
             {
                 Id = certificate.Id, Name = certificate.Name, Login = certificate.Login,
-                Floors = certificate.Floors, Score = certificate.Score,
+                Floors = certificate.Floors, Score = certificate.Score, UpdatedAt = certificate.UpdatedAt ?? saved.UpdatedAt,
                 PreviousId = certificate.PreviousId ?? saved.PreviousId, Language = certificate.Language,
             }));
 }
@@ -263,15 +263,15 @@ public sealed class PostgresPlayerRecords(NpgsqlDataSource db) : IPlayerRecords
     public async Task<Certificate> IssueCertificateAsync(Certificate certificate, CancellationToken ct = default)
     {
         await using var upsert = db.CreateCommand("""
-            insert into certificates (id, github_id, login, name, floors, score, issued_at, previous_id, language, tier)
-            values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            insert into certificates (id, github_id, login, name, floors, score, issued_at, previous_id, language, tier, updated_at)
+            values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
             on conflict (github_id, tier) do update set id = excluded.id, name = excluded.name, login = excluded.login,
-                floors = excluded.floors, score = excluded.score,
+                floors = excluded.floors, score = excluded.score, updated_at = coalesce(excluded.updated_at, certificates.updated_at),
                 previous_id = coalesce(excluded.previous_id, certificates.previous_id), language = excluded.language
             """);
         foreach (var value in new object?[] { certificate.Id, certificate.PlayerId, certificate.Login, certificate.Name,
                      certificate.Floors, certificate.Score, certificate.IssuedAt, certificate.PreviousId, certificate.Language.Code(),
-                     CertificateRules.For(certificate.Tier).Code })
+                     CertificateRules.For(certificate.Tier).Code, certificate.UpdatedAt })
         {
             upsert.Parameters.Add(new() { Value = value ?? DBNull.Value });
         }
@@ -282,7 +282,7 @@ public sealed class PostgresPlayerRecords(NpgsqlDataSource db) : IPlayerRecords
     private async Task<List<Certificate>> LoadCertificatesAsync(string where, string[] values, CancellationToken ct)
     {
         await using var select = db.CreateCommand(
-            $"select id, github_id, login, name, floors, score, issued_at, previous_id, language, tier from certificates where {where}");
+            $"select id, github_id, login, name, floors, score, issued_at, previous_id, language, tier, updated_at from certificates where {where}");
         foreach (var value in values)
         {
             select.Parameters.Add(new() { Value = value });
@@ -295,7 +295,8 @@ public sealed class PostgresPlayerRecords(NpgsqlDataSource db) : IPlayerRecords
                 reader.GetInt32(4), reader.GetInt32(5), reader.GetFieldValue<DateTimeOffset>(6),
                 reader.IsDBNull(7) ? null : reader.GetString(7),
                 Languages.Parse(reader.GetString(8)) ?? CodeLanguage.CSharp,
-                CertificateRules.ParseTier(reader.GetString(9)) ?? CertificateTier.Apprentice));
+                CertificateRules.ParseTier(reader.GetString(9)) ?? CertificateTier.Apprentice,
+                reader.IsDBNull(10) ? null : reader.GetFieldValue<DateTimeOffset>(10)));
         }
         return found;
     }

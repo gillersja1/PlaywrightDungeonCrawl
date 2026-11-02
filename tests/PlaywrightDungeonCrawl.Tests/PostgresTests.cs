@@ -174,13 +174,44 @@ public class PostgresTests
         var id = CertificateRules.NewId(issuedAt);
 
         await records.IssueCertificateAsync(new(id, player, "ada", "Ada", 6, 510, issuedAt));
-        var completed = await records.IssueCertificateAsync(new(id, player, "ada", "Ada", 7, 640, issuedAt));
+        var updatedAt = new DateTimeOffset(2026, 11, 3, 9, 0, 0, TimeSpan.Zero);
+        var completed = await records.IssueCertificateAsync(new(id, player, "ada", "Ada", 7, 640, issuedAt, UpdatedAt: updatedAt));
+        // A later rename doesn't clear the update date.
+        var renamed = await records.IssueCertificateAsync(new(id, player, "ada", "Ada L.", 7, 640, issuedAt));
 
         Assert.Multiple(() =>
         {
+            Assert.That(completed.UpdatedAt, Is.EqualTo(updatedAt));
+            Assert.That(renamed.UpdatedAt, Is.EqualTo(updatedAt));
             Assert.That(completed.Floors, Is.EqualTo(7));
             Assert.That(completed.Score, Is.EqualTo(640));
             Assert.That(completed.Id, Is.EqualTo(id));
+        });
+    }
+
+    [Test]
+    public async Task CertificatesUpgradedBeforeTheUpdateDateExistedGetOne()
+    {
+        var records = new PostgresPlayerRecords(db);
+        var october30 = new DateTimeOffset(2026, 10, 30, 12, 0, 0, TimeSpan.Zero);
+        var upgraded = $"test-{Guid.NewGuid()}";
+        var early = $"test-{Guid.NewGuid()}";
+        var later = $"test-{Guid.NewGuid()}";
+        // Covers floor 7 but was issued before floor 7 opened: it must have been upgraded.
+        await records.IssueCertificateAsync(new(CertificateRules.NewId(october30), upgraded, "a", "A", 7, 640, october30));
+        // Still early: never upgraded.
+        await records.IssueCertificateAsync(new(CertificateRules.NewId(october30), early, "b", "B", 6, 510, october30));
+        // Issued after floor 7 opened: earned whole, nothing to note.
+        var november3 = october30.AddDays(4);
+        await records.IssueCertificateAsync(new(CertificateRules.NewId(november3), later, "c", "C", 7, 640, november3));
+
+        await PostgresDatabase.EnsureCreatedAsync(db);
+
+        Assert.Multiple(async () =>
+        {
+            Assert.That((await records.CertificateForAsync(upgraded))!.UpdatedAt?.UtcDateTime.Date, Is.EqualTo(new DateTime(2026, 11, 2)));
+            Assert.That((await records.CertificateForAsync(early))!.UpdatedAt, Is.Null);
+            Assert.That((await records.CertificateForAsync(later))!.UpdatedAt, Is.Null);
         });
     }
 }

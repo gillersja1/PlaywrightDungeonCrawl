@@ -26,6 +26,10 @@
     <dl class="certificate-facts">
         <div><dt>Score</dt><dd>@cert.Score.ToString("N0") XP</dd></div>
         <div><dt>Issued</dt><dd>@cert.IssuedAt.ToString("d MMMM yyyy")</dd></div>
+        @if (cert.UpdatedAt is { } updated)
+        {
+            <div><dt>Updated</dt><dd>@updated.ToString("d MMMM yyyy")</dd></div>
+        }
         <div><dt>Certificate ID</dt><dd>@cert.Id</dd></div>
     </dl>
     <div class="certificate-seal" aria-hidden="true">⚔</div>

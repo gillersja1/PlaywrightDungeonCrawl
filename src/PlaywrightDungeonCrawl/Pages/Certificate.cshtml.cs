@@ -100,7 +100,8 @@ public class CertificateModel(IPlayerRecords records, IProgressStore progress, D
         var score = existing is null || completes ? Mine!.Score : existing.Score;
         var issued = await records.IssueCertificateAsync(new Certificate(
             id, playerId, User.Identity!.Name ?? "", name, floors, score, issuedAt,
-            upgrade ? existing!.Id : existing?.PreviousId, Language, tier.Tier), HttpContext.RequestAborted);
+            upgrade ? existing!.Id : existing?.PreviousId, Language, tier.Tier,
+            UpdatedAt: completes ? clock.GetUtcNow() : null), HttpContext.RequestAborted);
         logger.LogInformation("Certificate {CertificateId} ({Tier}) {Action}", issued.Id, tier.Name,
             existing is null ? "issued" : completes ? "completed" : upgrade ? "upgraded" : "renamed");
         return Redirect($"/certificates/{issued.Id}");
