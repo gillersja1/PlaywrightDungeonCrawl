@@ -28,3 +28,8 @@ services:
         sync: false
       - key: OTEL_EXPORTER_OTLP_HEADERS
         sync: false
+      # Visitor tracking in the browser (Grafana Faro). This is the collect URL
+      # from Frontend Observability; it ends up in every page, so it isn't secret.
+      # Leave it unset to turn visitor tracking off.
+      - key: Faro__CollectorUrl
+        value: https://faro-collector-prod-us-east-2.grafana.net/collect/c0cb4c90c8126c0bc07b909a5b217bb6

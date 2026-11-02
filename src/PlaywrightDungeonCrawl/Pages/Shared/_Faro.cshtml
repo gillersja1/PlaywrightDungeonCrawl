@@ -1,0 +1,25 @@
+@inject IConfiguration Config
+@*
+    Grafana Faro: counts visitors, sessions and page views, and reports browser
+    errors and Web Vitals to Grafana Cloud Frontend Observability. Off unless
+    Faro__CollectorUrl is set (the collect URL from the Frontend Observability
+    app), so local runs and CI crawls send nothing. Players aren't identified.
+*@
+@if (Config["Faro:CollectorUrl"] is { Length: > 0 } collectorUrl)
+{
+    <script id="faro-init">
+        (function () {
+            var sdk = document.createElement("script");
+            sdk.src = "https://unpkg.com/@@grafana/faro-web-sdk@1/dist/bundle/faro-web-sdk.iife.js";
+            sdk.async = true;
+            sdk.onload = function () {
+                window.GrafanaFaroWebSdk.initializeFaro({
+                    url: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(collectorUrl)),
+                    app: { name: "playwright-dungeon-crawl", environment: "production" },
+                    sessionTracking: { samplingRate: 1, persistent: true },
+                });
+            };
+            document.head.appendChild(sdk);
+        })();
+    </script>
+}
