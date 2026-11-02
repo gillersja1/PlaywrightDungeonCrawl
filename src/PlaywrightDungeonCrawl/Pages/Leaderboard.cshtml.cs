@@ -13,6 +13,9 @@ public class LeaderboardModel(IPlayerRecords records, IProgressStore progress, D
 
     public int FloorCount => catalog.Floors.Count;
 
+    /// <summary>Real players on the board, not counting the NPC rivals.</summary>
+    public int PlayerCount => Rows.Count(r => !r.Standing.IsNpc);
+
     /// <summary>The signed-in player's own verified standing, listed or not.</summary>
     public Standing? Mine { get; private set; }
 
@@ -20,7 +23,7 @@ public class LeaderboardModel(IPlayerRecords records, IProgressStore progress, D
 
     public async Task OnGetAsync()
     {
-        Rows = await Leaderboard.BuildAsync(records, progress, catalog, HttpContext.RequestAborted);
+        Rows = await Leaderboard.BuildAsync(records, progress, catalog, includeRivals: AccountsOn, HttpContext.RequestAborted);
         if (PlayerId is { } playerId)
         {
             var record = await records.GetAsync(playerId, HttpContext.RequestAborted)
