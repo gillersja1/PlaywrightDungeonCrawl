@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.HttpOverrides;
+using PlaywrightDungeonCrawl;
 using PlaywrightDungeonCrawl.Dungeon;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -43,11 +44,14 @@ var app = builder.Build();
 await app.PrepareAccountsAsync();
 
 app.UseForwardedHeaders();
+app.UseSecurityHeaders();
 app.UseLanguageSwitch();
 
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
+    // Tell browsers to stick to https. Only sent on https requests, which Render's proxy forwards as such.
+    app.UseHsts();
 }
 
 app.UseRouting();

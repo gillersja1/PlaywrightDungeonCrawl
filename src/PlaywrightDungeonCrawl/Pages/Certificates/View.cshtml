@@ -50,7 +50,7 @@
         </p>
         <p class="breakdown" id="copy-status" role="status"></p>
     </section>
-    <script>
+    <script nonce="@ViewContext.HttpContext.CspNonce()">
         document.getElementById("copy-cert-link").addEventListener("click", async e => {
             await navigator.clipboard.writeText(e.currentTarget.dataset.url);
             document.getElementById("copy-status").textContent = "Link copied.";

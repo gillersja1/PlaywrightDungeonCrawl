@@ -38,7 +38,7 @@
 </div>
 
 @section Scripts {
-    <script>
+    <script nonce="@ViewContext.HttpContext.CspNonce()">
         document.getElementById("mark-read").addEventListener("click", e => {
             const isNew = Dungeon.mark("scrolls", e.currentTarget.dataset.floor);
             document.getElementById("read-result").textContent = isNew
