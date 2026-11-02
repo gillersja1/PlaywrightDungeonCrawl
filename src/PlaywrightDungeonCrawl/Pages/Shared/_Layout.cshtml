@@ -15,7 +15,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     @* Put the worn torch on before the page paints, so it doesn't flash the default colour first. *@
-    <script>
+    <script nonce="@Context.CspNonce()">
         (function () {
             const torches = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Shop.Items.Where(i => i.Slot == LootSlot.Torch).ToDictionary(i => i.Id, i => new[] { i.Color, i.Dim })));
             try {

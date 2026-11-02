@@ -75,7 +75,7 @@
 </div>
 
 @section Scripts {
-    <script>
+    <script nonce="@ViewContext.HttpContext.CspNonce()">
         // Charge for a hint the first time it's opened.
         document.querySelectorAll("details[data-help-key]").forEach(hint => {
             hint.addEventListener("toggle", () => {
@@ -87,7 +87,7 @@
     </script>
     @if (Model.Passed)
     {
-        <script>
+        <script nonce="@ViewContext.HttpContext.CspNonce()">
             if (Dungeon.isOpen(@Model.Floor.Number)) {
                 Dungeon.mark("riddles", "@Model.Floor.Slug");
             }
