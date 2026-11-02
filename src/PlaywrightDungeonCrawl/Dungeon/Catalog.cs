@@ -643,13 +643,95 @@ public sealed class DungeonCatalog
                         "You can't slow the room down. Can you record the run and watch it afterwards?"),
                 },
             },
+            new Floor(8, "portals", "The Portal Bazaar", "Tabs, pop-ups and navigation",
+                "Every door here opens somewhere new. Learn to follow a link into another tab, and find your way back.",
+                bySlug["portal-bazaar"],
+                new[]
+                {
+                    new QuizQuestion(
+                        "Clicking a link opens a new tab. How does your test get hold of it?",
+                        new[]
+                        {
+                            "Page switches to the new tab by itself",
+                            "var popup = await Page.RunAndWaitForPopupAsync(() => link.ClickAsync());",
+                            "await Page.Context.NewPageAsync()",
+                            "await Page.GoForwardAsync()",
+                        },
+                        1,
+                        "The new tab is a separate IPage. Wrapping the click means you're listening before it opens, so you can't miss it.",
+                        "Page keeps pointing at the tab it started in. What would tell you a new one appeared?"),
+                    new QuizQuestion(
+                        "A page sends you on to another address a moment after it loads. How do you wait until you've arrived?",
+                        new[]
+                        {
+                            "await Task.Delay(2000)",
+                            "Read Page.Url straight away",
+                            "await Page.WaitForURLAsync(\"**/stall\")",
+                            "await Page.ReloadAsync()",
+                        },
+                        2,
+                        "WaitForURLAsync waits for the address to match a glob, a regex or a predicate, however long the hop takes, and no longer.",
+                        "A fixed sleep is either too long or too short. Is there something that waits for the address itself?"),
+                    new QuizQuestion(
+                        "Your test has opened three tabs. Where can it find all of them?",
+                        new[]
+                        {
+                            "Page.Context.Pages",
+                            "Page.Frames",
+                            "Browser.Tabs",
+                            "Page.Popups",
+                        },
+                        0,
+                        "Tabs live in a browser context. Its Pages list holds every one, and new ones arrive through its Page event.",
+                        "Frames are inside a page. What's one level up from a page?"),
+                })
+            {
+                TypeScriptRiddles = new[]
+                {
+                    new QuizQuestion(
+                        "Clicking a link opens a new tab. How does your test get hold of it?",
+                        new[]
+                        {
+                            "page switches to the new tab by itself",
+                            "const popup = page.waitForEvent('popup'); await link.click(); const tab = await popup;",
+                            "await page.context().newPage()",
+                            "await page.goForward()",
+                        },
+                        1,
+                        "The new tab is a separate Page. Starting the wait before the click means you're listening before it opens, so you can't miss it.",
+                        "page keeps pointing at the tab it started in. What would tell you a new one appeared?"),
+                    new QuizQuestion(
+                        "A page sends you on to another address a moment after it loads. How do you wait until you've arrived?",
+                        new[]
+                        {
+                            "await page.waitForTimeout(2000)",
+                            "Read page.url() straight away",
+                            "await page.waitForURL('**/stall')",
+                            "await page.reload()",
+                        },
+                        2,
+                        "waitForURL waits for the address to match a glob, a regex or a predicate, however long the hop takes, and no longer.",
+                        "A fixed sleep is either too long or too short. Is there something that waits for the address itself?"),
+                    new QuizQuestion(
+                        "Your test has opened three tabs. Where can it find all of them?",
+                        new[]
+                        {
+                            "page.context().pages()",
+                            "page.frames()",
+                            "browser.tabs()",
+                            "page.popups()",
+                        },
+                        0,
+                        "Tabs live in a browser context. pages() lists every one, and new ones arrive through its 'page' event.",
+                        "Frames are inside a page. What's one level up from a page?"),
+                },
+            },
         };
     }
 
     /// <summary>The deeper floors, shown on the map as sealed until they're built.</summary>
     public IReadOnlyList<(int Number, string Title, string Skill)> SealedFloors { get; } = new[]
     {
-        (8, "The Portal Bazaar", "Tabs, pop-ups and navigation"),
         (9, "The Clockwork Foundry", "Mouse and keyboard"),
         (10, "The Courier Guild", "File upload and download"),
         (11, "The Masquerade", "Login state and browser contexts"),
