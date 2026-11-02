@@ -68,5 +68,24 @@ public class TelemetryTests
         Assert.That(dungeon.Services.GetService<TracerProvider>(), Is.Not.Null);
     }
 
+    [Test]
+    public async Task VisitorTrackingIsOffWithoutACollectorUrl()
+    {
+        await using var dungeon = new WebApplicationFactory<Program>();
+        var page = await dungeon.CreateClient().GetStringAsync("/");
+        Assert.That(page, Does.Not.Contain("faro-init"));
+    }
+
+    [Test]
+    public async Task VisitorTrackingTurnsOnWithACollectorUrl()
+    {
+        const string collectorUrl = "https://faro.example/collect/test-key";
+        await using var dungeon = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
+            builder.UseSetting("Faro:CollectorUrl", collectorUrl));
+        var page = await dungeon.CreateClient().GetStringAsync("/");
+        Assert.That(page, Does.Contain("https://unpkg.com/@grafana/faro-web-sdk@1/"));
+        Assert.That(page, Does.Contain($"\"{collectorUrl}\""));
+    }
+
     private sealed record AttemptResponse(Guid AttemptId);
 }
