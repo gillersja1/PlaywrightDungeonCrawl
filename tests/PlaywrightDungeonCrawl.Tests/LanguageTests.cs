@@ -37,6 +37,16 @@ public class LanguageTests
     }
 
     [Test]
+    public async Task TheFooterLinksToTheChosenLanguagesDocs()
+    {
+        var csharp = await dungeon.CreateClient().GetStringAsync("/");
+        var ts = await (await SpeakingAsync("ts")).GetStringAsync("/");
+
+        Assert.That(csharp, Does.Contain("<a href=\"https://playwright.dev/dotnet/docs/intro\">Playwright for .NET</a>"));
+        Assert.That(ts, Does.Contain("<a href=\"https://playwright.dev/docs/intro\">Playwright</a>"));
+    }
+
+    [Test]
     public async Task CSharpIsTheDefault()
     {
         var page = await dungeon.CreateClient().GetStringAsync("/floors/setup");

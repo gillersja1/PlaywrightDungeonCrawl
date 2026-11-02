@@ -4,6 +4,10 @@
 @{
     var accountsOn = Accounts.IsEnabled(Config);
     var player = User.Identity?.IsAuthenticated == true ? User.Identity.Name : null;
+    var language = Languages.Current(Context);
+    // The docs for the language the player chose.
+    var docsUrl = language == CodeLanguage.TypeScript ? "https://playwright.dev/docs/intro" : "https://playwright.dev/dotnet/docs/intro";
+    var docsName = language == CodeLanguage.TypeScript ? "Playwright" : "Playwright for .NET";
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -54,7 +58,7 @@
     </main>
 
     <footer class="site-footer">
-        <p>A free, hands-on way to learn <a href="https://playwright.dev/">Playwright</a>, in C# or TypeScript. @(player is not null ? "Your progress is saved to your GitHub account." : accountsOn ? "Progress is saved in this browser. Sign in with GitHub to keep it everywhere." : "Progress is saved in this browser only.")</p>
+        <p>A free, hands-on way to learn Playwright, in C# or TypeScript. Docs: <a href="@docsUrl">@docsName</a>. @(player is not null ? "Your progress is saved to your GitHub account." : accountsOn ? "Progress is saved in this browser. Sign in with GitHub to keep it everywhere." : "Progress is saved in this browser only.")</p>
     </footer>
 
     <script id="dungeon-rules" type="application/json">@Html.Raw(System.Text.Json.JsonSerializer.Serialize(new
