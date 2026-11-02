@@ -39,6 +39,32 @@ export async function startRoom(render) {
         roomEl.classList.add(cssClass);
     }
 
+    function fail(outcome) {
+        finish(
+            `<p><strong>${OUTCOMES[outcome] ?? "Something went wrong."}</strong></p>
+             <p><a class="button" href="">Try again</a> <a href="#nudges">Stuck? Get a nudge</a></p>`,
+            "failed");
+    }
+
+    // Multi-step rooms: clear the next trial. Resolves to what it unlocks, or
+    // null if the trap sprang (the room shows the failure itself).
+    async function trial(value) {
+        if (finished) {
+            return null;
+        }
+        const reply = await fetch(`/api/rooms/${slug}/attempts/${attempt.attemptId}/trials`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ answer: value }),
+        });
+        const outcome = await reply.json();
+        if (outcome.outcome === "correct") {
+            return outcome.unlocks;
+        }
+        fail(outcome.outcome);
+        return null;
+    }
+
     async function answer(value) {
         if (finished) {
             return;
@@ -56,10 +82,7 @@ export async function startRoom(render) {
                  <p>Treasure flag: <code aria-label="Treasure flag" id="treasure-flag">${outcome.flag}</code></p>`,
                 "cleared");
         } else {
-            finish(
-                `<p><strong>${OUTCOMES[outcome.outcome] ?? "Something went wrong."}</strong></p>
-                 <p><a class="button" href="">Try again</a> <a href="#nudges">Stuck? Get a nudge</a></p>`,
-                "failed");
+            fail(outcome.outcome);
         }
     }
 
@@ -70,5 +93,5 @@ export async function startRoom(render) {
     }
 
     arena.innerHTML = "";
-    render(arena, attempt.briefing, { answer, reveal, attemptId: attempt.attemptId });
+    render(arena, attempt.briefing, { answer, trial, reveal, attemptId: attempt.attemptId });
 }

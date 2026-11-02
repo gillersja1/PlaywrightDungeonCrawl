@@ -2,9 +2,16 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace PlaywrightDungeonCrawl.Dungeon;
 
-public sealed record Attempt(Guid Id, Room Room, RoomPuzzle Puzzle, DateTimeOffset StartedAt, DateTimeOffset Deadline);
+public sealed record Attempt(Guid Id, Room Room, RoomPuzzle Puzzle, DateTimeOffset StartedAt, DateTimeOffset Deadline)
+{
+    /// <summary>How many of the puzzle's trials have been cleared, in order.</summary>
+    public int TrialsCleared { get; set; }
+}
 
 public enum AnswerOutcome { Correct, Wrong, TooSlow, UnknownAttempt }
+
+/// <param name="Unlocks">What the cleared trial hands over, when <see cref="Outcome"/> is Correct.</param>
+public sealed record TrialResult(AnswerOutcome Outcome, int Trial = 0, object? Unlocks = null);
 
 /// <summary>
 /// Holds in-flight room attempts. Attempts are single-use: answering removes
@@ -35,6 +42,41 @@ public sealed class AttemptStore(IMemoryCache cache, TimeProvider clock)
         return clock.GetUtcNow() >= attempt.StartedAt + attempt.Puzzle.RevealAfter ? attempt.Puzzle.Reveal : null;
     }
 
+    /// <summary>
+    /// Checks the attempt's next trial. A wrong or late answer springs the trap
+    /// and uses the attempt up, like a wrong final answer does.
+    /// </summary>
+    public TrialResult Trial(string roomSlug, Guid attemptId, string answer)
+    {
+        var key = Key(roomSlug, attemptId);
+        if (!cache.TryGetValue(key, out Attempt? attempt))
+        {
+            return new(AnswerOutcome.UnknownAttempt);
+        }
+        lock (attempt!)
+        {
+            var trials = attempt.Puzzle.Trials;
+            if (attempt.TrialsCleared >= trials.Count)
+            {
+                // No trials left (or none at all): only the final answer is open.
+                return new(AnswerOutcome.Wrong);
+            }
+            if (clock.GetUtcNow() > attempt.Deadline)
+            {
+                cache.Remove(key);
+                return new(AnswerOutcome.TooSlow);
+            }
+            var trial = trials[attempt.TrialsCleared];
+            if (!trial.Accepts(answer))
+            {
+                cache.Remove(key);
+                return new(AnswerOutcome.Wrong, attempt.TrialsCleared + 1);
+            }
+            attempt.TrialsCleared++;
+            return new(AnswerOutcome.Correct, attempt.TrialsCleared, trial.Unlocks);
+        }
+    }
+
     public AnswerOutcome Answer(string roomSlug, Guid attemptId, string answer)
     {
         var key = Key(roomSlug, attemptId);
@@ -47,6 +89,14 @@ public sealed class AttemptStore(IMemoryCache cache, TimeProvider clock)
         if (clock.GetUtcNow() > attempt!.Deadline)
         {
             return AnswerOutcome.TooSlow;
+        }
+        lock (attempt)
+        {
+            if (attempt.TrialsCleared < attempt.Puzzle.Trials.Count)
+            {
+                // Skipping ahead to the final answer doesn't count.
+                return AnswerOutcome.Wrong;
+            }
         }
         return attempt.Room.IsCorrect(attempt.Puzzle, answer) ? AnswerOutcome.Correct : AnswerOutcome.Wrong;
     }

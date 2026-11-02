@@ -304,24 +304,66 @@ public sealed class DungeonCatalog
                         "JsonAsync() parses the body into a JsonElement you can navigate with GetProperty.",
                         "The response object has a method that parses the body for you."),
                 }),
+            new Floor(7, "gauntlet", "The Warden's Keep", "Boss: every skill at once",
+                "The first boss. Five traps in a row, one for every floor above, and one test to beat them all.",
+                bySlug["wardens-gauntlet"],
+                new[]
+                {
+                    new QuizQuestion(
+                        "Trial 4 asks \"are you sure?\" with a confirm dialog. Where does the line Page.Dialog += (_, d) => d.AcceptAsync(); go?",
+                        new[]
+                        {
+                            "Right after the click that opens the dialog",
+                            "Anywhere before that click; the top of the test is simplest",
+                            "In a separate test that runs first",
+                            "Nowhere: Playwright accepts dialogs by default",
+                        },
+                        1,
+                        "A handler only catches dialogs that open after it's registered, so set it up before the action. At the top of the test, it can't be forgotten.",
+                        "Floor 5 told you what Playwright does with a dialog nobody's listening for. When does the listening have to start?"),
+                    new QuizQuestion(
+                        "The true name is only in the response to the request your click sends. Which line catches it?",
+                        new[]
+                        {
+                            "await speak.ClickAsync(); var r = await Page.WaitForResponseAsync(r => r.Url.Contains(\"/trials\"));",
+                            "var r = await Page.RunAndWaitForResponseAsync(() => speak.ClickAsync(), r => r.Url.Contains(\"/trials\"));",
+                            "await speak.ClickAsync(); var text = await Page.ContentAsync();",
+                            "await Page.ReloadAsync(); var r = await Page.WaitForResponseAsync(\"**/trials\");",
+                        },
+                        1,
+                        "Wrapping the click means you're already listening when the request goes out, however fast it comes back.",
+                        "Floor 6's tip: start listening before the action, not after."),
+                    new QuizQuestion(
+                        "Your gauntlet test fails at trial 3, and the clock is too short to step through it in the Inspector. What's the best way to see what happened?",
+                        new[]
+                        {
+                            "Add Task.Delay calls so you can watch",
+                            "Record a trace and open it in the Trace Viewer",
+                            "Turn on SlowMo",
+                            "Run it again and hope",
+                        },
+                        1,
+                        "A trace records every action, a DOM snapshot before and after it, the network and the console, so you can replay a full-speed run step by step.",
+                        "You can't slow the room down. Can you record the run and watch it afterwards?"),
+                }),
         };
     }
 
     /// <summary>The deeper floors, shown on the map as sealed until they're built.</summary>
     public IReadOnlyList<(int Number, string Title, string Skill)> SealedFloors { get; } = new[]
     {
-        (7, "The Portal Bazaar", "Tabs, pop-ups and navigation"),
-        (8, "The Clockwork Foundry", "Mouse and keyboard"),
-        (9, "The Courier Guild", "File upload and download"),
-        (10, "The Masquerade", "Login state and browser contexts"),
-        (11, "The Oracle's Well", "API testing"),
-        (12, "The Illusionist's Theater", "Mocking responses"),
-        (13, "The Architect's Atelier", "Page Object Model"),
-        (14, "The Hydra Pits", "Fixtures, setup and parallel tests"),
-        (15, "The Haunted Archive", "Tracing and debugging"),
-        (16, "The Portrait Gallery", "Screenshots and visual comparison"),
-        (17, "The Clocktower of Elsewhere", "Emulation and the clock"),
-        (18, "The Flake", "The final boss: a flaky-test hunt"),
+        (8, "The Portal Bazaar", "Tabs, pop-ups and navigation"),
+        (9, "The Clockwork Foundry", "Mouse and keyboard"),
+        (10, "The Courier Guild", "File upload and download"),
+        (11, "The Masquerade", "Login state and browser contexts"),
+        (12, "The Oracle's Well", "API testing"),
+        (13, "The Illusionist's Theater", "Mocking responses"),
+        (14, "The Architect's Atelier", "Page Object Model"),
+        (15, "The Hydra Pits", "Fixtures, setup and parallel tests"),
+        (16, "The Haunted Archive", "Tracing and debugging"),
+        (17, "The Portrait Gallery", "Screenshots and visual comparison"),
+        (18, "The Clocktower of Elsewhere", "Emulation and the clock"),
+        (19, "The Flake", "The final boss: a flaky-test hunt"),
     };
 
     public Floor? Find(string slug) => Floors.FirstOrDefault(f => f.Slug == slug);

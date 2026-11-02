@@ -39,17 +39,29 @@ public static class DungeonApi
                 // 425 Too Early: the rune hasn't appeared yet (or never will).
                 : Results.StatusCode(425));
 
+        // Multi-step rooms (the boss) clear their trials here, one at a time, before the final answer.
+        api.MapPost("/rooms/{slug}/attempts/{id:guid}/trials", (string slug, Guid id, AnswerRequest body, AttemptStore attempts) =>
+        {
+            var result = attempts.Trial(slug, id, body.Answer ?? "");
+            var name = OutcomeName(result.Outcome);
+            events.LogInformation("Trial {Trial} in {Room}: {Outcome}", result.Trial, slug, name);
+            if (result.Outcome != AnswerOutcome.Correct)
+            {
+                Telemetry.Answered(slug, name);
+            }
+            return result.Outcome switch
+            {
+                AnswerOutcome.Correct => Results.Ok(new { Outcome = name, result.Trial, result.Unlocks }),
+                AnswerOutcome.UnknownAttempt => Results.NotFound(new { Outcome = name }),
+                _ => Results.UnprocessableEntity(new { Outcome = name, result.Trial }),
+            };
+        });
+
         api.MapPost("/rooms/{slug}/attempts/{id:guid}/answer",
             async (string slug, Guid id, AnswerRequest body, AttemptStore attempts, FlagService flags, HttpContext context) =>
             {
                 var outcome = attempts.Answer(slug, id, body.Answer ?? "");
-                var name = outcome switch
-                {
-                    AnswerOutcome.Correct => "correct",
-                    AnswerOutcome.UnknownAttempt => "unknown-attempt",
-                    AnswerOutcome.TooSlow => "too-slow",
-                    _ => "wrong",
-                };
+                var name = OutcomeName(outcome);
                 Telemetry.Answered(slug, name);
                 events.LogInformation("Answer in {Room}: {Outcome}", slug, name);
                 if (outcome == AnswerOutcome.Correct)
@@ -82,4 +94,12 @@ public static class DungeonApi
                 : Results.Ok(new { Valid = true, Room = floor.Room.Slug, Floor = floor.Number, Treasure = floor.Room.Name });
         });
     }
+
+    private static string OutcomeName(AnswerOutcome outcome) => outcome switch
+    {
+        AnswerOutcome.Correct => "correct",
+        AnswerOutcome.UnknownAttempt => "unknown-attempt",
+        AnswerOutcome.TooSlow => "too-slow",
+        _ => "wrong",
+    };
 }

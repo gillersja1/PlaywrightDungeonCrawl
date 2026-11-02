@@ -28,6 +28,7 @@ Every room is a trap built around one Playwright skill. The puzzle changes on ev
 | 4 | The Bureaucracy | Forms and input: text boxes, dropdowns, radio buttons, checkboxes and dates |
 | 5 | The Hall of Mirrors | Frames, shadow DOM and dialogs |
 | 6 | The Whispering Vaults | Network: secrets that never show on screen |
+| 7 | The Warden's Keep | **Boss:** five trials in one test, one for each skill above |
 
 ## Leaderboard and certificate
 

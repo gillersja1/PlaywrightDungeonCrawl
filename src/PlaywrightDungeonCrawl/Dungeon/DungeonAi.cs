@@ -15,6 +15,7 @@ public static class DungeonAi
         ["forms"] = "Welcome to the only floor where the monsters are forms. Every field must be correct. The clerks can smell a typo.",
         ["frames"] = "Everything on this floor is inside something else. Try not to get lost in your own reflection. The last crawler who did is still in there, waving.",
         ["network"] = "The vaults never write anything down. If you want their secrets, you will have to listen to the wire. Please don't hum.",
+        ["gauntlet"] = "The Warden has watched every crawler who came down those stairs. It has notes. Five trials, one breath, no do-overs. The Dungeon AI has reserved a seat in the front row.",
     };
 
     public static string FloorIntro(string floorSlug) => FloorIntros.GetValueOrDefault(floorSlug, "");
@@ -24,5 +25,5 @@ public static class DungeonAi
 
     /// <summary>Said under the sealed floors on the map.</summary>
     public const string SealedFloors =
-        "Floors seven to eighteen are under construction. The Dungeon AI apologizes for the inconvenience. It does not apologize for what's down there.";
+        "Floors eight to nineteen are under construction. The Dungeon AI apologizes for the inconvenience. It does not apologize for what's down there.";
 }
