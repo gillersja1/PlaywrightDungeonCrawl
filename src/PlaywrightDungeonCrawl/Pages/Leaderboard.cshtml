@@ -58,6 +58,10 @@
     }
     else
     {
+        @if (Model.PlayerCount == 0)
+        {
+            <p>No crawlers have joined yet, so it's just the locals. Beat them and the top spot is yours.</p>
+        }
         <table class="lesson-table leaderboard">
             <thead>
                 <tr><th scope="col">Rank</th><th scope="col">Crawler</th><th scope="col">Floors cleared</th><th scope="col">Score</th></tr>
@@ -65,17 +69,37 @@
             <tbody>
                 @foreach (var (rank, standing) in Model.Rows)
                 {
-                    <tr class="@(Model.Mine?.Login == standing.Login ? "me" : "")">
-                        <td>@rank</td>
-                        <th scope="row">
-                            <img src="https://github.com/@(standing.Login).png?size=48" alt="" width="24" height="24" loading="lazy" />
-                            @@@standing.Login
-                        </th>
-                        <td>@standing.FloorsCleared / @Model.FloorCount</td>
-                        <td>@standing.Score XP</td>
-                    </tr>
+                    @if (standing.Npc is { } npc)
+                    {
+                        <tr class="npc">
+                            <td>@rank</td>
+                            <th scope="row">
+                                <span class="npc-icon" aria-hidden="true">@npc.Icon</span>
+                                @npc.Name <span class="npc-tag" title="A dungeon resident, not a player">NPC</span>
+                                <span class="npc-quip">@npc.Quip</span>
+                            </th>
+                            <td>@standing.FloorsCleared / @Model.FloorCount</td>
+                            <td>@standing.Score XP</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        <tr class="@(Model.Mine?.Login == standing.Login ? "me" : "")">
+                            <td>@rank</td>
+                            <th scope="row">
+                                <img src="https://github.com/@(standing.Login).png?size=48" alt="" width="24" height="24" loading="lazy" />
+                                @@@standing.Login
+                            </th>
+                            <td>@standing.FloorsCleared / @Model.FloorCount</td>
+                            <td>@standing.Score XP</td>
+                        </tr>
+                    }
                 }
             </tbody>
         </table>
+        <p class="breakdown">
+            Rows marked <span class="npc-tag">NPC</span> are dungeon residents, not players. Their scores are made up
+            and never change; they're here to be beaten. Players win any tie.
+        </p>
     }
 </section>

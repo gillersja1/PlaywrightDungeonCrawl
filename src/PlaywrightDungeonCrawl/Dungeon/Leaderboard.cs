@@ -50,7 +50,13 @@ public interface IPlayerRecords
     Task<Certificate> IssueCertificateAsync(Certificate certificate, CancellationToken ct = default);
 }
 
-public sealed record Standing(string Login, int FloorsCleared, int Score, DateTimeOffset? ReachedAt);
+public sealed record Standing(string Login, int FloorsCleared, int Score, DateTimeOffset? ReachedAt)
+{
+    /// <summary>Set for a dungeon resident (see <see cref="Rivals"/>); null for a real player.</summary>
+    public Rival? Npc { get; init; }
+
+    public bool IsNpc => Npc is not null;
+}
 
 public static class Leaderboard
 {
@@ -81,12 +87,16 @@ public static class Leaderboard
         return new(record.Login, cleared.Count, score, reached);
     }
 
-    /// <summary>Floors cleared, then score, then whoever got there first. Equal standings share a rank.</summary>
+    /// <summary>
+    /// Floors cleared, then score, then whoever got there first. Real players win ties against NPCs.
+    /// Equal standings share a rank.
+    /// </summary>
     public static IReadOnlyList<(int Rank, Standing Standing)> Rank(IEnumerable<Standing> standings)
     {
         var ordered = standings
             .OrderByDescending(s => s.FloorsCleared)
             .ThenByDescending(s => s.Score)
+            .ThenBy(s => s.IsNpc)
             .ThenBy(s => s.ReachedAt ?? DateTimeOffset.MaxValue)
             .ThenBy(s => s.Login, StringComparer.OrdinalIgnoreCase)
             .ToList();
@@ -95,16 +105,18 @@ public static class Leaderboard
         for (var i = 0; i < ordered.Count; i++)
         {
             var same = i > 0 && ordered[i].FloorsCleared == ordered[i - 1].FloorsCleared
-                && ordered[i].Score == ordered[i - 1].Score && ordered[i].ReachedAt == ordered[i - 1].ReachedAt;
+                && ordered[i].Score == ordered[i - 1].Score && ordered[i].ReachedAt == ordered[i - 1].ReachedAt
+                && ordered[i].IsNpc == ordered[i - 1].IsNpc;
             ranked.Add((same ? ranked[i - 1].Item1 : i + 1, ordered[i]));
         }
         return ranked;
     }
 
+    /// <param name="includeRivals">Whether to rank the NPC rivals alongside the players.</param>
     public static async Task<IReadOnlyList<(int Rank, Standing Standing)>> BuildAsync(
-        IPlayerRecords records, IProgressStore progress, DungeonCatalog catalog, CancellationToken ct = default)
+        IPlayerRecords records, IProgressStore progress, DungeonCatalog catalog, bool includeRivals = false, CancellationToken ct = default)
     {
-        var standings = new List<Standing>();
+        var standings = includeRivals ? Rivals.StandingsFor(catalog).ToList() : [];
         foreach (var record in await records.ListedAsync(ct))
         {
             standings.Add(Score(record, await progress.GetAsync(record.PlayerId, ct), catalog));

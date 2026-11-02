@@ -332,3 +332,11 @@ button:disabled { opacity: 0.6; cursor: default; }
 .form-error:empty, .form-error ul:empty { display: none; }
 .form-note, .subtle-note { font-size: 0.9rem; opacity: 0.8; }
 .trap-field { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+
+/* Leaderboard NPC rivals */
+.leaderboard tr.npc th, .leaderboard tr.npc td { opacity: 0.85; }
+.npc-icon { display: inline-block; width: 24px; text-align: center; }
+.npc-tag { display: inline-block; font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.08em; padding: 1px 6px; border-radius: 4px; border: 1px solid #66dcff; color: #66dcff; vertical-align: middle; }
+.leaderboard tr.npc th[scope=row] { flex-wrap: wrap; row-gap: 2px; }
+.npc-quip { flex-basis: 100%; font-weight: 400; font-size: 0.85rem; opacity: 0.75; padding-left: 32px; }
+@media (max-width: 600px) { .npc-quip { padding-left: 0; } }

@@ -171,4 +171,49 @@ public class LeaderboardTests
             Assert.That(ranked.Select(r => r.Rank), Is.EqualTo(new[] { 1, 2, 3, 3, 5 }));
         });
     }
+
+    [Test]
+    public void PlayersWinTiesAgainstNpcs()
+    {
+        var npc = new Standing("The Warden", 1, 85, null) { Npc = Rivals.All[0] };
+        var ranked = Leaderboard.Rank([npc, new("ada", 1, 85, DateTimeOffset.UtcNow)]);
+
+        Assert.That(ranked.Select(r => (r.Rank, r.Standing.Login)), Is.EqualTo(new[] { (1, "ada"), (2, "The Warden") }));
+    }
+
+    [Test]
+    public void RivalsNeverClaimMoreFloorsThanAreOpen()
+    {
+        Assert.Multiple(() =>
+        {
+            foreach (var rival in Rivals.StandingsFor(Catalog))
+            {
+                Assert.That(rival.FloorsCleared, Is.InRange(0, Catalog.Floors.Count - 1), rival.Login);
+                Assert.That(rival.IsNpc, Is.True);
+            }
+        });
+    }
+
+    [Test]
+    public async Task NpcsAreOnTheBoardAndLabeledAsNpcs()
+    {
+        var html = await dungeon.ClientFor(null).GetStringAsync("/leaderboard");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(Regex.Matches(html, "<tr class=\"npc\">").Count, Is.EqualTo(Rivals.All.Count));
+            Assert.That(Regex.Matches(html, "class=\"npc-tag\" title=").Count, Is.EqualTo(Rivals.All.Count));
+            Assert.That(html, Does.Contain("just the locals"));
+            // No GitHub avatar for someone who isn't on GitHub.
+            Assert.That(html, Does.Not.Contain("github.com/The"));
+        });
+    }
+
+    [Test]
+    public async Task NpcsDontCountAsVerifiedPlayers()
+    {
+        var listed = await Records.ListedAsync();
+
+        Assert.That(listed.Select(r => r.Login), Has.None.AnyOf(Rivals.All.Select(r => r.Name).ToArray()));
+    }
 }
