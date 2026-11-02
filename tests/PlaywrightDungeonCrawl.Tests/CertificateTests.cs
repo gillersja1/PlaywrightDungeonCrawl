@@ -27,15 +27,56 @@ public class CertificateTests
         }
     }
 
-    private static async Task<HttpResponseMessage> IssueAsync(HttpClient client, string name)
+    private static async Task<HttpResponseMessage> IssueAsync(HttpClient client, string name, string? lang = null)
     {
         var html = await client.GetStringAsync("/certificate");
         var token = Regex.Match(html, "name=\"__RequestVerificationToken\" type=\"hidden\" value=\"([^\"]+)\"").Groups[1].Value;
-        return await client.PostAsync("/certificate", new FormUrlEncodedContent(new Dictionary<string, string>
+        var fields = new Dictionary<string, string>
         {
             ["Name"] = name,
             ["__RequestVerificationToken"] = token,
-        }));
+        };
+        if (lang is not null)
+        {
+            fields["Lang"] = lang;
+        }
+        return await client.PostAsync("/certificate", new FormUrlEncodedContent(fields));
+    }
+
+    [Test]
+    public async Task TheCertificateNamesTheLanguageItWasClearedIn()
+    {
+        var player = dungeon.ClientFor("ada");
+        await ClearFloorsAsync("ada", Catalog.Floors.Count);
+
+        var reply = await IssueAsync(player, "Ada", "ts");
+        var page = await player.GetStringAsync(reply.Headers.Location!.OriginalString);
+
+        Assert.Multiple(async () =>
+        {
+            Assert.That((await Records.CertificateForAsync("id-ada"))!.Language, Is.EqualTo(CodeLanguage.TypeScript));
+            Assert.That(page, Does.Contain("Playwright tests in TypeScript"));
+            Assert.That(page, Does.Contain("name=" + Uri.EscapeDataString("Playwright Dungeon Crawl: Playwright for TypeScript")));
+        });
+    }
+
+    [Test]
+    public async Task CertificatesDefaultToCSharpAndCanSwitchOnReprint()
+    {
+        var player = dungeon.ClientFor("ada");
+        await ClearFloorsAsync("ada", Catalog.Floors.Count);
+
+        await IssueAsync(player, "Ada");
+        var first = await Records.CertificateForAsync("id-ada");
+        await IssueAsync(player, "Ada", "ts");
+        var second = await Records.CertificateForAsync("id-ada");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(first!.Language, Is.EqualTo(CodeLanguage.CSharp));
+            Assert.That(second!.Language, Is.EqualTo(CodeLanguage.TypeScript));
+            Assert.That(second.Id, Is.EqualTo(first.Id), "same certificate, reprinted");
+        });
     }
 
     [Test]

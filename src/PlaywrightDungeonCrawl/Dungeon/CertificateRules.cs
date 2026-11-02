@@ -6,15 +6,18 @@ namespace PlaywrightDungeonCrawl.Dungeon;
 /// <summary>
 /// A certificate for clearing every open floor, with the name the player chose to print.
 /// <paramref name="PreviousId"/> keeps an older ID's links working after an upgrade.
+/// <paramref name="Language"/> is the one the player cleared the dungeon in, which the certificate names.
 /// </summary>
 public sealed record Certificate(string Id, string PlayerId, string Login, string Name, int Floors, int Score, DateTimeOffset IssuedAt,
-    string? PreviousId = null);
+    string? PreviousId = null, CodeLanguage Language = CodeLanguage.CSharp);
 
 public static partial class CertificateRules
 {
     public const int MaxNameLength = 60;
     public const string Title = "Certificate of Survival";
-    public const string CourseName = "Playwright Dungeon Crawl: Playwright for .NET";
+    /// <summary>The course name LinkedIn lists, e.g. "Playwright Dungeon Crawl: Playwright for TypeScript".</summary>
+    public static string CourseName(CodeLanguage language) =>
+        $"Playwright Dungeon Crawl: Playwright for {(language == CodeLanguage.TypeScript ? "TypeScript" : ".NET")}";
     public const string Issuer = "Playwright Dungeon Crawl";
 
     /// <summary>The Playwright Dungeon Crawl LinkedIn Page: using it shows its logo next to the certification.</summary>
@@ -47,7 +50,7 @@ public static partial class CertificateRules
     /// <summary>LinkedIn's "Add to profile" form, filled in for this certificate.</summary>
     public static string LinkedInUrl(Certificate certificate, string verifyUrl) =>
         "https://www.linkedin.com/profile/add?startTask=CERTIFICATION_NAME" +
-        $"&name={Uri.EscapeDataString(CourseName)}" +
+        $"&name={Uri.EscapeDataString(CourseName(certificate.Language))}" +
         $"&organizationId={LinkedInOrganizationId}" +
         $"&issueYear={certificate.IssuedAt.Year}&issueMonth={certificate.IssuedAt.Month}" +
         $"&certUrl={Uri.EscapeDataString(verifyUrl)}" +

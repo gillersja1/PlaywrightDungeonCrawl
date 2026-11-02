@@ -13,7 +13,7 @@
     <p class="certificate-name">@cert.Name</p>
     <p>
         cleared @(cert.Floors == 1 ? "the first floor" : $"floors 1 to {cert.Floors}") of the dungeon by writing
-        Playwright tests in C#:
+        Playwright tests in @cert.Language.DisplayName():
     </p>
     <ul class="certificate-skills">
         @foreach (var floor in Model.Floors)

@@ -31,19 +31,32 @@
     }
     else
     {
-        <h2>@(Model.Existing is null ? "You've earned it" : "Change the printed name")</h2>
+        <h2>@(Model.Existing is null ? "You've earned it" : "Change what's printed")</h2>
         @if (Model.Existing is null)
         {
             <p>All @Model.FloorCount floors verified. Score: <strong>@Model.Mine.Score XP</strong>. Choose the name to print.</p>
         }
         else
         {
-            <p>Your certificate stays at the same address with the same date; only the name changes.
+            <p>Your certificate stays at the same address with the same date; only the name and language change.
                 <a href="/certificates/@Model.Existing.Id">View it</a>.</p>
         }
-        <form method="post" class="inline-form">
-            <label for="cert-name">Name on the certificate</label>
-            <input id="cert-name" name="Name" value="@Model.Name" maxlength="@CertificateRules.MaxNameLength" required autocomplete="name" />
+        <form method="post" class="certificate-form">
+            <p class="inline-form">
+                <label for="cert-name">Name on the certificate</label>
+                <input id="cert-name" name="Name" value="@Model.Name" maxlength="@CertificateRules.MaxNameLength" required autocomplete="name" />
+            </p>
+            <fieldset class="cert-language">
+                <legend>Language you cleared it in</legend>
+                @foreach (var language in new[] { CodeLanguage.CSharp, CodeLanguage.TypeScript })
+                {
+                    <label class="ledger-choice">
+                        <input type="radio" name="Lang" value="@language.Code()" checked="@(language == Model.Language)" />
+                        @language.DisplayName()
+                        <span class="breakdown">(@CertificateRules.CourseName(language))</span>
+                    </label>
+                }
+            </fieldset>
             <button type="submit">@(Model.Existing is null ? "Issue my certificate" : "Reprint")</button>
         </form>
     }

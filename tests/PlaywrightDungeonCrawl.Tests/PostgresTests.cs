@@ -98,7 +98,8 @@ public class PostgresTests
         var upgraded = await records.IssueCertificateAsync(new(
             CertificateRules.NewId(issuedAt), player, "ada", "Ada Lovelace", 6, 950, issuedAt.AddDays(1), legacyId));
         // A plain rename later doesn't lose the old id.
-        var renamed = await records.IssueCertificateAsync(new(upgraded.Id, player, "ada", "Ada L.", 6, 950, issuedAt));
+        var renamed = await records.IssueCertificateAsync(new(upgraded.Id, player, "ada", "Ada L.", 6, 950, issuedAt,
+            Language: CodeLanguage.TypeScript));
         var byOldId = await records.CertificateAsync(legacyId);
 
         Assert.Multiple(() =>
@@ -106,6 +107,8 @@ public class PostgresTests
             Assert.That(upgraded.Id, Does.StartWith("PDC-20261030-"));
             Assert.That(upgraded.IssuedAt, Is.EqualTo(issuedAt));
             Assert.That(renamed.PreviousId, Is.EqualTo(legacyId));
+            Assert.That(upgraded.Language, Is.EqualTo(CodeLanguage.CSharp), "the default");
+            Assert.That(renamed.Language, Is.EqualTo(CodeLanguage.TypeScript), "a reprint can change it");
             Assert.That(byOldId, Is.EqualTo(renamed));
         });
     }
