@@ -361,7 +361,7 @@ button:disabled:hover { background: var(--torch); }
 .loot-button { white-space: nowrap; }
 .swatch { width: 18px; height: 18px; border-radius: 50%; background: var(--swatch); box-shadow: 0 0 10px var(--swatch); flex: none; }
 .shop-status:empty { display: none; }
-.worn-title { font-weight: 400; font-style: italic; opacity: 0.8; }
+.worn-title { display: inline-block; font-weight: 600; font-size: 0.75rem; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--torch-dim); color: var(--torch); vertical-align: middle; white-space: nowrap; }
 
 /* Claim treasure bar and roll-up panels on the Respawn Room */
 .claim-bar h2 { margin-top: 0; }

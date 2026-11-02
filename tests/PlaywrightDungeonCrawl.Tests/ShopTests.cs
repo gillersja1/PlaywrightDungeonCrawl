@@ -129,4 +129,36 @@ public class ShopTests
             Assert.That(html, Does.Not.Contain("Closed for stocktaking"));
         });
     }
+
+    [Test]
+    public async Task The_leaderboard_shows_a_worn_title_as_a_tag_after_the_name()
+    {
+        using var dungeon = new SignedInDungeon();
+        var records = dungeon.Services.GetRequiredService<IPlayerRecords>();
+        var catalog = dungeon.Services.GetRequiredService<DungeonCatalog>();
+        // Three verified floors and their scrolls: 255 XP, enough to have paid for a 250 XP title.
+        foreach (var floor in catalog.Floors.Take(3))
+        {
+            await records.RecordAsync("id-ada", "ada", Achievement.Riddle, floor.Slug);
+            await records.RecordAsync("id-ada", "ada", Achievement.Treasure, floor.Room.Slug);
+        }
+        await records.SetOnLeaderboardAsync("id-ada", "ada", true);
+        await dungeon.ClientFor("ada").PutAsJsonAsync("/api/progress", new
+        {
+            scrolls = catalog.Floors.Take(3).Select(f => f.Slug).ToArray(),
+            riddles = Array.Empty<string>(),
+            treasures = Array.Empty<string>(),
+            help = new Dictionary<string, int>(),
+            loot = new Dictionary<string, int> { ["title-flake-eater"] = 250 },
+            equipped = new Dictionary<string, string> { ["title"] = "title-flake-eater" },
+        });
+
+        var html = await dungeon.ClientFor(null).GetStringAsync("/leaderboard");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(html, Does.Contain("<span class=\"worn-title\" title=\"A title from the loot shop\">Ate the Flaky Test</span>"));
+            Assert.That(html, Does.Not.Contain("the Ate the Flaky Test"));
+        });
+    }
 }
