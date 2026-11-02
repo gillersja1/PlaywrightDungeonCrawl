@@ -308,4 +308,83 @@ public class CertificateTests
             Assert.That(CertificateRules.ParseTier("grandmaster"), Is.Null);
         });
     }
+
+    // The first certificates were issued when the dungeon had six floors, before floor 7 made the Apprentice tier 1 to 7.
+    private async Task<Certificate> IssueEarlyCertificateAsync()
+    {
+        var issuedAt = new DateTimeOffset(2026, 10, 30, 12, 0, 0, TimeSpan.Zero);
+        return await Records.IssueCertificateAsync(new(CertificateRules.NewId(issuedAt), "id-ada", "ada", "Ada", 6, 510, issuedAt));
+    }
+
+    [Test]
+    public async Task AnEarlyCertificateSaysWhatItCovers()
+    {
+        var early = await IssueEarlyCertificateAsync();
+
+        var page = await dungeon.ClientFor(null).GetStringAsync($"/certificates/{early.Id}");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(CertificateRules.IsEarlyIssue(early), Is.True);
+            Assert.That(page, Does.Contain("Apprentice tier"));
+            Assert.That(page, Does.Contain("cleared floors 1 to 6 of the dungeon, every floor open when it was issued, by writing"));
+        });
+    }
+
+    [Test]
+    public async Task UntilFloor7IsClearedThePathSaysHowToCompleteIt()
+    {
+        await IssueEarlyCertificateAsync();
+        await ClearFloorsAsync("ada", 6);
+
+        var page = await dungeon.ClientFor("ada").GetStringAsync("/certificate");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(page, Does.Contain("It covers floors 1 to 6, every floor open when it was issued."));
+            Assert.That(page, Does.Contain("Clear floors 1 to 7 while signed in, then reprint it"));
+            Assert.That(page, Does.Not.Contain("<details open=\"open\">"));
+        });
+    }
+
+    [Test]
+    public async Task ReprintingAfterClearingTheTierCompletesItAndKeepsTheIdAndDate()
+    {
+        var early = await IssueEarlyCertificateAsync();
+        await ClearFloorsAsync("ada", Apprentice);
+        var player = dungeon.ClientFor("ada");
+
+        var path = await player.GetStringAsync("/certificate");
+        await IssueAsync(player, "Ada");
+        var completed = await Records.CertificateForAsync("id-ada");
+        var page = await player.GetStringAsync($"/certificates/{early.Id}");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(path, Does.Contain("reprint it below to bring it up to the full tier"));
+            Assert.That(completed!.Id, Is.EqualTo(early.Id));
+            Assert.That(completed.IssuedAt, Is.EqualTo(early.IssuedAt));
+            Assert.That(completed.Floors, Is.EqualTo(Apprentice));
+            Assert.That(CertificateRules.IsEarlyIssue(completed), Is.False);
+            Assert.That(page, Does.Contain($"cleared floors 1 to {Apprentice} of the dungeon by writing"));
+            Assert.That(page, Does.Contain(Catalog.Floors[Apprentice - 1].Skill));
+        });
+    }
+
+    [Test]
+    public async Task ReprintingWithoutClearingTheTierOnlyRenames()
+    {
+        await IssueEarlyCertificateAsync();
+        await ClearFloorsAsync("ada", 6);
+
+        await IssueAsync(dungeon.ClientFor("ada"), "Ada Lovelace");
+        var renamed = await Records.CertificateForAsync("id-ada");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(renamed!.Name, Is.EqualTo("Ada Lovelace"));
+            Assert.That(renamed.Floors, Is.EqualTo(6));
+            Assert.That(renamed.Score, Is.EqualTo(510));
+        });
+    }
 }

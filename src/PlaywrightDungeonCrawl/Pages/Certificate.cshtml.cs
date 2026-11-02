@@ -93,14 +93,23 @@ public class CertificateModel(IPlayerRecords records, IProgressStore progress, D
         var issuedAt = existing?.IssuedAt ?? clock.GetUtcNow();
         var upgrade = existing is not null && CertificateRules.IsLegacyId(existing.Id);
         var id = existing is null || upgrade ? CertificateRules.NewId(issuedAt) : existing.Id;
-        // A reprint keeps the floors and score it was issued with; a new tier records them as they are now.
+        // A reprint keeps the floors and score it was issued with, unless it was issued early and the player has
+        // since cleared the whole tier: then it's brought up to the full tier, keeping its ID and date.
+        var completes = existing is not null && CanComplete(existing);
+        var floors = existing is null || completes ? tier.Floors : existing.Floors;
+        var score = existing is null || completes ? Mine!.Score : existing.Score;
         var issued = await records.IssueCertificateAsync(new Certificate(
-            id, playerId, User.Identity!.Name ?? "", name, existing?.Floors ?? tier.Floors, existing?.Score ?? Mine!.Score, issuedAt,
+            id, playerId, User.Identity!.Name ?? "", name, floors, score, issuedAt,
             upgrade ? existing!.Id : existing?.PreviousId, Language, tier.Tier), HttpContext.RequestAborted);
         logger.LogInformation("Certificate {CertificateId} ({Tier}) {Action}", issued.Id, tier.Name,
-            existing is null ? "issued" : upgrade ? "upgraded" : "renamed");
+            existing is null ? "issued" : completes ? "completed" : upgrade ? "upgraded" : "renamed");
         return Redirect($"/certificates/{issued.Id}");
     }
+
+    /// <summary>An early certificate whose whole tier the player has now cleared: a reprint brings it up to date.</summary>
+    public bool CanComplete(Certificate certificate) =>
+        CertificateRules.IsEarlyIssue(certificate) && Mine is not null
+        && CertificateRules.IsEligible(Mine, CertificateRules.For(certificate.Tier), catalog);
 
     private async Task LoadAsync()
     {
