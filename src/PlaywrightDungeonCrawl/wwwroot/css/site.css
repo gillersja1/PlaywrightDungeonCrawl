@@ -35,6 +35,8 @@ a:hover { color: #ffc56e; }
 h1, h2, h3 { font-family: var(--serif); line-height: 1.2; color: #fff6e6; }
 h1 { font-size: clamp(1.8rem, 5vw, 2.8rem); margin: 0.2em 0; }
 code { font-family: var(--mono); font-size: 0.92em; }
+/* Inline code (URLs, long calls) may break anywhere rather than push the page wider than a phone. */
+:not(pre) > code { overflow-wrap: anywhere; }
 :focus-visible { outline: 3px solid var(--torch); outline-offset: 2px; }
 
 .skip-link { position: absolute; left: -999px; }
@@ -128,7 +130,7 @@ input, select { font: inherit; padding: 8px 10px; border-radius: 6px; border: 1p
 .scroll pre { background: #241c16; color: #f3e9d2; padding: 14px 16px; border-radius: 8px; overflow-x: auto; }
 .screenshot { margin: 16px 0; }
 .screenshot img { display: block; max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35); }
-.screenshot.narrow img { max-width: 600px; }
+.screenshot.narrow img { max-width: min(100%, 600px); }
 .screenshot figcaption { font-size: 0.9rem; color: #5a4a38; margin-top: 6px; }
 .tip { border-left: 4px solid var(--torch-dim); padding: 6px 12px; background: rgba(242, 163, 58, 0.12); }
 .training-dummy { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 16px 0; padding: 12px 16px; border: 1px dashed #b89a6a; border-radius: var(--radius); }
@@ -178,6 +180,10 @@ button:disabled { opacity: 0.6; cursor: default; }
 .door.sealed { background: var(--stone-700); border-color: var(--stone-600); color: var(--stone-400); cursor: not-allowed; }
 .door.sealed::after { content: " 🔒"; }
 .lesson-table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 0.95rem; }
+@media (max-width: 640px) {
+    /* On a phone, the table scrolls sideways on its own instead of widening the page. */
+    .lesson-table { display: block; overflow-x: auto; }
+}
 .lesson-table th, .lesson-table td { border-bottom: 1px solid rgba(43, 33, 24, 0.2); padding: 6px 10px; text-align: left; vertical-align: top; }
 /* Floor 4: the Scribe's Ledger */
 .scribe-voice { font-style: italic; color: var(--stone-400); }
