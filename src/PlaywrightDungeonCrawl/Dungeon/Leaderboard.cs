@@ -172,7 +172,7 @@ public sealed class InMemoryPlayerRecords(TimeProvider clock) : IPlayerRecords
             (_, saved) => saved with
             {
                 Id = certificate.Id, Name = certificate.Name, Login = certificate.Login,
-                PreviousId = certificate.PreviousId ?? saved.PreviousId,
+                PreviousId = certificate.PreviousId ?? saved.PreviousId, Language = certificate.Language,
             }));
 }
 
@@ -233,13 +233,13 @@ public sealed class PostgresPlayerRecords(NpgsqlDataSource db) : IPlayerRecords
     public async Task<Certificate> IssueCertificateAsync(Certificate certificate, CancellationToken ct = default)
     {
         await using var upsert = db.CreateCommand("""
-            insert into certificates (id, github_id, login, name, floors, score, issued_at, previous_id)
-            values ($1, $2, $3, $4, $5, $6, $7, $8)
+            insert into certificates (id, github_id, login, name, floors, score, issued_at, previous_id, language)
+            values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
             on conflict (github_id) do update set id = excluded.id, name = excluded.name, login = excluded.login,
-                previous_id = coalesce(excluded.previous_id, certificates.previous_id)
+                previous_id = coalesce(excluded.previous_id, certificates.previous_id), language = excluded.language
             """);
         foreach (var value in new object?[] { certificate.Id, certificate.PlayerId, certificate.Login, certificate.Name,
-                     certificate.Floors, certificate.Score, certificate.IssuedAt, certificate.PreviousId })
+                     certificate.Floors, certificate.Score, certificate.IssuedAt, certificate.PreviousId, certificate.Language.Code() })
         {
             upsert.Parameters.Add(new() { Value = value ?? DBNull.Value });
         }
@@ -250,13 +250,14 @@ public sealed class PostgresPlayerRecords(NpgsqlDataSource db) : IPlayerRecords
     private async Task<Certificate?> LoadCertificateAsync(string where, string value, CancellationToken ct)
     {
         await using var select = db.CreateCommand(
-            $"select id, github_id, login, name, floors, score, issued_at, previous_id from certificates where {where}");
+            $"select id, github_id, login, name, floors, score, issued_at, previous_id, language from certificates where {where}");
         select.Parameters.Add(new() { Value = value });
         await using var reader = await select.ExecuteReaderAsync(ct);
         return await reader.ReadAsync(ct)
             ? new(reader.GetString(0), reader.GetString(1), reader.GetString(2), reader.GetString(3),
                 reader.GetInt32(4), reader.GetInt32(5), reader.GetFieldValue<DateTimeOffset>(6),
-                reader.IsDBNull(7) ? null : reader.GetString(7))
+                reader.IsDBNull(7) ? null : reader.GetString(7),
+                Languages.Parse(reader.GetString(8)) ?? CodeLanguage.CSharp)
             : null;
     }
 

@@ -67,6 +67,8 @@ button.link-button:hover { background: none; color: #ffc56e; }
 .weapon span { color: var(--stone-400); font-size: 0.9rem; }
 .weapon[aria-current="true"] { border-color: var(--torch-dim); box-shadow: 0 0 0 1px var(--torch-dim) inset; }
 .lang-notice { border-left: 3px solid var(--torch-dim); }
+.cert-language { border: 0; padding: 0; margin: 12px 0 16px; display: grid; gap: 6px; }
+.cert-language legend { font-weight: 600; margin-bottom: 4px; }
 
 .page { max-width: 960px; margin: 0 auto; padding: 24px 16px 48px; }
 .site-footer { text-align: center; color: var(--stone-400); padding: 24px 16px; border-top: 1px solid var(--stone-700); font-size: 0.9rem; }

@@ -17,6 +17,12 @@ public class CertificateModel(IPlayerRecords records, IProgressStore progress, D
     [BindProperty]
     public string? Name { get; set; }
 
+    /// <summary>The language printed on the certificate: "ts" or "csharp".</summary>
+    [BindProperty]
+    public string? Lang { get; set; }
+
+    public CodeLanguage Language { get; private set; }
+
     public string? Error { get; private set; }
 
     public async Task<IActionResult> OnGetAsync()
@@ -27,6 +33,7 @@ public class CertificateModel(IPlayerRecords records, IProgressStore progress, D
         }
         await LoadAsync();
         Name = Existing?.Name ?? User.FindFirstValue("urn:github:name") ?? User.Identity!.Name;
+        Language = Existing?.Language ?? Languages.Current(HttpContext);
         return Page();
     }
 
@@ -37,6 +44,7 @@ public class CertificateModel(IPlayerRecords records, IProgressStore progress, D
             return Challenge();
         }
         await LoadAsync();
+        Language = Languages.Parse(Lang) ?? Existing?.Language ?? Languages.Current(HttpContext);
         if (!Eligible)
         {
             Error = $"The certificate needs all {FloorCount} floors verified as cleared.";
@@ -53,7 +61,7 @@ public class CertificateModel(IPlayerRecords records, IProgressStore progress, D
         var id = Existing is null || upgrade ? CertificateRules.NewId(issuedAt) : Existing.Id;
         var issued = await records.IssueCertificateAsync(new Certificate(
             id, playerId, User.Identity!.Name ?? "", name, Mine!.FloorsCleared, Mine.Score, issuedAt,
-            upgrade ? Existing!.Id : Existing?.PreviousId), HttpContext.RequestAborted);
+            upgrade ? Existing!.Id : Existing?.PreviousId, Language), HttpContext.RequestAborted);
         logger.LogInformation("Certificate {CertificateId} {Action}", issued.Id,
             Existing is null ? "issued" : upgrade ? "upgraded" : "renamed");
         return Redirect($"/certificates/{issued.Id}");

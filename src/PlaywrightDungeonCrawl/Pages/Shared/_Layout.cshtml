@@ -11,11 +11,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@(ViewData["Title"] is string title ? $"{title} · Playwright Dungeon Crawl" : "Playwright Dungeon Crawl")</title>
-    <meta name="description" content="Learn Playwright for .NET by crawling a dungeon: lessons, riddles and trap rooms you beat with C# tests." />
+    <meta name="description" content="Learn Playwright by crawling a dungeon: lessons, riddles and trap rooms you beat with tests in C# or TypeScript." />
     @* Link previews (LinkedIn, Slack, ...) need absolute URLs. *@
     <meta property="og:site_name" content="Playwright Dungeon Crawl" />
     <meta property="og:title" content="@(ViewData["Title"] is string ogTitle ? ogTitle : "Playwright Dungeon Crawl")" />
-    <meta property="og:description" content="Learn Playwright for .NET by crawling a dungeon: lessons, riddles and trap rooms you beat with C# tests." />
+    <meta property="og:description" content="Learn Playwright by crawling a dungeon: lessons, riddles and trap rooms you beat with tests in C# or TypeScript." />
     <meta property="og:image" content="@($"{Context.Request.Scheme}://{Context.Request.Host}/img/brand/og-image.png")" />
     <meta property="og:url" content="@($"{Context.Request.Scheme}://{Context.Request.Host}{Context.Request.Path}")" />
     <meta name="twitter:card" content="summary_large_image" />
@@ -54,7 +54,7 @@
     </main>
 
     <footer class="site-footer">
-        <p>A free, hands-on way to learn <a href="https://playwright.dev/dotnet/">Playwright for .NET</a>. @(player is not null ? "Your progress is saved to your GitHub account." : accountsOn ? "Progress is saved in this browser. Sign in with GitHub to keep it everywhere." : "Progress is saved in this browser only.")</p>
+        <p>A free, hands-on way to learn <a href="https://playwright.dev/">Playwright</a>, in C# or TypeScript. @(player is not null ? "Your progress is saved to your GitHub account." : accountsOn ? "Progress is saved in this browser. Sign in with GitHub to keep it everywhere." : "Progress is saved in this browser only.")</p>
     </footer>
 
     <script id="dungeon-rules" type="application/json">@Html.Raw(System.Text.Json.JsonSerializer.Serialize(new

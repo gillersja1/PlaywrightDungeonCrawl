@@ -190,6 +190,7 @@ public static class PostgresDatabase
                 score integer not null,
                 issued_at timestamptz not null);
             alter table certificates add column if not exists previous_id text;
+            alter table certificates add column if not exists language text not null default 'csharp';
             """);
         await create.ExecuteNonQueryAsync(ct);
     }
