@@ -89,6 +89,10 @@
                             <th scope="row">
                                 <img src="https://github.com/@(standing.Login).png?size=48" alt="" width="24" height="24" loading="lazy" />
                                 @@@standing.Login
+                                @if (standing.Title is { } worn)
+                                {
+                                    <span class="worn-title">the @worn</span>
+                                }
                             </th>
                             <td>@standing.FloorsCleared / @Model.FloorCount</td>
                             <td>@standing.Score XP</td>
