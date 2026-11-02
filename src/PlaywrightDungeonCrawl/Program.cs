@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
 using PlaywrightDungeonCrawl;
 using PlaywrightDungeonCrawl.Dungeon;
@@ -20,6 +21,8 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 });
 
 builder.Services.AddRazorPages();
+// The antiforgery cookie defaults to not Secure; mark it Secure whenever the request is https (Gremlin flagged it).
+builder.Services.AddAntiforgery(options => options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest);
 builder.Services.AddMemoryCache();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton<AttemptStore>();
