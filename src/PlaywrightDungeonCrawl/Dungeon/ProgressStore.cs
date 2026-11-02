@@ -191,6 +191,10 @@ public static class PostgresDatabase
                 issued_at timestamptz not null);
             alter table certificates add column if not exists previous_id text;
             alter table certificates add column if not exists language text not null default 'csharp';
+            -- Tiers: one certificate per player per tier. Those issued before tiers are Apprentice.
+            alter table certificates add column if not exists tier text not null default 'apprentice';
+            alter table certificates drop constraint if exists certificates_github_id_key;
+            create unique index if not exists certificates_github_id_tier on certificates (github_id, tier);
             create table if not exists feedback (
                 id bigserial primary key,
                 rating smallint,

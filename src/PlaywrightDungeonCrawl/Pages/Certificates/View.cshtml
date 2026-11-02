@@ -3,12 +3,14 @@
 @using PlaywrightDungeonCrawl.Dungeon
 @{
     var cert = Model.Certificate;
-    ViewData["Title"] = $"{CertificateRules.Title}: {cert.Name}";
+    var tier = CertificateRules.For(cert.Tier);
+    ViewData["Title"] = $"{CertificateRules.Title} ({tier.Name}): {cert.Name}";
 }
 
 <article class="certificate" aria-label="@CertificateRules.Title">
     <p class="certificate-banner">~ Playwright Dungeon Crawl ~</p>
     <h1>@CertificateRules.Title</h1>
+    <p class="certificate-tier">@tier.Name tier</p>
     <p class="certificate-intro">This certifies that</p>
     <p class="certificate-name">@cert.Name</p>
     <p>

@@ -56,7 +56,7 @@ public class CertificateTests
         {
             Assert.That((await Records.CertificateForAsync("id-ada"))!.Language, Is.EqualTo(CodeLanguage.TypeScript));
             Assert.That(page, Does.Contain("Playwright tests in TypeScript"));
-            Assert.That(page, Does.Contain("name=" + Uri.EscapeDataString("Playwright Dungeon Crawl: Playwright for TypeScript")));
+            Assert.That(page, Does.Contain("name=" + Uri.EscapeDataString("Playwright Dungeon Crawl: Playwright for TypeScript (Apprentice)")));
         });
     }
 
@@ -203,4 +203,108 @@ public class CertificateTests
     [Test]
     public void NamesHaveALengthLimit() =>
         Assert.That(CertificateRules.CleanName(new string('a', CertificateRules.MaxNameLength + 1)), Is.Null);
+
+    private static async Task<HttpResponseMessage> IssueTierAsync(HttpClient client, string tier)
+    {
+        var html = await client.GetStringAsync("/certificate");
+        var token = Regex.Match(html, "name=\"__RequestVerificationToken\" type=\"hidden\" value=\"([^\"]+)\"").Groups[1].Value;
+        return await client.PostAsync("/certificate", new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["Name"] = "Ada",
+            ["Tier"] = tier,
+            ["__RequestVerificationToken"] = token,
+        }));
+    }
+
+    [Test]
+    public async Task ThePathShowsEachTierAndWhetherItsOpen()
+    {
+        var player = dungeon.ClientFor("ada");
+        await ClearFloorsAsync("ada", CertificateRules.For(CertificateTier.Apprentice).Floors);
+
+        var page = await player.GetStringAsync("/certificate");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(page, Does.Contain("class=\"panel cert-tier ready\" aria-labelledby=\"tier-apprentice\""));
+            Assert.That(page, Does.Contain("Issue my Apprentice certificate"));
+            // Floors 8 and on aren't built yet, so the deeper tiers are sealed.
+            Assert.That(page, Does.Contain("class=\"panel cert-tier sealed\" aria-labelledby=\"tier-journeyman\""));
+            Assert.That(page, Does.Contain("class=\"panel cert-tier sealed\" aria-labelledby=\"tier-master\""));
+        });
+    }
+
+    [Test]
+    public async Task ASealedTierCantBeClaimed()
+    {
+        var player = dungeon.ClientFor("ada");
+        await ClearFloorsAsync("ada", Catalog.Floors.Count);
+
+        var reply = await IssueTierAsync(player, "journeyman");
+
+        Assert.Multiple(async () =>
+        {
+            Assert.That(reply.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+            Assert.That(await reply.Content.ReadAsStringAsync(), Does.Contain("The Journeyman certificate opens once floors 1 to 13 are built."));
+            Assert.That(await Records.CertificatesForAsync("id-ada"), Is.Empty);
+        });
+    }
+
+    [Test]
+    public async Task TheCertificateNamesItsTier()
+    {
+        var player = dungeon.ClientFor("ada");
+        await ClearFloorsAsync("ada", Catalog.Floors.Count);
+
+        var reply = await IssueTierAsync(player, "apprentice");
+        var page = await player.GetStringAsync(reply.Headers.Location!.OriginalString);
+        var issued = await Records.CertificateForAsync("id-ada", CertificateTier.Apprentice);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(issued!.Tier, Is.EqualTo(CertificateTier.Apprentice));
+            Assert.That(issued.Floors, Is.EqualTo(7));
+            Assert.That(page, Does.Contain("Apprentice tier"));
+            Assert.That(page, Does.Contain(Uri.EscapeDataString("Playwright for .NET (Apprentice)")));
+        });
+    }
+
+    [Test]
+    public async Task EachTierIsItsOwnCertificate()
+    {
+        var player = dungeon.ClientFor("ada");
+        await ClearFloorsAsync("ada", Catalog.Floors.Count);
+        var issuedAt = DateTimeOffset.UtcNow;
+        await Records.IssueCertificateAsync(new(CertificateRules.NewId(issuedAt), "id-ada", "ada", "Ada", 13, 1100, issuedAt,
+            Tier: CertificateTier.Journeyman));
+
+        await IssueTierAsync(player, "apprentice");
+        var all = await Records.CertificatesForAsync("id-ada");
+        var page = await player.GetStringAsync("/certificate");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(all.Select(c => c.Tier), Is.EqualTo(new[] { CertificateTier.Apprentice, CertificateTier.Journeyman }));
+            Assert.That(all.Select(c => c.Id).Distinct().Count(), Is.EqualTo(2));
+            Assert.That(page, Does.Contain("class=\"panel cert-tier earned\" aria-labelledby=\"tier-apprentice\""));
+            Assert.That(page, Does.Contain("class=\"panel cert-tier earned\" aria-labelledby=\"tier-journeyman\""));
+        });
+    }
+
+    [Test]
+    public void TiersOpenOnlyWhenTheirFloorsExist()
+    {
+        var journeyman = CertificateRules.For(CertificateTier.Journeyman);
+        var cleared = new Standing("ada", 13, 1000, DateTimeOffset.UtcNow);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(CertificateRules.IsOpen(CertificateRules.For(CertificateTier.Apprentice), Catalog), Is.True);
+            Assert.That(CertificateRules.IsOpen(journeyman, Catalog), Is.EqualTo(Catalog.Floors.Count >= 13));
+            Assert.That(CertificateRules.IsEligible(cleared, journeyman, Catalog), Is.EqualTo(Catalog.Floors.Count >= 13));
+            Assert.That(CertificateRules.Tiers.Select(t => t.Floors), Is.Ordered.Ascending);
+            Assert.That(CertificateRules.ParseTier("MASTER"), Is.EqualTo(CertificateTier.Master));
+            Assert.That(CertificateRules.ParseTier("grandmaster"), Is.Null);
+        });
+    }
 }

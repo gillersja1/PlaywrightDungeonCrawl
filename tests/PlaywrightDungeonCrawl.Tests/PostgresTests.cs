@@ -143,4 +143,25 @@ public class PostgresTests
             Assert.That(row.GetString(3), Is.EqualTo("ada"));
         });
     }
+
+    [Test]
+    public async Task EachTierIsAStoredCertificateOfItsOwn()
+    {
+        var records = new PostgresPlayerRecords(db);
+        var player = $"test-{Guid.NewGuid()}";
+        var issuedAt = DateTimeOffset.UtcNow;
+
+        await records.IssueCertificateAsync(new(CertificateRules.NewId(issuedAt), player, "ada", "Ada", 7, 600, issuedAt));
+        await records.IssueCertificateAsync(new(CertificateRules.NewId(issuedAt), player, "ada", "Ada", 13, 1100, issuedAt,
+            Tier: CertificateTier.Journeyman));
+        var all = await records.CertificatesForAsync(player);
+        var journeyman = await records.CertificateForAsync(player, CertificateTier.Journeyman);
+
+        Assert.Multiple(async () =>
+        {
+            Assert.That(all.Select(c => c.Tier), Is.EqualTo(new[] { CertificateTier.Apprentice, CertificateTier.Journeyman }));
+            Assert.That(journeyman!.Floors, Is.EqualTo(13));
+            Assert.That((await records.CertificateAsync(journeyman.Id))!.Tier, Is.EqualTo(CertificateTier.Journeyman));
+        });
+    }
 }
