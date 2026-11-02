@@ -59,4 +59,18 @@ public class SharingTests
     public void TheAntiforgeryCookieIsSecureOnHttps() =>
         Assert.That(dungeon.Services.GetRequiredService<IOptions<AntiforgeryOptions>>().Value.Cookie.SecurePolicy,
             Is.EqualTo(CookieSecurePolicy.SameAsRequest));
+
+    [TestCase(null, "Learn Playwright for .NET", "a short lesson with C# examples")]
+    [TestCase("ts", "Learn Playwright in TypeScript", "a short lesson with TypeScript examples")]
+    public async Task TheRespawnRoomSpeaksTheChosenLanguage(string? lang, string eyebrow, string scroll)
+    {
+        var client = dungeon.CreateClient();
+        var html = await client.GetStringAsync(lang is null ? "/" : $"/?lang={lang}");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(html, Does.Contain(eyebrow));
+            Assert.That(html, Does.Contain(scroll));
+        });
+    }
 }
