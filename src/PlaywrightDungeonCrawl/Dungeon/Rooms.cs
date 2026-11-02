@@ -120,6 +120,13 @@ public sealed class HallOfDoors : Room
         "Hearth Arch", "Pike Gate", "Wraith Door", "Amber Hatch", "Crypt Gate",
     };
 
+    public override string[] TypeScriptNudges { get; } =
+    {
+        "The sign you need changes on every visit. Read it from the page first, then use it to find the door.",
+        "Two doors carry that sign, so matching on the name alone is a strict mode violation. One of the two is disabled: filter on that.",
+        "Read the sign with page.getByTestId('target-sign').textContent(), then click page.getByRole('button', { name: sign!, exact: true, disabled: false }).",
+    };
+
     public override string Slug => "hall-of-doors";
     public override string Name => "The Hall of Doors";
     public override string Objective =>
@@ -155,6 +162,13 @@ public sealed class FlickeringTorch : Room
         "The rune is labelled \"Torch rune\": call WaitForAsync() then TextContentAsync() on Page.GetByLabel(\"Torch rune\"), fill the box labelled \"Speak the rune\", and click the \"Speak\" button.",
     };
 
+    public override string[] TypeScriptNudges { get; } =
+    {
+        "The rune is only on screen for a moment, and you can't know when. Don't sleep: wait for it.",
+        "Wait for the rune to appear with waitFor(), then read its text straight away, before it vanishes.",
+        "The rune is labelled \"Torch rune\": call waitFor() then textContent() on page.getByLabel('Torch rune'), fill the box labelled \"Speak the rune\", and click the \"Speak\" button.",
+    };
+
     public override string Slug => "flickering-torch";
     public override string Name => "The Flickering Torch";
     public override string Objective =>
@@ -187,6 +201,13 @@ public sealed class ScribesLedger : Room
     public static readonly string[] Classes = { "Rogue", "Ranger", "Cleric", "Warden" };
     private static readonly string[] FirstNames = { "Ysolde", "Brannoc", "Merin", "Tavish", "Odalys", "Corwin", "Ilse", "Fenwick" };
     private static readonly string[] LastNames = { "Ashgrove", "Duskwater", "Thornby", "Kettleburn", "Morrow", "Vane" };
+
+    public override string[] TypeScriptNudges { get; } =
+    {
+        "Every field in the form has a label that matches a row in the ledger. Read the ledger, then fill each field by its label.",
+        "Different inputs need different methods: fill() for text, numbers and dates, selectOption() for the dropdown, check() for the radio button and the oath.",
+        "Dates go into date inputs as yyyy-MM-dd. The class is a radio button: page.getByRole('radio', { name: className }).check().",
+    };
 
     public override string Slug => "scribes-ledger";
     public override string Name => "The Scribe's Ledger";
@@ -249,6 +270,13 @@ public sealed class MirrorChamber : Room
         "Shattering asks \"are you sure?\" with a confirm dialog, which Playwright dismisses unless told otherwise. Register Page.Dialog += (_, d) => d.AcceptAsync(); before you click.",
     };
 
+    public override string[] TypeScriptNudges { get; } =
+    {
+        "The mirror isn't on this page: it's inside an iframe, and page-level locators don't look inside frames.",
+        "Use page.frameLocator(...) to search inside the frame. The button is also inside a shadow root, but Playwright looks inside those for you.",
+        "Shattering asks \"are you sure?\" with a confirm dialog, which Playwright dismisses unless told otherwise. Register page.on('dialog', d => d.accept()) before you click.",
+    };
+
     public override string Slug => "mirror-chamber";
     public override string Name => "The Mirror Chamber";
     public override string Objective =>
@@ -270,6 +298,13 @@ public sealed class WhisperingVault : Room
         "The combination never appears on screen. It travels over the network while the page loads.",
         "Capture the response the page requests as it loads. Start listening before you navigate, or it'll be gone before you're ready.",
         "Wrap the navigation: Page.RunAndWaitForResponseAsync(() => EnterAsync(\"/rooms/whispering-vault\"), r => r.Url.Contains(\"/reveal\")), then read whispers.combination from await response.JsonAsync().",
+    };
+
+    public override string[] TypeScriptNudges { get; } =
+    {
+        "The combination never appears on screen. It travels over the network while the page loads.",
+        "Capture the response the page requests as it loads. Start waiting before you navigate, or it'll be gone before you're ready.",
+        "Start the wait, then navigate: const whisper = page.waitForResponse(r => r.url().includes('/reveal')); await dungeon.enter('/rooms/whispering-vault'); then read whispers.combination from await (await whisper).json().",
     };
 
     public override string Slug => "whispering-vault";
@@ -314,6 +349,13 @@ public sealed class WardensGauntlet : Room
     {
         "Vexmoor the Unblinking", "Ossric of the Long Watch", "Malgrave the Patient", "Thessaly Ninelocks",
         "Corvane the Keyless", "Ysmera of the Last Door",
+    };
+
+    public override string[] TypeScriptNudges { get; } =
+    {
+        "Don't try to write it in one go. Get trial 1 passing, then add trial 2, and so on. Each trial shows a heading like \"Trial 2 of 5\": wait for it before you act.",
+        "Everything you learned on floors 2 to 6 is in here, in order: a strict locator, a sigil that appears for a moment, a form, a mirror in a frame that asks \"are you sure?\", and a name that's only ever whispered over the network.",
+        "Register the dialog handler before anything else. For the last trial, start waiting before the click that speaks the mirror's rune: const reply = page.waitForResponse(r => r.url().includes('/trials')); then click, then read unlocks.whispers.trueName from await (await reply).json().",
     };
 
     public override string Slug => "wardens-gauntlet";

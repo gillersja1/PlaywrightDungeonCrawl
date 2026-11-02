@@ -186,7 +186,48 @@ public sealed class DungeonCatalog
                         0,
                         "Filter on the state you care about. Position-based picks like First, Last and Nth break as soon as the order changes.",
                         "Avoid answers that depend on order. Which one describes the state of the door you want?"),
-                }),
+                })
+            {
+                TypeScriptRiddles = new[]
+                {
+                    new QuizQuestion(
+                        "Which locator should you reach for first?",
+                        new[]
+                        {
+                            "page.locator('xpath=//div[3]/button')",
+                            "page.locator('.btn-primary')",
+                            "page.getByRole('button', { name: 'Enter' })",
+                            "page.$('button')",
+                        },
+                        2,
+                        "Role locators find elements the way users and screen readers do, so they survive markup and styling changes.",
+                        "Which option describes the element the way a user or a screen reader would, rather than how the page is built?"),
+                    new QuizQuestion(
+                        "A locator matches two buttons and you call click(). What happens?",
+                        new[]
+                        {
+                            "It clicks the first match",
+                            "It clicks both",
+                            "It throws a strict mode violation",
+                            "It waits until only one matches",
+                        },
+                        2,
+                        "Locators are strict: an action on a locator that matches more than one element fails instead of guessing.",
+                        "Playwright locators are strict. What would a strict tool do when it can't tell which one you meant?"),
+                    new QuizQuestion(
+                        "Two buttons are named \"Ember Gate\", and one is disabled. How do you target the enabled one?",
+                        new[]
+                        {
+                            "page.getByRole('button', { name: 'Ember Gate', disabled: false })",
+                            "page.getByText('Ember Gate').last()",
+                            "page.getByRole('button').nth(1)",
+                            "page.locator('button').first()",
+                        },
+                        0,
+                        "Filter on the state you care about. Position-based picks like first(), last() and nth() break as soon as the order changes.",
+                        "Avoid answers that depend on order. Which one describes the state of the door you want?"),
+                },
+            },
             new Floor(3, "waiting", "The Torchlit Stair", "Auto-waiting",
                 "Things appear when they're ready, not when you are. Learn to wait for state, not time.",
                 bySlug["flickering-torch"],
@@ -228,7 +269,48 @@ public sealed class DungeonCatalog
                         2,
                         "WaitForAsync returns the moment the element is attached and visible, leaving time to read it.",
                         "You need something that returns the moment the element shows up, not after a guess."),
-                }),
+                })
+            {
+                TypeScriptRiddles = new[]
+                {
+                    new QuizQuestion(
+                        "Why avoid await page.waitForTimeout(3000) before checking an element?",
+                        new[]
+                        {
+                            "It isn't allowed in Playwright Test",
+                            "It's too slow when the element is fast and too short when it's slow",
+                            "It disables tracing",
+                            "It blocks other tests from running",
+                        },
+                        1,
+                        "A fixed sleep is both wasted time and a source of flakiness. Wait for the condition itself.",
+                        "Picture a page that loads in 1 second one day and 4 seconds the next."),
+                    new QuizQuestion(
+                        "What does await expect(locator).toBeVisible() do if the element isn't visible yet?",
+                        new[]
+                        {
+                            "Fails immediately",
+                            "Retries until it's visible or the timeout passes",
+                            "Scrolls the page until it appears",
+                            "Returns false",
+                        },
+                        1,
+                        "Web-first assertions retry until they pass or time out (5 seconds by default).",
+                        "These assertions are called web-first because they behave like a patient user."),
+                    new QuizQuestion(
+                        "An element shows for half a second, then is removed. How do you read its text?",
+                        new[]
+                        {
+                            "Take screenshots in a loop",
+                            "await page.waitForTimeout(...), then call textContent()",
+                            "Call waitFor() on the locator, then textContent() straight away",
+                            "Reload the page until it stays",
+                        },
+                        2,
+                        "waitFor() returns the moment the element is attached and visible, leaving time to read it.",
+                        "You need something that returns the moment the element shows up, not after a guess."),
+                },
+            },
             new Floor(4, "forms", "The Bureaucracy", "Forms and input",
                 "Text boxes, dropdowns, radio buttons, checkboxes and dates. Fill them like a user would.",
                 bySlug["scribes-ledger"],
@@ -270,7 +352,48 @@ public sealed class DungeonCatalog
                         2,
                         "CheckAsync is idempotent and verifies the result, so it can't accidentally uncheck a box.",
                         "What happens if you click a checkbox that's already ticked?"),
-                }),
+                })
+            {
+                TypeScriptRiddles = new[]
+                {
+                    new QuizQuestion(
+                        "How do you fill the text box labelled \"Adventurer name\"?",
+                        new[]
+                        {
+                            "page.getByLabel('Adventurer name').fill(name)",
+                            "page.locator('input').first().pressSequentially(name)",
+                            "page.keyboard.type(name)",
+                            "page.$eval('input', e => e.value = name)",
+                        },
+                        0,
+                        "getByLabel uses the label a user reads, and fill() clears the field and fires the right input events.",
+                        "How would a user find this text box? By the words written next to it."),
+                    new QuizQuestion(
+                        "How do you pick \"Cartographers\" from a <select>?",
+                        new[]
+                        {
+                            "click() on the select, then click() on the option",
+                            "selectOption('Cartographers')",
+                            "fill('Cartographers')",
+                            "press('C')",
+                        },
+                        1,
+                        "selectOption selects by value or label in one step, without opening the native dropdown.",
+                        "A <select> is a list of options. Which method's name says \"select an option\"?"),
+                    new QuizQuestion(
+                        "Why prefer check() over click() for a checkbox?",
+                        new[]
+                        {
+                            "It's faster",
+                            "click() doesn't work on checkboxes",
+                            "check() makes sure it ends up checked, while a click toggles whatever state it's in",
+                            "check() skips validation",
+                        },
+                        2,
+                        "check() is idempotent and verifies the result, so it can't accidentally uncheck a box.",
+                        "What happens if you click a checkbox that's already ticked?"),
+                },
+            },
             new Floor(5, "frames", "The Hall of Mirrors", "Frames, shadow DOM and dialogs",
                 "Content hidden inside other documents, components and pop-ups.",
                 bySlug["mirror-chamber"],
@@ -312,7 +435,48 @@ public sealed class DungeonCatalog
                         1,
                         "Dialogs are dismissed by default. To accept, register Page.Dialog += (_, d) => d.AcceptAsync() before the click.",
                         "Nobody is there to click OK, so Playwright picks the safe option for you."),
-                }),
+                })
+            {
+                TypeScriptRiddles = new[]
+                {
+                    new QuizQuestion(
+                        "How do you click a button inside <iframe id=\"mirror\">?",
+                        new[]
+                        {
+                            "page.getByRole('button').click() finds it automatically",
+                            "page.frameLocator('#mirror').getByRole('button').click()",
+                            "Switch the driver to the frame first",
+                            "It can't be done in Playwright",
+                        },
+                        1,
+                        "Page-level locators don't search inside frames; frameLocator scopes a locator to the frame's document.",
+                        "An iframe is a separate document. You have to tell Playwright to look inside that frame."),
+                    new QuizQuestion(
+                        "The button is inside an open shadow root. What do you need to do?",
+                        new[]
+                        {
+                            "Use a special >>> selector",
+                            "Run JavaScript to read shadowRoot",
+                            "Nothing: Playwright's locators pierce open shadow roots",
+                            "Switch to the shadow root like a frame",
+                        },
+                        2,
+                        "CSS, text and role locators look inside open shadow roots by default (XPath doesn't).",
+                        "Playwright was built for modern web components. Do you think it needs help with open shadow roots?"),
+                    new QuizQuestion(
+                        "A click opens a confirm() dialog and your test has no dialog handler. What happens?",
+                        new[]
+                        {
+                            "The test hangs forever",
+                            "Playwright dismisses it, so confirm() returns false",
+                            "Playwright accepts it",
+                            "The test fails with a dialog error",
+                        },
+                        1,
+                        "Dialogs are dismissed by default. To accept, register page.on('dialog', d => d.accept()) before the click.",
+                        "Nobody is there to click OK, so Playwright picks the safe option for you."),
+                },
+            },
             new Floor(6, "network", "The Whispering Vaults", "Network",
                 "Some secrets are never shown on screen. Learn to listen to the wire.",
                 bySlug["whispering-vault"],
@@ -354,7 +518,48 @@ public sealed class DungeonCatalog
                         0,
                         "JsonAsync() parses the body into a JsonElement you can navigate with GetProperty.",
                         "The response object has a method that parses the body for you."),
-                }),
+                })
+            {
+                TypeScriptRiddles = new[]
+                {
+                    new QuizQuestion(
+                        "How do you capture a response that the page requests while it loads?",
+                        new[]
+                        {
+                            "await page.goto(url), then await page.waitForResponse(...)",
+                            "const r = page.waitForResponse(r => r.url().includes('/reveal')); await page.goto(url); await r;",
+                            "Read it from await page.content()",
+                            "Use page.context().cookies()",
+                        },
+                        1,
+                        "Start waiting before the action that triggers the request; otherwise it can finish before you begin waiting.",
+                        "If you navigate first and start listening second, could the response already be gone?"),
+                    new QuizQuestion(
+                        "What is page.route() for?",
+                        new[]
+                        {
+                            "Navigating between pages",
+                            "Intercepting requests to mock, modify or block them",
+                            "Defining server routes",
+                            "Recording a HAR file",
+                        },
+                        1,
+                        "Routing lets a test control the network: return fake data, simulate errors, or block third parties.",
+                        "Route here means the path a request takes, and stepping into it."),
+                    new QuizQuestion(
+                        "A response body is JSON. How do you read a field from it?",
+                        new[]
+                        {
+                            "const json = await response.json(); json.field",
+                            "response.headers()['field']",
+                            "response.text() always returns a parsed object",
+                            "response.status()",
+                        },
+                        0,
+                        "json() parses the body into a plain object you can read with dot notation.",
+                        "The response object has a method that parses the body for you."),
+                },
+            },
             new Floor(7, "gauntlet", "The Warden's Keep", "Boss: every skill at once",
                 "The first boss. Five traps in a row, one for every floor above, and one test to beat them all.",
                 bySlug["wardens-gauntlet"],
@@ -396,7 +601,48 @@ public sealed class DungeonCatalog
                         1,
                         "A trace records every action, a DOM snapshot before and after it, the network and the console, so you can replay a full-speed run step by step.",
                         "You can't slow the room down. Can you record the run and watch it afterwards?"),
-                }),
+                })
+            {
+                TypeScriptRiddles = new[]
+                {
+                    new QuizQuestion(
+                        "Trial 4 asks \"are you sure?\" with a confirm dialog. Where does page.on('dialog', d => d.accept()) go?",
+                        new[]
+                        {
+                            "Right after the click that opens the dialog",
+                            "Anywhere before that click; the top of the test is simplest",
+                            "In a separate test that runs first",
+                            "Nowhere: Playwright accepts dialogs by default",
+                        },
+                        1,
+                        "A handler only catches dialogs that open after it's registered, so set it up before the action. At the top of the test, it can't be forgotten.",
+                        "Floor 5 told you what Playwright does with a dialog nobody's listening for. When does the listening have to start?"),
+                    new QuizQuestion(
+                        "The true name is only in the response to the request your click sends. Which code catches it?",
+                        new[]
+                        {
+                            "await speak.click(); const r = await page.waitForResponse(r => r.url().includes('/trials'));",
+                            "const r = page.waitForResponse(r => r.url().includes('/trials')); await speak.click(); await r;",
+                            "await speak.click(); const text = await page.content();",
+                            "await page.reload(); await page.waitForResponse('**/trials');",
+                        },
+                        1,
+                        "Starting the wait before the click means you're already listening when the request goes out, however fast it comes back.",
+                        "Floor 6's tip: start listening before the action, not after."),
+                    new QuizQuestion(
+                        "Your gauntlet test fails at trial 3, and the clock is too short to step through it. What's the best way to see what happened?",
+                        new[]
+                        {
+                            "Add page.waitForTimeout calls so you can watch",
+                            "Open its trace (npx playwright show-report) and step through the recording",
+                            "Turn on slowMo",
+                            "Run it again and hope",
+                        },
+                        1,
+                        "A trace records every action, a DOM snapshot before and after it, the network and the console, so you can replay a full-speed run step by step.",
+                        "You can't slow the room down. Can you record the run and watch it afterwards?"),
+                },
+            },
         };
     }
 

@@ -1,0 +1,89 @@
+<section>
+    <h2>One test, five traps</h2>
+    <p>
+        Real tests rarely check one thing. They sign in, find a record, fill a form, wait for a save, and check what
+        came back, all in one run. Every skill from the floors above is in this boss room, in order, and you need all
+        of them in a single test. This scroll has nothing new to memorize. It's about putting the pieces together so
+        the test stays readable, and finding out what went wrong when it doesn't pass.
+    </p>
+</section>
+
+<section>
+    <h2>Build it one trial at a time</h2>
+    <p>
+        Don't write the whole test and then run it. Write the first step, run it, and watch it pass. Then add the next.
+        When a long test fails, you want to know it was the step you just added.
+    </p>
+    <p>
+        Between steps, wait for the page to show you've moved on. A web-first assertion on the new heading or the new
+        form does it, and it doubles as a checkpoint: when it fails, the error tells you which step never finished.
+    </p>
+<pre><code>await page.getByRole('button', { name: 'Save' }).click();
+await expect(page.getByRole('heading', { name: 'Step 2 of 3' })).toBeVisible();</code></pre>
+</section>
+
+<section>
+    <h2>Set your listeners before you act</h2>
+    <p>
+        Two things from earlier floors only work if they're set up <em>before</em> the action that triggers them:
+        a dialog handler, and waiting for a response. Dialog handlers can go at the very top of the test, where
+        they can't be forgotten. Responses are caught by starting the wait before the action that sends the request:
+    </p>
+<pre><code>page.on('dialog', dialog =&gt; dialog.accept());
+
+// ... many steps later ...
+
+const ordered = page.waitForResponse(r =&gt; r.url().includes('/api/orders'));
+await page.getByRole('button', { name: 'Submit' }).click();
+const response = await ordered;</code></pre>
+</section>
+
+<section>
+    <h2>Keep it readable</h2>
+    <p>
+        Five steps in one test gets long fast. Give each step a small function with a name that says what it does, so
+        the test reads like the plan. Pass it the <code>page</code>:
+    </p>
+<pre><code>import { test, expect, type Page } from '@@playwright/test';
+
+test('checkout works', async ({ page }) =&gt; {
+  await signIn(page);
+  await addToBasket(page, 'Lantern');
+  await pay(page);
+  await expect(page.getByText('Order confirmed')).toBeVisible();
+});
+
+async function signIn(page: Page) { /* ... */ }</code></pre>
+    <p>
+        In your starter kit, import <code>test</code> and <code>expect</code> from <code>./dungeon</code> as usual, and
+        <code>type Page</code> from <code>@@playwright/test</code>. Values can pass from one step to the next as
+        arguments and return values.
+    </p>
+</section>
+
+<section>
+    <h2>When it fails too fast to watch: traces</h2>
+    <p>
+        Stepping through is great, until the page has a clock. The boss gives you seconds. Instead, let the test run
+        at full speed and look at its <strong>trace</strong>: every action, a snapshot of the page before and after
+        it, the network and the console.
+    </p>
+    <p>
+        Your starter kit already keeps one for every test that fails (<code>trace: 'retain-on-failure'</code> in
+        <code>playwright.config.ts</code>). To open the last failure's trace, run:
+    </p>
+<pre><code>npx playwright show-report</code></pre>
+    <p>
+        Click the failed test, then its trace. Click any step to see the page exactly as it was, and open the
+        Network tab to see every request and its response. <code>npm run ui</code> shows the same view for any run,
+        failed or not.
+    </p>
+</section>
+
+<section>
+    <h2>Face the Warden</h2>
+    <p>
+        Five trials: a gate with a sealed twin, an eye that opens once, an oath, a mirror that asks if you're sure, and a
+        name that's only ever whispered. Get one wrong and you start again. Fifteen seconds.
+    </p>
+</section>
