@@ -216,7 +216,7 @@ button:disabled:hover { background: var(--torch); }
 /* The Respawn Room */
 .lobby h1 { font-size: clamp(2.2rem, 7vw, 3.6rem); letter-spacing: 0.02em; text-shadow: 0 0 24px rgba(242, 163, 58, 0.35); }
 .station { margin: 0; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.14em; color: var(--stone-400); }
-.lobby-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 0 20px; }
+.lobby-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 0 20px; align-items: start; }
 .lobby-grid h2 { margin-top: 2px; }
 .lobby-grid h3 { margin: 22px 0 4px; }
 .quartermaster { background: repeating-linear-gradient(135deg, var(--stone-800), var(--stone-800) 14px, #201d24 14px, #201d24 28px); }
@@ -362,3 +362,54 @@ button:disabled:hover { background: var(--torch); }
 .swatch { width: 18px; height: 18px; border-radius: 50%; background: var(--swatch); box-shadow: 0 0 10px var(--swatch); flex: none; }
 .shop-status:empty { display: none; }
 .worn-title { font-weight: 400; font-style: italic; opacity: 0.8; }
+
+/* Claim treasure bar and roll-up panels on the Respawn Room */
+.claim-bar h2 { margin-top: 0; }
+.claim-bar p:empty { display: none; }
+.rollup > summary { list-style: none; cursor: pointer; position: relative; padding-right: 32px; }
+.rollup > summary::-webkit-details-marker { display: none; }
+.rollup > summary::after { content: "▸"; position: absolute; right: 4px; top: 2px; color: var(--torch); font-size: 1.1rem; transition: transform 0.2s; }
+.rollup[open] > summary::after { transform: rotate(90deg); }
+.rollup > summary .station { display: block; }
+.rollup > summary:hover h2 { color: var(--torch-bright); }
+.rollup > summary .rank-line, .rollup > summary .wallet { margin-bottom: 4px; }
+.rank-ladder { list-style: none; padding: 0; margin: 4px 0 0; display: grid; gap: 4px; }
+.rank-ladder li { display: flex; justify-content: space-between; align-items: baseline; padding: 4px 10px; border-radius: 6px; opacity: 0.6; }
+.rank-ladder li.reached { opacity: 1; }
+.rank-ladder li.current { background: color-mix(in srgb, var(--torch) 16%, transparent); font-weight: 600; }
+
+/* Torches: a worn torch lights the dungeon in its colour */
+.torch-fx { position: fixed; inset: 0; pointer-events: none; z-index: -1; overflow: hidden; display: none; }
+html[data-torch] .torch-fx { display: block; }
+.torch-fx::before {
+    content: ""; position: absolute; inset: -10%;
+    background:
+        radial-gradient(ellipse 45% 40% at 0% 0%, color-mix(in srgb, var(--torch) 30%, transparent), transparent 70%),
+        radial-gradient(ellipse 45% 40% at 100% 0%, color-mix(in srgb, var(--torch) 30%, transparent), transparent 70%),
+        radial-gradient(ellipse 70% 30% at 50% 110%, color-mix(in srgb, var(--torch) 22%, transparent), transparent 70%);
+    animation: torch-flicker 3.2s infinite;
+}
+.torch-fx span {
+    position: absolute; left: var(--x); bottom: -12px; width: 4px; height: 4px; border-radius: 50%;
+    background: var(--torch-bright); box-shadow: 0 0 6px 2px var(--torch); opacity: 0;
+    animation: ember-rise var(--dur) linear var(--delay) infinite;
+}
+html[data-torch] .brand-mark { animation: torch-flicker 2.4s infinite; text-shadow: 0 0 12px var(--torch); }
+@keyframes torch-flicker { 0%, 100% { opacity: 0.9; } 18% { opacity: 0.65; } 37% { opacity: 1; } 52% { opacity: 0.72; } 71% { opacity: 0.95; } 86% { opacity: 0.8; } }
+@keyframes ember-rise {
+    0% { transform: translate(0, 0) scale(1); opacity: 0; }
+    10% { opacity: 0.9; }
+    100% { transform: translate(var(--drift), -105vh) scale(0.4); opacity: 0; }
+}
+/* Ghostfire: slow, blurry wisps. */
+html[data-torch=torch-ghostfire] .torch-fx span { width: 12px; height: 12px; filter: blur(4px); animation-duration: calc(var(--dur) * 2); }
+/* Witchlight: stars that twinkle in place instead of rising. */
+html[data-torch=torch-witchlight] .torch-fx span { top: var(--y); bottom: auto; animation-name: twinkle; animation-duration: calc(var(--dur) * 0.5); }
+@keyframes twinkle { 0%, 100% { opacity: 0; transform: scale(0.4); } 50% { opacity: 1; transform: scale(1.4); } }
+/* Bloodmoon: the glow beats like a heart. */
+html[data-torch=torch-bloodmoon] .torch-fx::before { animation: heartbeat 1.4s infinite; }
+@keyframes heartbeat { 0%, 100% { opacity: 0.55; } 12% { opacity: 1; } 24% { opacity: 0.6; } 36% { opacity: 0.95; } 60% { opacity: 0.55; } }
+@media (prefers-reduced-motion: reduce) {
+    .torch-fx span { display: none; }
+    .torch-fx::before, html[data-torch] .brand-mark { animation: none; }
+}

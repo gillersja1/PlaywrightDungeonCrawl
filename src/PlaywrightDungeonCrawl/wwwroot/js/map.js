@@ -13,6 +13,11 @@
         rankTitle.textContent = rank;
         bar.setAttribute("aria-valuenow", xp);
         fill.style.width = `${Math.min(100, (xp / Dungeon.rules.maxXp) * 100)}%`;
+        document.querySelectorAll("[data-rank-xp]").forEach(step => {
+            const reached = xp >= Number(step.dataset.rankXp);
+            step.classList.toggle("reached", reached);
+            step.classList.toggle("current", step.querySelector("span").textContent === rank);
+        });
     });
 
     const form = document.getElementById("claim-form");
