@@ -2,66 +2,68 @@
 @model CertificateModel
 @using PlaywrightDungeonCrawl.Dungeon
 @{
-    ViewData["Title"] = "Your certificate";
+    ViewData["Title"] = "Your certificates";
 }
 
 <section class="hero">
     <p class="eyebrow">Playwright Dungeon Crawl</p>
-    <h1>Your certificate</h1>
+    <h1>The certificate path</h1>
     <p class="lead">
-        Clear every open floor and the dungeon will vouch for you in writing: a @CertificateRules.Title with its own
-        page anyone can check, ready for your LinkedIn profile.
+        Clear the dungeon and it will vouch for you in writing. There are three tiers, each a @CertificateRules.Title with
+        its own page anyone can check, ready for your LinkedIn profile.
     </p>
 </section>
 
-<section class="panel">
-    @if (Model.Mine is null)
-    {
+@if (Model.Mine is null)
+{
+    <section class="panel">
         <p>Certificates are for signed-in crawlers, so the dungeon knows whose name it's vouching for.
             <a href="/signin?returnUrl=/certificate">Sign in with GitHub</a> to start.</p>
-    }
-    else if (!Model.Eligible)
+    </section>
+}
+else
+{
+    <p class="breakdown">
+        Verified so far: <strong>@Model.Mine.FloorsCleared of @Model.FloorCount floors</strong> cleared. A floor counts once
+        its riddle is answered and its treasure is claimed while you're signed in.
+    </p>
+}
+
+<ol class="cert-path">
+    @foreach (var tier in CertificateRules.Tiers)
     {
-        <h2>Not yet</h2>
-        <p>
-            Verified so far: <strong>@Model.Mine.FloorsCleared of @Model.FloorCount floors</strong>. A floor counts once
-            its riddle is answered and its treasure is claimed while you're signed in.
-        </p>
-        <p><a class="button" href="/">Back to the map</a> <a class="button secondary" href="/leaderboard">See the leaderboard</a></p>
+        var state = Model.StateOf(tier);
+        Model.Earned.TryGetValue(tier.Tier, out var earned);
+        <li class="panel cert-tier @state.ToString().ToLowerInvariant()" aria-labelledby="tier-@tier.Code">
+            <p class="station">Floors 1–@tier.Floors · @tier.Reach</p>
+            <h2 id="tier-@tier.Code">@tier.Name</h2>
+            @switch (state)
+            {
+                case CertificateModel.TierState.Earned:
+                    <p class="tier-state">Earned @earned!.IssuedAt.ToString("d MMMM yyyy"). <a href="/certificates/@earned.Id">View your certificate</a>.</p>
+                    <details>
+                        <summary>Change the name or language</summary>
+                        <p>It stays at the same address with the same date.</p>
+                        <partial name="_CertificateForm" model="(Model, tier, true)" />
+                    </details>
+                    break;
+                case CertificateModel.TierState.Ready:
+                    <p class="tier-state">All @tier.Floors floors verified. You've earned it: choose the name to print.</p>
+                    <partial name="_CertificateForm" model="(Model, tier, false)" />
+                    break;
+                case CertificateModel.TierState.Locked:
+                    <p class="tier-state">Not yet. Clear floors 1 to @tier.Floors to earn it.</p>
+                    break;
+                default:
+                    <p class="tier-state">Sealed. Floors @(Model.FloorCount + 1)–@tier.Floors are still being dug; this tier opens when they are.</p>
+                    break;
+            }
+            @if (Model.Error is not null && Model.ErrorTier == tier.Tier)
+            {
+                <p class="bad" role="alert">@Model.Error</p>
+            }
+        </li>
     }
-    else
-    {
-        <h2>@(Model.Existing is null ? "You've earned it" : "Change what's printed")</h2>
-        @if (Model.Existing is null)
-        {
-            <p>All @Model.FloorCount floors verified. Score: <strong>@Model.Mine.Score XP</strong>. Choose the name to print.</p>
-        }
-        else
-        {
-            <p>Your certificate stays at the same address with the same date; only the name and language change.
-                <a href="/certificates/@Model.Existing.Id">View it</a>.</p>
-        }
-        <form method="post" class="certificate-form">
-            <p class="inline-form">
-                <label for="cert-name">Name on the certificate</label>
-                <input id="cert-name" name="Name" value="@Model.Name" maxlength="@CertificateRules.MaxNameLength" required autocomplete="name" />
-            </p>
-            <fieldset class="cert-language">
-                <legend>Language you cleared it in</legend>
-                @foreach (var language in new[] { CodeLanguage.CSharp, CodeLanguage.TypeScript })
-                {
-                    <label class="ledger-choice">
-                        <input type="radio" name="Lang" value="@language.Code()" checked="@(language == Model.Language)" />
-                        @language.DisplayName()
-                        <span class="breakdown">(@CertificateRules.CourseName(language))</span>
-                    </label>
-                }
-            </fieldset>
-            <button type="submit">@(Model.Existing is null ? "Issue my certificate" : "Reprint")</button>
-        </form>
-    }
-    @if (Model.Error is not null)
-    {
-        <p class="bad" role="alert">@Model.Error</p>
-    }
-</section>
+</ol>
+
+<p><a class="button secondary" href="/">Back to the map</a> <a class="button secondary" href="/leaderboard">See the leaderboard</a></p>

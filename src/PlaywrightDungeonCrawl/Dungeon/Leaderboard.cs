@@ -41,10 +41,14 @@ public interface IPlayerRecords
 
     Task<Certificate?> CertificateAsync(string id, CancellationToken ct = default);
 
-    Task<Certificate?> CertificateForAsync(string playerId, CancellationToken ct = default);
+    /// <summary>The player's certificate for one tier of the path, if they have it.</summary>
+    Task<Certificate?> CertificateForAsync(string playerId, CertificateTier tier = CertificateTier.Apprentice, CancellationToken ct = default);
+
+    /// <summary>All the player's certificates, one per tier earned.</summary>
+    Task<IReadOnlyList<Certificate>> CertificatesForAsync(string playerId, CancellationToken ct = default);
 
     /// <summary>
-    /// Issues the player's certificate, or reprints their existing one: the name and ID may change, the date doesn't.
+    /// Issues the player's certificate for its tier, or reprints their existing one: the name and ID may change, the date doesn't.
     /// <see cref="CertificateAsync"/> also finds a certificate by its previous ID.
     /// </summary>
     Task<Certificate> IssueCertificateAsync(Certificate certificate, CancellationToken ct = default);
@@ -181,11 +185,16 @@ public sealed class InMemoryPlayerRecords(TimeProvider clock) : IPlayerRecords
     public Task<Certificate?> CertificateAsync(string id, CancellationToken ct = default) =>
         Task.FromResult(certificates.Values.FirstOrDefault(c => c.Id == id) ?? certificates.Values.FirstOrDefault(c => c.PreviousId == id));
 
-    public Task<Certificate?> CertificateForAsync(string playerId, CancellationToken ct = default) =>
-        Task.FromResult(certificates.TryGetValue(playerId, out var certificate) ? certificate : null);
+    public Task<Certificate?> CertificateForAsync(string playerId, CertificateTier tier = CertificateTier.Apprentice, CancellationToken ct = default) =>
+        Task.FromResult(certificates.TryGetValue(Key(playerId, tier), out var certificate) ? certificate : null);
+
+    public Task<IReadOnlyList<Certificate>> CertificatesForAsync(string playerId, CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<Certificate>>(certificates.Values.Where(c => c.PlayerId == playerId).OrderBy(c => c.Tier).ToList());
+
+    private static string Key(string playerId, CertificateTier tier) => $"{playerId}:{tier}";
 
     public Task<Certificate> IssueCertificateAsync(Certificate certificate, CancellationToken ct = default) =>
-        Task.FromResult(certificates.AddOrUpdate(certificate.PlayerId, certificate,
+        Task.FromResult(certificates.AddOrUpdate(Key(certificate.PlayerId, certificate.Tier), certificate,
             (_, saved) => saved with
             {
                 Id = certificate.Id, Name = certificate.Name, Login = certificate.Login,
@@ -242,40 +251,51 @@ public sealed class PostgresPlayerRecords(NpgsqlDataSource db) : IPlayerRecords
 
     public async Task<Certificate?> CertificateAsync(string id, CancellationToken ct = default) =>
         // Its current ID first, then an ID it had before an upgrade.
-        await LoadCertificateAsync("id = $1 or previous_id = $1 order by (id = $1) desc limit 1", id, ct);
+        (await LoadCertificatesAsync("id = $1 or previous_id = $1 order by (id = $1) desc limit 1", [id], ct)).FirstOrDefault();
 
-    public async Task<Certificate?> CertificateForAsync(string playerId, CancellationToken ct = default) =>
-        await LoadCertificateAsync("github_id = $1", playerId, ct);
+    public async Task<Certificate?> CertificateForAsync(string playerId, CertificateTier tier = CertificateTier.Apprentice, CancellationToken ct = default) =>
+        (await LoadCertificatesAsync("github_id = $1 and tier = $2", [playerId, CertificateRules.For(tier).Code], ct)).SingleOrDefault();
+
+    public async Task<IReadOnlyList<Certificate>> CertificatesForAsync(string playerId, CancellationToken ct = default) =>
+        (await LoadCertificatesAsync("github_id = $1", [playerId], ct)).OrderBy(c => c.Tier).ToList();
 
     public async Task<Certificate> IssueCertificateAsync(Certificate certificate, CancellationToken ct = default)
     {
         await using var upsert = db.CreateCommand("""
-            insert into certificates (id, github_id, login, name, floors, score, issued_at, previous_id, language)
-            values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-            on conflict (github_id) do update set id = excluded.id, name = excluded.name, login = excluded.login,
+            insert into certificates (id, github_id, login, name, floors, score, issued_at, previous_id, language, tier)
+            values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            on conflict (github_id, tier) do update set id = excluded.id, name = excluded.name, login = excluded.login,
                 previous_id = coalesce(excluded.previous_id, certificates.previous_id), language = excluded.language
             """);
         foreach (var value in new object?[] { certificate.Id, certificate.PlayerId, certificate.Login, certificate.Name,
-                     certificate.Floors, certificate.Score, certificate.IssuedAt, certificate.PreviousId, certificate.Language.Code() })
+                     certificate.Floors, certificate.Score, certificate.IssuedAt, certificate.PreviousId, certificate.Language.Code(),
+                     CertificateRules.For(certificate.Tier).Code })
         {
             upsert.Parameters.Add(new() { Value = value ?? DBNull.Value });
         }
         await upsert.ExecuteNonQueryAsync(ct);
-        return (await CertificateForAsync(certificate.PlayerId, ct))!;
+        return (await CertificateForAsync(certificate.PlayerId, certificate.Tier, ct))!;
     }
 
-    private async Task<Certificate?> LoadCertificateAsync(string where, string value, CancellationToken ct)
+    private async Task<List<Certificate>> LoadCertificatesAsync(string where, string[] values, CancellationToken ct)
     {
         await using var select = db.CreateCommand(
-            $"select id, github_id, login, name, floors, score, issued_at, previous_id, language from certificates where {where}");
-        select.Parameters.Add(new() { Value = value });
+            $"select id, github_id, login, name, floors, score, issued_at, previous_id, language, tier from certificates where {where}");
+        foreach (var value in values)
+        {
+            select.Parameters.Add(new() { Value = value });
+        }
         await using var reader = await select.ExecuteReaderAsync(ct);
-        return await reader.ReadAsync(ct)
-            ? new(reader.GetString(0), reader.GetString(1), reader.GetString(2), reader.GetString(3),
+        var found = new List<Certificate>();
+        while (await reader.ReadAsync(ct))
+        {
+            found.Add(new(reader.GetString(0), reader.GetString(1), reader.GetString(2), reader.GetString(3),
                 reader.GetInt32(4), reader.GetInt32(5), reader.GetFieldValue<DateTimeOffset>(6),
                 reader.IsDBNull(7) ? null : reader.GetString(7),
-                Languages.Parse(reader.GetString(8)) ?? CodeLanguage.CSharp)
-            : null;
+                Languages.Parse(reader.GetString(8)) ?? CodeLanguage.CSharp,
+                CertificateRules.ParseTier(reader.GetString(9)) ?? CertificateTier.Apprentice));
+        }
+        return found;
     }
 
     private async Task<List<PlayerRecord>> LoadAsync(string where, object[] args, CancellationToken ct)

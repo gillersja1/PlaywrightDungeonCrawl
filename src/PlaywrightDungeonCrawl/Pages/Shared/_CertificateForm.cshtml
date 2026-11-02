@@ -1,0 +1,25 @@
+@using PlaywrightDungeonCrawl.Dungeon
+@using PlaywrightDungeonCrawl.Pages
+@model (CertificateModel Form, TierRules Tier, bool Reprint)
+@{
+    var (form, tier, reprint) = Model;
+}
+<form method="post" class="certificate-form">
+    <input type="hidden" name="Tier" value="@tier.Code" />
+    <p class="inline-form">
+        <label for="cert-name-@tier.Code">Name on the certificate</label>
+        <input id="cert-name-@tier.Code" name="Name" value="@form.Name" maxlength="@CertificateRules.MaxNameLength" required autocomplete="name" />
+    </p>
+    <fieldset class="cert-language">
+        <legend>Language you cleared it in</legend>
+        @foreach (var language in new[] { CodeLanguage.CSharp, CodeLanguage.TypeScript })
+        {
+            <label class="ledger-choice">
+                <input type="radio" name="Lang" value="@language.Code()" checked="@(language == form.Language)" />
+                @language.DisplayName()
+                <span class="breakdown">(@CertificateRules.CourseName(language, tier.Tier))</span>
+            </label>
+        }
+    </fieldset>
+    <button type="submit">@(reprint ? "Reprint" : $"Issue my {tier.Name} certificate")</button>
+</form>

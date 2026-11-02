@@ -3,29 +3,55 @@ using System.Text.RegularExpressions;
 
 namespace PlaywrightDungeonCrawl.Dungeon;
 
+/// <summary>The certificate path: each tier covers more of the dungeon, and each is its own certificate.</summary>
+public enum CertificateTier { Apprentice, Journeyman, Master }
+
+/// <param name="Floors">Floors 1 to this many must be verified as cleared.</param>
+/// <param name="Reach">How far the tier goes, for the certificate path.</param>
+public sealed record TierRules(CertificateTier Tier, string Name, int Floors, string Reach)
+{
+    public string Code => Tier.ToString().ToLowerInvariant();
+}
+
 /// <summary>
-/// A certificate for clearing every open floor, with the name the player chose to print.
+/// A certificate for one tier of the path, with the name the player chose to print.
 /// <paramref name="PreviousId"/> keeps an older ID's links working after an upgrade.
 /// <paramref name="Language"/> is the one the player cleared the dungeon in, which the certificate names.
+/// Certificates issued before tiers existed are Apprentice certificates.
 /// </summary>
 public sealed record Certificate(string Id, string PlayerId, string Login, string Name, int Floors, int Score, DateTimeOffset IssuedAt,
-    string? PreviousId = null, CodeLanguage Language = CodeLanguage.CSharp);
+    string? PreviousId = null, CodeLanguage Language = CodeLanguage.CSharp, CertificateTier Tier = CertificateTier.Apprentice);
 
 public static partial class CertificateRules
 {
     public const int MaxNameLength = 60;
     public const string Title = "Certificate of Survival";
-    /// <summary>The course name LinkedIn lists, e.g. "Playwright Dungeon Crawl: Playwright for TypeScript".</summary>
-    public static string CourseName(CodeLanguage language) =>
-        $"Playwright Dungeon Crawl: Playwright for {(language == CodeLanguage.TypeScript ? "TypeScript" : ".NET")}";
+    /// <summary>The course name LinkedIn lists, e.g. "Playwright Dungeon Crawl: Playwright for TypeScript (Apprentice)".</summary>
+    public static string CourseName(CodeLanguage language, CertificateTier tier) =>
+        $"Playwright Dungeon Crawl: Playwright for {(language == CodeLanguage.TypeScript ? "TypeScript" : ".NET")} ({For(tier).Name})";
+
+    public static readonly IReadOnlyList<TierRules> Tiers =
+    [
+        new(CertificateTier.Apprentice, "Apprentice", 7, "from setup to the Warden's Keep"),
+        new(CertificateTier.Journeyman, "Journeyman", 13, "deeper, past a second boss"),
+        new(CertificateTier.Master, "Master", 19, "all the way down to The Flake"),
+    ];
+
+    public static TierRules For(CertificateTier tier) => Tiers.Single(t => t.Tier == tier);
+
+    public static CertificateTier? ParseTier(string? code) =>
+        Tiers.FirstOrDefault(t => t.Code.Equals(code, StringComparison.OrdinalIgnoreCase))?.Tier;
     public const string Issuer = "Playwright Dungeon Crawl";
 
     /// <summary>The Playwright Dungeon Crawl LinkedIn Page: using it shows its logo next to the certification.</summary>
     public const string LinkedInOrganizationId = "144076964";
 
-    /// <summary>Earned once every floor the dungeon has open is verified as cleared.</summary>
-    public static bool IsEligible(Standing standing, DungeonCatalog catalog) =>
-        standing.FloorsCleared >= catalog.Floors.Count;
+    /// <summary>A tier opens once the dungeon has built every floor it covers.</summary>
+    public static bool IsOpen(TierRules tier, DungeonCatalog catalog) => catalog.Floors.Count >= tier.Floors;
+
+    /// <summary>Earned once every floor the tier covers is verified as cleared.</summary>
+    public static bool IsEligible(Standing standing, TierRules tier, DungeonCatalog catalog) =>
+        IsOpen(tier, catalog) && standing.FloorsCleared >= tier.Floors;
 
     /// <summary>The printed name, or null if it's empty, too long or has control characters.</summary>
     public static string? CleanName(string? name)
@@ -50,7 +76,7 @@ public static partial class CertificateRules
     /// <summary>LinkedIn's "Add to profile" form, filled in for this certificate.</summary>
     public static string LinkedInUrl(Certificate certificate, string verifyUrl) =>
         "https://www.linkedin.com/profile/add?startTask=CERTIFICATION_NAME" +
-        $"&name={Uri.EscapeDataString(CourseName(certificate.Language))}" +
+        $"&name={Uri.EscapeDataString(CourseName(certificate.Language, certificate.Tier))}" +
         $"&organizationId={LinkedInOrganizationId}" +
         $"&issueYear={certificate.IssuedAt.Year}&issueMonth={certificate.IssuedAt.Month}" +
         $"&certUrl={Uri.EscapeDataString(verifyUrl)}" +
