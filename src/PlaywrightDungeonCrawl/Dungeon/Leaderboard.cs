@@ -60,6 +60,9 @@ public sealed record Standing(string Login, int FloorsCleared, int Score, DateTi
     public Rival? Npc { get; init; }
 
     public bool IsNpc => Npc is not null;
+
+    /// <summary>A title bought in the loot shop and worn on the board (see <see cref="Shop.VerifiedTitle"/>).</summary>
+    public string? Title { get; init; }
 }
 
 public static class Leaderboard
@@ -123,7 +126,9 @@ public static class Leaderboard
         var standings = includeRivals ? Rivals.StandingsFor(catalog).ToList() : [];
         foreach (var record in await records.ListedAsync(ct))
         {
-            standings.Add(Score(record, await progress.GetAsync(record.PlayerId, ct), catalog));
+            var saved = await progress.GetAsync(record.PlayerId, ct);
+            var standing = Score(record, saved, catalog);
+            standings.Add(standing with { Title = Shop.VerifiedTitle(saved, standing.Score) });
         }
         return Rank(standings);
     }

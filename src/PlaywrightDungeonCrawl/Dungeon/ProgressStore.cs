@@ -14,6 +14,12 @@ namespace PlaywrightDungeonCrawl.Dungeon;
 /// </summary>
 public sealed partial record PlayerProgress(string[] Scrolls, string[] Riddles, string[] Treasures, Dictionary<string, int> Help)
 {
+    /// <summary>Loot bought in the shop: item ID to the price paid.</summary>
+    public Dictionary<string, int> Loot { get; init; } = [];
+
+    /// <summary>What's worn in each slot ("title", "torch"): an item ID from <see cref="Loot"/>.</summary>
+    public Dictionary<string, string> Equipped { get; init; } = [];
+
     public static PlayerProgress Empty => new([], [], [], []);
 
     private const int MaxHelpEntries = 500;
@@ -32,12 +38,21 @@ public sealed partial record PlayerProgress(string[] Scrolls, string[] Riddles, 
             (Treasures ?? []).Where(rooms.Contains).Distinct().ToArray(),
             (Help ?? []).Where(h => HelpKey().IsMatch(h.Key) && h.Value is >= 0 and <= 100)
                 .Take(MaxHelpEntries)
-                .ToDictionary());
+                .ToDictionary())
+        {
+            // Unknown items are dropped; a price is kept as paid, but never below zero or above the list price.
+            Loot = (Loot ?? []).Where(l => Shop.Find(l.Key) is { } item && l.Value >= 0 && l.Value <= item.Price).ToDictionary(),
+            // A slot holds an owned item that fits it, or "" for nothing worn (kept, so taking something off syncs).
+            Equipped = (Equipped ?? [])
+                .Where(e => Enum.GetValues<LootSlot>().Any(slot => slot.ToString().Equals(e.Key, StringComparison.OrdinalIgnoreCase)
+                    && (e.Value == "" || (Shop.Find(e.Value) is { } item && item.Slot == slot && (Loot ?? []).ContainsKey(e.Value)))))
+                .ToDictionary(e => e.Key.ToLowerInvariant(), e => e.Value),
+        };
     }
 
     /// <summary>
-    /// Progress only grows, so two copies combine by union. Help keeps the
-    /// cost it was first charged at.
+    /// Progress only grows, so two copies combine by union. Help and loot keep the
+    /// cost first charged. What's equipped follows the incoming copy, the latest choice.
     /// </summary>
     public PlayerProgress Merge(PlayerProgress other)
     {
@@ -46,11 +61,25 @@ public sealed partial record PlayerProgress(string[] Scrolls, string[] Riddles, 
         {
             help.TryAdd(key, cost);
         }
+        var loot = new Dictionary<string, int>(Loot);
+        foreach (var (item, price) in other.Loot)
+        {
+            loot.TryAdd(item, price);
+        }
+        var equipped = new Dictionary<string, string>(Equipped);
+        foreach (var (slot, item) in other.Equipped)
+        {
+            equipped[slot] = item;
+        }
         return new(
             Scrolls.Union(other.Scrolls).ToArray(),
             Riddles.Union(other.Riddles).ToArray(),
             Treasures.Union(other.Treasures).ToArray(),
-            help);
+            help)
+        {
+            Loot = loot,
+            Equipped = equipped,
+        };
     }
 }
 

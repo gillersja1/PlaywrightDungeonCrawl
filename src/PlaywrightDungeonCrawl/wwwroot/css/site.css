@@ -9,6 +9,7 @@
     --ink: #2b2118;
     --torch: #f2a33a;
     --torch-dim: #b8742a;
+    --torch-bright: #ffc56e;
     --moss: #6fbf73;
     --blood: #e0605a;
     --radius: 10px;
@@ -31,7 +32,7 @@ body {
 }
 
 a { color: var(--torch); }
-a:hover { color: #ffc56e; }
+a:hover { color: var(--torch-bright); }
 h1, h2, h3 { font-family: var(--serif); line-height: 1.2; color: #fff6e6; }
 h1 { font-size: clamp(1.8rem, 5vw, 2.8rem); margin: 0.2em 0; }
 code { font-family: var(--mono); font-size: 0.92em; }
@@ -54,7 +55,7 @@ code { font-family: var(--mono); font-size: 0.92em; }
 .account { display: inline-flex; gap: 8px; align-items: center; margin: 0; }
 .account .player { color: var(--stone-400); }
 button.link-button { background: none; border: none; padding: 0; color: var(--torch); font: inherit; text-decoration: underline; cursor: pointer; }
-button.link-button:hover { background: none; color: #ffc56e; }
+button.link-button:hover { background: none; color: var(--torch-bright); }
 .xp-badge { background: var(--stone-700); border: 1px solid var(--torch-dim); border-radius: 999px; padding: 3px 12px; font-size: 0.9rem; color: var(--bone) !important; }
 
 /* Test language: the header toggle and floor 1's chooser */
@@ -88,7 +89,7 @@ button, .button {
     display: inline-block; font: inherit; font-weight: 600; cursor: pointer; text-decoration: none;
     background: var(--torch); color: var(--ink); border: 0; border-radius: 8px; padding: 9px 18px;
 }
-button:hover, .button:hover { background: #ffc56e; color: var(--ink); }
+button:hover, .button:hover { background: var(--torch-bright); color: var(--ink); }
 button.secondary, .button.secondary { background: transparent; color: var(--torch); border: 1px solid var(--torch-dim); }
 input, select { font: inherit; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--stone-600); background: var(--stone-900); color: var(--bone); }
 
@@ -162,6 +163,7 @@ input, select { font: inherit; padding: 8px 10px; border-radius: 6px; border: 1p
 .nudge-list { padding-left: 1.4em; }
 .nudge-list li { margin: 8px 0; padding: 8px 12px; background: var(--stone-900); border-left: 3px solid var(--torch-dim); border-radius: 4px; }
 button:disabled { opacity: 0.6; cursor: default; }
+button:disabled:hover { background: var(--torch); }
 
 /* Trap rooms */
 .room { background: var(--stone-800); border: 1px solid var(--stone-600); border-radius: var(--radius); padding: 16px; margin: 20px 0; }
@@ -348,3 +350,15 @@ button:disabled { opacity: 0.6; cursor: default; }
 .cert-tier.earned { border-color: var(--torch); }
 .cert-tier.sealed { opacity: 0.7; }
 .cert-tier details summary { cursor: pointer; color: var(--torch); }
+
+/* Loot shop */
+.wallet { font-size: 1.05rem; }
+.loot-list { list-style: none; padding: 0; margin: 8px 0 16px; display: grid; gap: 8px; }
+.loot { display: flex; align-items: center; gap: 12px; padding: 8px 10px; border: 1px solid var(--stone-600); border-radius: 8px; background: var(--stone-900); }
+.loot.worn { border-color: var(--torch); box-shadow: 0 0 0 1px var(--torch) inset; }
+.loot-text { display: grid; flex: 1; min-width: 0; }
+.loot-description { font-size: 0.85rem; opacity: 0.75; }
+.loot-button { white-space: nowrap; }
+.swatch { width: 18px; height: 18px; border-radius: 50%; background: var(--swatch); box-shadow: 0 0 10px var(--swatch); flex: none; }
+.shop-status:empty { display: none; }
+.worn-title { font-weight: 400; font-style: italic; opacity: 0.8; }
