@@ -46,6 +46,18 @@ await Page.Mouse.UpAsync();                                // three-quarters of 
         <code>Steps</code> sends the move as several smaller ones, for pages that only react while the pointer is
         moving. Then check the result the way a user would: <code>ToHaveAttributeAsync("aria-valuenow", "75")</code>.
     </p>
+    <p class="tip">
+        <strong>The mouse doesn't look before it presses.</strong> <code>Page.Mouse</code> presses wherever you
+        tell it, on the visible window, even if the slider has scrolled off screen or is tucked under a sticky
+        header, and then the press lands on the header. <code>HoverAsync</code> with a <code>Position</code> moves the
+        same mouse but checks first: it scrolls the slider into view and waits until nothing covers that spot.
+    </p>
+<pre><code>var width = (await slider.BoundingBoxAsync())!.Width;
+
+await slider.HoverAsync(new() { Position = new() { X = 1, Y = 10 } });            // the left end
+await Page.Mouse.DownAsync();
+await slider.HoverAsync(new() { Position = new() { X = width * 0.75f, Y = 10 } }); // three-quarters
+await Page.Mouse.UpAsync();</code></pre>
 </section>
 
 <section>

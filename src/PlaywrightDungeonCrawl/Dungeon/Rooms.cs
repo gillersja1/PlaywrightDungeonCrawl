@@ -380,14 +380,14 @@ public sealed class TinkerersWorkbench : Room
     {
         "Three jobs, in order: the bolts, the mechanism behind the cover, then the furnace dial. A plain click won't do any of them.",
         "The bolts want a double-click. The mechanism's options are on its right-click menu. The dial has no keys and no input box: press the mouse on it, move to the right spot, and let go.",
-        "DblClickAsync() each \"Bolt 1\" to \"Bolt 4\". Right-click the mechanism with ClickAsync(new() { Button = MouseButton.Right }) and pick the menu item named in the note. For the dial, get its BoundingBoxAsync(); the temperature sits at box.X + box.Width * temperature / 500. Page.Mouse: MoveAsync to the thumb, DownAsync, MoveAsync there, UpAsync.",
+        "DblClickAsync() each \"Bolt 1\" to \"Bolt 4\". Right-click the mechanism with ClickAsync(new() { Button = MouseButton.Right }) and pick the menu item named in the note. For the dial, get its width from BoundingBoxAsync(); the temperature sits at width * temperature / 500 from its left edge. HoverAsync(new() { Position = ... }) at the left end, Page.Mouse.DownAsync(), HoverAsync at the temperature, Page.Mouse.UpAsync().",
     };
 
     public override string[] TypeScriptNudges { get; } =
     {
         "Three jobs, in order: the bolts, the mechanism behind the cover, then the furnace dial. A plain click won't do any of them.",
         "The bolts want a double-click. The mechanism's options are on its right-click menu. The dial has no keys and no input box: press the mouse on it, move to the right spot, and let go.",
-        "dblclick() each \"Bolt 1\" to \"Bolt 4\". Right-click the mechanism with click({ button: 'right' }) and pick the menu item named in the note. For the dial, get its boundingBox(); the temperature sits at box.x + box.width * temperature / 500. page.mouse: move() to the thumb, down(), move() there, up().",
+        "dblclick() each \"Bolt 1\" to \"Bolt 4\". Right-click the mechanism with click({ button: 'right' }) and pick the menu item named in the note. For the dial, get its width from boundingBox(); the temperature sits at width * temperature / 500 from its left edge. hover({ position }) at the left end, page.mouse.down(), hover({ position }) at the temperature, page.mouse.up().",
     };
 
     public override string Slug => "tinkerers-workbench";
