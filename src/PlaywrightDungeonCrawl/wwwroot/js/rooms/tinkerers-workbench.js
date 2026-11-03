@@ -116,6 +116,8 @@ startRoom((arena, briefing, room) => {
         const step = arena.querySelector(".furnace-step");
         step.hidden = false;
         write(step.querySelector(".furnace-target"), "target-temperature", unlocks.temperature, "°, then fire it.");
+        // Bring the furnace to the middle of the screen, so the dial is never tucked under the sticky header.
+        step.scrollIntoView({ block: "center" });
 
         const dial = step.querySelector(".dial");
         const fill = dial.querySelector(".dial-fill");

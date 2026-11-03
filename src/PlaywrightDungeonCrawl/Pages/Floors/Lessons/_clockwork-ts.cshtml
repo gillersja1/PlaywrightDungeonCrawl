@@ -46,6 +46,18 @@ await page.mouse.up();                                // three-quarters of the w
         <code>steps</code> sends the move as several smaller ones, for pages that only react while the pointer is
         moving. Then check the result the way a user would: <code>toHaveAttribute('aria-valuenow', '75')</code>.
     </p>
+    <p class="tip">
+        <strong>The mouse doesn't look before it presses.</strong> <code>page.mouse</code> presses wherever you
+        tell it, on the visible window, even if the slider has scrolled off screen or is tucked under a sticky
+        header, and then the press lands on the header. <code>hover()</code> with a <code>position</code> moves the
+        same mouse but checks first: it scrolls the slider into view and waits until nothing covers that spot.
+    </p>
+<pre><code>const { width } = (await slider.boundingBox())!;
+
+await slider.hover({ position: { x: 1, y: 10 } });             // the left end
+await page.mouse.down();
+await slider.hover({ position: { x: width * 0.75, y: 10 } });  // three-quarters
+await page.mouse.up();</code></pre>
 </section>
 
 <section>

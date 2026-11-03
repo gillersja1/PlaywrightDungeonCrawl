@@ -765,7 +765,7 @@ public sealed class DungeonCatalog
                             "await slider.SelectOptionAsync(\"40%\");",
                         },
                         1,
-                        "Page.Mouse moves a real pointer in page coordinates. BoundingBoxAsync tells you where the element is, so you can work out exactly where to let go.",
+                        "Page.Mouse moves a real pointer, and BoundingBoxAsync tells you where the element is, so you can work out exactly where to let go. (HoverAsync with a Position does the moving more safely: it waits until nothing is covering the spot.)",
                         "Fill and SelectOption need form fields. What would a person do with their hand?"),
                 })
             {
@@ -805,7 +805,7 @@ public sealed class DungeonCatalog
                             "await slider.selectOption('40%');",
                         },
                         1,
-                        "page.mouse moves a real pointer in page coordinates. boundingBox() tells you where the element is, so you can work out exactly where to let go.",
+                        "page.mouse moves a real pointer, and boundingBox() tells you where the element is, so you can work out exactly where to let go. (hover() with a position does the moving more safely: it waits until nothing is covering the spot.)",
                         "fill() and selectOption() need form fields. What would a person do with their hand?"),
                 },
             },
