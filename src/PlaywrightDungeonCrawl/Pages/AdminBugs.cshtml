@@ -1,0 +1,43 @@
+@page "/admin/bugs"
+@model AdminBugsModel
+@using PlaywrightDungeonCrawl.Dungeon
+@{
+    ViewData["Title"] = "Review bug reports";
+}
+
+<section class="hero">
+    <p class="eyebrow">Keeper only</p>
+    <h1>Bug reports</h1>
+    <p class="lead">Confirm a report and its finder joins the <a href="/hall-of-bugslayers">Hall of Bugslayers</a>.</p>
+</section>
+
+@if (Model.Reports.Count == 0)
+{
+    <section class="panel"><p>No reports yet.</p></section>
+}
+@foreach (var report in Model.Reports)
+{
+    <article class="panel bug-report" aria-label="Report @report.Id: @report.Title">
+        <h2>#@report.Id @report.Title <span class="bug-status bug-@report.Status.ToString().ToLowerInvariant()">@report.Status</span></h2>
+        <p class="subtle-note">
+            From <a href="https://github.com/@report.Login">@@@report.Login</a> on @report.SubmittedAt.ToString("d MMM yyyy HH:mm") UTC,
+            sent from <code>@report.Page</code>
+        </p>
+        <pre class="bug-details">@report.Details</pre>
+        <form method="post" asp-page-handler="Review" class="bug-verdict">
+            <input type="hidden" name="id" value="@report.Id" />
+            @if (report.Status != BugStatus.Confirmed)
+            {
+                <button type="submit" name="verdict" value="confirm">Confirm</button>
+            }
+            @if (report.Status != BugStatus.Rejected)
+            {
+                <button type="submit" name="verdict" value="reject" class="secondary">Reject</button>
+            }
+            @if (report.Status != BugStatus.Pending)
+            {
+                <button type="submit" name="verdict" value="reopen" class="link-button">Back to pending</button>
+            }
+        </form>
+    </article>
+}

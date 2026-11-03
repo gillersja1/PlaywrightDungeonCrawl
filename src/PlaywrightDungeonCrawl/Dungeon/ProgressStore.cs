@@ -238,6 +238,18 @@ public static class PostgresDatabase
                 page text not null,
                 login text,
                 created_at timestamptz not null default now());
+            -- The Hall of Bugslayers: bugs players found in the dungeon, and whether they were confirmed.
+            create table if not exists bug_reports (
+                id bigserial primary key,
+                github_id text not null,
+                login text not null,
+                title text not null,
+                details text not null,
+                page text,
+                status text not null default 'pending',
+                submitted_at timestamptz not null default now(),
+                reviewed_at timestamptz);
+            create index if not exists bug_reports_github_id on bug_reports (github_id);
             """);
         await create.ExecuteNonQueryAsync(ct);
     }

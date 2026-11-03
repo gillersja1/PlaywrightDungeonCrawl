@@ -1,0 +1,82 @@
+@page "/report-a-bug"
+@model ReportBugModel
+@using PlaywrightDungeonCrawl.Dungeon
+@{
+    ViewData["Title"] = "Report a bug";
+}
+
+<section class="hero">
+    <p class="eyebrow">The Hall of Bugslayers</p>
+    <h1>Report a bug</h1>
+    <p class="lead">
+        You're learning to test software. Test this one. Find a real bug in the dungeon, report it, and if it's
+        confirmed you join the <a href="/hall-of-bugslayers">Hall of Bugslayers</a> and earn the
+        <span class="worn-title bug-badge">🐞 @BugRules.Title</span> badge.
+    </p>
+</section>
+
+@if (!Model.SignedIn)
+{
+    <section class="panel">
+        @if (Model.AccountsOn)
+        {
+            <p>Sign in with GitHub first, so a confirmed bug can be credited to you.</p>
+            <p><a class="button" href="/signin?returnUrl=@Uri.EscapeDataString("/report-a-bug")">Sign in with GitHub</a></p>
+        }
+        else
+        {
+            <p>Bug reports need GitHub sign-in, and it isn't switched on here. You can still <a href="/feedback">send feedback</a>.</p>
+        }
+    </section>
+}
+else
+{
+    @if (Model.Sent)
+    {
+        <section class="panel feedback-sent" role="status">
+            <h2>Report received.</h2>
+            <p>The Dungeon AI is investigating. It hates bugs. Mostly because they're more popular than it is.</p>
+        </section>
+    }
+
+    <form method="post" class="panel feedback-form" novalidate>
+        <input type="hidden" asp-for="From" value="@Model.ReturnPath" />
+        <div asp-validation-summary="ModelOnly" class="form-error" role="alert"></div>
+
+        <label for="bug-title">What's wrong, in a few words</label>
+        <input id="bug-title" asp-for="BugTitle" maxlength="@BugRules.MaxTitle" required
+               placeholder="e.g. The timer keeps running after the chest opens" />
+        <span asp-validation-for="BugTitle" class="form-error"></span>
+
+        <label for="bug-details">How to make it happen</label>
+        <textarea id="bug-details" asp-for="Details" rows="8" maxlength="@BugRules.MaxDetails" required
+                  placeholder="Steps to reproduce, what you expected, what happened instead, and your browser."></textarea>
+        <span asp-validation-for="Details" class="form-error"></span>
+
+        <p class="form-note">
+            A good report is one someone else can follow and see the bug for themselves: steps, expected, actual.
+            Puzzles being hard isn't a bug. The Dungeon AI insists.
+        </p>
+        <button type="submit">Send the report</button>
+    </form>
+
+    @if (Model.Mine.Count > 0)
+    {
+        <section class="panel">
+            <h2>Your reports</h2>
+            <table class="lesson-table bug-list">
+                <thead><tr><th scope="col">Bug</th><th scope="col">Sent</th><th scope="col">Status</th></tr></thead>
+                <tbody>
+                    @foreach (var report in Model.Mine)
+                    {
+                        <tr>
+                            <td>@report.Title</td>
+                            <td>@report.SubmittedAt.ToString("d MMM yyyy")</td>
+                            <td><span class="bug-status bug-@report.Status.ToString().ToLowerInvariant()">@report.Status</span></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </section>
+    }
+}

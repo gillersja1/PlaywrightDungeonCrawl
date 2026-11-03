@@ -431,3 +431,12 @@ html[data-torch=torch-bloodmoon] .torch-fx::before { animation: heartbeat 1.4s i
 .dial-thumb { position: absolute; top: -6px; left: 0; width: 20px; height: 40px; margin-left: -10px; border-radius: 6px; background: var(--torch-bright); box-shadow: 0 0 10px var(--torch); pointer-events: none; }
 .dial-reading strong { font-family: var(--mono); color: var(--torch); }
 .fire { margin-top: 6px; }
+
+/* The Hall of Bugslayers */
+.bug-badge { border-color: #6fbf73; color: #8fdc93; text-decoration: none; }
+a.bug-badge:hover { background: rgba(111, 191, 115, 0.15); }
+.bug-status { display: inline-block; font-size: 0.75rem; font-weight: 600; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--stone-400); color: var(--stone-400); vertical-align: middle; }
+.bug-status.bug-confirmed { border-color: var(--moss); color: var(--moss); }
+.bug-status.bug-rejected { border-color: var(--blood); color: var(--blood); }
+.bug-details { white-space: pre-wrap; overflow-wrap: anywhere; font-family: var(--sans); background: rgba(0, 0, 0, 0.25); padding: 10px 12px; border-radius: 8px; }
+.bug-verdict { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
