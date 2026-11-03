@@ -726,13 +726,95 @@ public sealed class DungeonCatalog
                         "Frames are inside a page. What's one level up from a page?"),
                 },
             },
+            new Floor(9, "clockwork", "The Clockwork Foundry", "Mouse and keyboard",
+                "Nothing in the foundry turns on a plain click. Learn the rest of the mouse: double-clicks, the right button, and dragging to an exact spot.",
+                bySlug["tinkerers-workbench"],
+                new[]
+                {
+                    new QuizQuestion(
+                        "A bolt only turns on a double-click. Which line turns it?",
+                        new[]
+                        {
+                            "await bolt.ClickAsync(); await bolt.ClickAsync();",
+                            "await bolt.DblClickAsync();",
+                            "await bolt.PressAsync(\"Enter\");",
+                            "await bolt.HoverAsync();",
+                        },
+                        1,
+                        "DblClickAsync sends one double-click, so the page gets its dblclick event. Two separate clicks are two single clicks, and no dblclick ever fires.",
+                        "The page listens for one particular event. Do two clicks in a row send it?"),
+                    new QuizQuestion(
+                        "The options you need are on an element's right-click menu. How do you open it?",
+                        new[]
+                        {
+                            "await gears.RightClickAsync();",
+                            "await gears.PressAsync(\"ContextMenu\");",
+                            "await gears.ClickAsync(new() { Button = MouseButton.Right });",
+                            "await gears.ClickAsync(new() { Modifiers = new[] { KeyboardModifier.Alt } });",
+                        },
+                        2,
+                        "Clicks take options: Button picks the mouse button, ClickCount, Modifiers and Position do the rest. A right click fires the page's contextmenu event.",
+                        "There's no separate method for it. What could you tell ClickAsync about the click?"),
+                    new QuizQuestion(
+                        "A slider has no input box and ignores the keyboard. How do you set it to 40% of the way along?",
+                        new[]
+                        {
+                            "await slider.FillAsync(\"40\");",
+                            "Get its BoundingBoxAsync(), then Page.Mouse: MoveAsync to the handle, DownAsync, MoveAsync to box.X + box.Width * 0.4, UpAsync",
+                            "await slider.ScrollIntoViewIfNeededAsync();",
+                            "await slider.SelectOptionAsync(\"40%\");",
+                        },
+                        1,
+                        "Page.Mouse moves a real pointer in page coordinates. BoundingBoxAsync tells you where the element is, so you can work out exactly where to let go.",
+                        "Fill and SelectOption need form fields. What would a person do with their hand?"),
+                })
+            {
+                TypeScriptRiddles = new[]
+                {
+                    new QuizQuestion(
+                        "A bolt only turns on a double-click. Which line turns it?",
+                        new[]
+                        {
+                            "await bolt.click(); await bolt.click();",
+                            "await bolt.dblclick();",
+                            "await bolt.press('Enter');",
+                            "await bolt.hover();",
+                        },
+                        1,
+                        "dblclick() sends one double-click, so the page gets its dblclick event. Two separate clicks are two single clicks, and no dblclick ever fires.",
+                        "The page listens for one particular event. Do two clicks in a row send it?"),
+                    new QuizQuestion(
+                        "The options you need are on an element's right-click menu. How do you open it?",
+                        new[]
+                        {
+                            "await gears.rightClick();",
+                            "await gears.press('ContextMenu');",
+                            "await gears.click({ button: 'right' });",
+                            "await gears.click({ modifiers: ['Alt'] });",
+                        },
+                        2,
+                        "Clicks take options: button picks the mouse button, clickCount, modifiers and position do the rest. A right click fires the page's contextmenu event.",
+                        "There's no separate method for it. What could you tell click() about the click?"),
+                    new QuizQuestion(
+                        "A slider has no input box and ignores the keyboard. How do you set it to 40% of the way along?",
+                        new[]
+                        {
+                            "await slider.fill('40');",
+                            "Get its boundingBox(), then page.mouse: move() to the handle, down(), move() to box.x + box.width * 0.4, up()",
+                            "await slider.scrollIntoViewIfNeeded();",
+                            "await slider.selectOption('40%');",
+                        },
+                        1,
+                        "page.mouse moves a real pointer in page coordinates. boundingBox() tells you where the element is, so you can work out exactly where to let go.",
+                        "fill() and selectOption() need form fields. What would a person do with their hand?"),
+                },
+            },
         };
     }
 
     /// <summary>The deeper floors, shown on the map as sealed until they're built.</summary>
     public IReadOnlyList<(int Number, string Title, string Skill)> SealedFloors { get; } = new[]
     {
-        (9, "The Clockwork Foundry", "Mouse and keyboard"),
         (10, "The Courier Guild", "File upload and download"),
         (11, "The Masquerade", "Login state and browser contexts"),
         (12, "The Oracle's Well", "API testing"),

@@ -30,6 +30,7 @@ Every room is a trap built around one Playwright skill. The puzzle changes on ev
 | 6 | The Whispering Vaults | Network: secrets that never show on screen |
 | 7 | The Warden's Keep | **Boss:** five trials in one test, one for each skill above |
 | 8 | The Portal Bazaar | Tabs, pop-ups and navigation: following a link into a new tab and back |
+| 9 | The Clockwork Foundry | Mouse and keyboard: double-clicks, right-click menus and dragging to an exact spot |
 
 ## Leaderboard and certificate
 

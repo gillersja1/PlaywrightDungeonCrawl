@@ -1,0 +1,69 @@
+<section>
+    <h2>More than a click</h2>
+    <p>
+        <code>ClickAsync</code> has carried you this far, but people use a mouse in more ways than one: they
+        double-click to edit a cell, right-click for a menu, drag a card to another column, hover to see a tooltip.
+        Each of those fires different events on the page, and a page that listens for one won't answer another.
+        Playwright can send all of them, and if it really comes to it, it can move the pointer itself.
+    </p>
+</section>
+
+<section>
+    <h2>Double-clicks, right-clicks and hovering</h2>
+<pre><code>await cell.DblClickAsync();                                        // fires dblclick
+await card.ClickAsync(new() { Button = MouseButton.Right });       // fires contextmenu
+await link.ClickAsync(new() { Modifiers = new[] { KeyboardModifier.ControlOrMeta } });
+await avatar.HoverAsync();                                         // shows the tooltip</code></pre>
+    <p class="tip">
+        <strong>Two clicks aren't a double-click.</strong> Calling <code>ClickAsync</code> twice sends two single
+        clicks, and the page's <code>dblclick</code> event never fires. <code>DblClickAsync</code> sends the real thing.
+    </p>
+    <p>
+        Every click takes options: <code>Button</code>, <code>ClickCount</code>, <code>Modifiers</code>, and
+        <code>Position</code> to click a particular point inside the element instead of its centre.
+    </p>
+</section>
+
+<section>
+    <h2>Dragging</h2>
+    <p>
+        Dragging from one element to another is one line. Playwright presses on the first, moves, and lets go on the second:
+    </p>
+<pre><code>await Page.GetByText("Write tests").DragToAsync(Page.GetByLabel("Done"));</code></pre>
+    <p>
+        When there's no element to drop on, only a spot (a slider, a drawing canvas, a crop handle), drive the mouse
+        yourself. <code>Page.Mouse</code> works in page coordinates, and <code>BoundingBoxAsync</code> tells you where
+        an element is:
+    </p>
+<pre><code>var box = (await slider.BoundingBoxAsync())!;
+var y = box.Y + box.Height / 2;
+
+await Page.Mouse.MoveAsync(box.X, y);                      // the left end
+await Page.Mouse.DownAsync();
+await Page.Mouse.MoveAsync(box.X + box.Width * 0.75, y, new() { Steps = 5 });
+await Page.Mouse.UpAsync();                                // three-quarters of the way</code></pre>
+    <p>
+        <code>Steps</code> sends the move as several smaller ones, for pages that only react while the pointer is
+        moving. Then check the result the way a user would: <code>ToHaveAttributeAsync("aria-valuenow", "75")</code>.
+    </p>
+</section>
+
+<section>
+    <h2>The keyboard</h2>
+    <p>
+        <code>FillAsync</code> sets a field in one go. When a page reacts to each key (shortcuts, autocomplete,
+        games), press keys instead:
+    </p>
+<pre><code>await editor.PressAsync("Control+Enter");               // a shortcut on one element
+await search.PressSequentiallyAsync("dragon", new() { Delay = 50 });   // typed one key at a time
+await Page.Keyboard.PressAsync("Escape");                // whatever has focus</code></pre>
+</section>
+
+<section>
+    <h2>The Tinkerer's Workbench</h2>
+    <p>
+        The foundry's furnace won't light until its clockwork is serviced, and nothing on the bench answers a plain
+        click. Loosen the cover's four bolts, do the job scratched inside it, set the furnace dial to the exact
+        temperature, and fire it. Ten seconds.
+    </p>
+</section>
