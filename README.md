@@ -38,6 +38,23 @@ Sign in with GitHub to save your progress across devices and put your name on th
 
 Clear every open floor to earn a **Certificate of Survival**. It gets its own verification page that anyone can check, and an **Add to LinkedIn** button that lists it under Licenses & certifications.
 
+## Cursed Runs
+
+Beaten a room? Beat it again, cursed. Each curse is enforced by the room itself and rewards a real Playwright habit:
+
+| Curse | What happens | What it teaches |
+|---|---|---|
+| Missing IDs | Every `data-testid` disappears | Locating by role, label and text |
+| Haste | Half the time, timed on the server | Waiting for the right thing, never a fixed sleep |
+| Shifting Walls | Controls move, change case and get decoy twins | Whole-name, case-blind, order-free locators |
+| Flawless | One try a day, with no help taken on the floor | Getting it right first time |
+
+Anyone can practise with `?curse=<name>`. Signed-in players who've cleared a room get a run link to break curses for keeps: the badge shows on the leaderboard. Curses are worth no XP, so the score, rank and certificates stay about the floors.
+
+## The Hall of Bugslayers
+
+You're learning to test software, so test this one. [Report a bug](https://playwright-dungeon-crawl.onrender.com/report-a-bug) in the dungeon; if it's confirmed you join the [Hall of Bugslayers](https://playwright-dungeon-crawl.onrender.com/hall-of-bugslayers) and wear the Bugslayer badge.
+
 ## Who it's for
 
 - Testers moving from manual testing to automation

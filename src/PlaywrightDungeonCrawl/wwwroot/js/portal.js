@@ -13,11 +13,15 @@
         return;
     }
     const ledger = await reply.json();
+    // Under the Curse of the Missing IDs, this tab loses its test ids too.
+    const noTestIds = reply.headers.get("X-Dungeon-Curse") === "missing-ids";
 
     // Each sign is only added once it has something on it, so a test waiting for it gets the real text.
     function write(where, before, testId, value) {
         const strong = document.createElement("strong");
-        strong.dataset.testid = testId;
+        if (!noTestIds) {
+            strong.dataset.testid = testId;
+        }
         strong.textContent = value;
         const line = portal.querySelector(where);
         line.append(before, strong);

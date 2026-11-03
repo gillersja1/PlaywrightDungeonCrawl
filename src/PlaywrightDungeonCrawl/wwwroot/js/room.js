@@ -1,11 +1,13 @@
 // Shared trap-room flow: start an attempt, run the countdown, submit the
 // answer and show the outcome. Each room module supplies render().
+import { applyCurse } from "./curses.js";
 
 // Failure lines, in the Dungeon AI's voice.
 const OUTCOMES = {
     "wrong": "Wrong move. The trap springs. The Dungeon AI has added this to your highlight reel.",
     "too-slow": "Too slow. The trap had time to finish its coffee before you finished.",
     "unknown-attempt": "This attempt is used up. The dungeon doesn't do refunds, but it does do reloads.",
+    "cursed-decoy": "You touched a decoy. The curse is delighted. The Dungeon AI is taking notes.",
 };
 
 export async function startRoom(render) {
@@ -15,7 +17,18 @@ export async function startRoom(render) {
     const result = document.getElementById("room-result");
     const timeLeft = document.getElementById("time-left");
 
-    const response = await fetch(`/api/rooms/${slug}/attempts`, { method: "POST" });
+    // Cursed Runs: ?run=<token> plays a run link for its owner; ?curse=<code> is practice.
+    const params = new URLSearchParams(location.search);
+    const query = params.get("run") ? `?run=${encodeURIComponent(params.get("run"))}`
+        : params.get("curse") ? `?curse=${encodeURIComponent(params.get("curse"))}` : "";
+    const response = await fetch(`/api/rooms/${slug}/attempts${query}`, { method: "POST" });
+    if (!response.ok) {
+        arena.innerHTML = `<p><strong>${response.status === 410
+            ? "This run link has expired or been used. Start a new cursed run below the room."
+            : "That curse doesn't haunt this room."}</strong></p>
+            <p><a class="button" href="${location.pathname}">Play the room uncursed</a> <a href="#cursed-runs">Cursed Runs</a></p>`;
+        return;
+    }
     const attempt = await response.json();
     const deadline = performance.now() + attempt.timeLimitMs;
     let finished = false;
@@ -77,8 +90,12 @@ export async function startRoom(render) {
         const outcome = await reply.json();
         if (outcome.outcome === "correct") {
             const isNew = Dungeon.mark("treasures", slug);
+            const broken = outcome.curseBroken
+                ? `<p class="curse-broken"><strong>💀 ${outcome.curseBroken}: broken.</strong> The badge is yours.</p>`
+                : "";
             finish(
                 `<p><strong>Room cleared!</strong> The chest creaks open. The Dungeon AI is mildly surprised.${isNew ? ` +${Dungeon.rules.treasure} XP` : ""}</p>
+                 ${broken}
                  <p>Treasure flag: <code aria-label="Treasure flag" id="treasure-flag">${outcome.flag}</code></p>`,
                 "cleared");
         } else {
@@ -93,5 +110,22 @@ export async function startRoom(render) {
     }
 
     arena.innerHTML = "";
+    if (attempt.curse) {
+        const banner = document.createElement("p");
+        banner.className = "curse-banner";
+        banner.textContent = `💀 ${attempt.curse.name}` +
+            (attempt.curse.forKeeps ? `: for keeps, for @${attempt.curse.player}.` : ": practice run, no badge.");
+        arena.before(banner);
+        if (timeLeft) {
+            timeLeft.textContent = (attempt.timeLimitMs / 1000).toFixed(1);
+        }
+        const limit = roomEl.querySelector(".time-limit");
+        if (limit) {
+            limit.textContent = `${attempt.timeLimitMs / 1000} seconds`;
+        }
+    }
     render(arena, attempt.briefing, { answer, trial, reveal, attemptId: attempt.attemptId });
+    if (attempt.curse) {
+        applyCurse(attempt.curse.code, arena, () => fail("cursed-decoy"));
+    }
 }
