@@ -16,7 +16,7 @@ public static class DungeonApi
         // and claims, which stays exact even though Render restarts the app.
         var events = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("PlaywrightDungeonCrawl.Rooms");
 
-        // ?curse=haste practises a Cursed Run (no badge); ?run=<token> is a run link, played for its owner.
+        // ?curse=haste practices a Cursed Run (no badge); ?run=<token> is a run link, played for its owner.
         api.MapPost("/rooms/{slug}/attempts", (string slug, string? curse, string? run, DungeonCatalog catalog,
             AttemptStore attempts, CursedRunStore runs) =>
         {

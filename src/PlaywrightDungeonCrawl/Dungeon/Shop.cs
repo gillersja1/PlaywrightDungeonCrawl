@@ -2,7 +2,7 @@ namespace PlaywrightDungeonCrawl.Dungeon;
 
 public enum LootSlot { Title, Torch }
 
-/// <param name="Color">For torches: the accent colour it gives the site; <paramref name="Dim"/> is its darker shade.</param>
+/// <param name="Color">For torches: the accent color it gives the site; <paramref name="Dim"/> is its darker shade.</param>
 public sealed record LootItem(string Id, LootSlot Slot, string Name, int Price, string Description, string? Color = null, string? Dim = null);
 
 /// <summary>
@@ -20,7 +20,7 @@ public static class Shop
         new("title-flake-eater", LootSlot.Title, "Ate the Flaky Test", 250, "It passed on the rerun. You did not."),
         new("torch-ghostfire", LootSlot.Torch, "Ghostfire torch", 50, "A cold blue flame. Spooky, but good for reading.", "#66dcff", "#2f8fb0"),
         new("torch-verdigris", LootSlot.Torch, "Verdigris torch", 75, "Burns green, like old copper and older bugs.", "#6fdc8c", "#3b9a55"),
-        new("torch-witchlight", LootSlot.Torch, "Witchlight torch", 75, "Violet, flickering, faintly judgemental.", "#c69cff", "#8a5ccc"),
+        new("torch-witchlight", LootSlot.Torch, "Witchlight torch", 75, "Violet, flickering, faintly judgmental.", "#c69cff", "#8a5ccc"),
         new("torch-bloodmoon", LootSlot.Torch, "Bloodmoon torch", 120, "Red as a failing test. Wear it with pride.", "#ff6b6b", "#b8433f"),
     ];
 

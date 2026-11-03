@@ -154,7 +154,7 @@ public class CursedRunTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(room, Does.Contain("Cursed Runs").And.Contain("Practise it").And.Not.Contain("Start a cursed run"));
+            Assert.That(room, Does.Contain("Cursed Runs").And.Contain("Practice it").And.Not.Contain("Start a cursed run"));
             Assert.That(RunToken(forced), Is.Null);
             Assert.That(forced, Does.Contain("Clear this room while signed in first"));
         });

@@ -19,7 +19,7 @@ public static class SecurityHeaders
     public static string Policy(string nonce, string? faroOrigin) => string.Join("; ",
         "default-src 'self'",
         $"script-src 'self' 'nonce-{nonce}' https://unpkg.com",
-        // Inline style attributes are used throughout (torch colours, room layouts); styles can't run code.
+        // Inline style attributes are used throughout (torch colors, room layouts); styles can't run code.
         "style-src 'self' 'unsafe-inline'",
         // GitHub avatars on the leaderboard redirect to avatars.githubusercontent.com.
         "img-src 'self' data: https://github.com https://avatars.githubusercontent.com",
