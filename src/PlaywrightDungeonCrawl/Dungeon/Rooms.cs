@@ -360,6 +360,62 @@ public sealed class PortalBazaar : Room
 }
 
 /// <summary>
+/// Floor 9, mouse and keyboard: three jobs on a tinkerer's bench, each needing a different use of the mouse.
+/// Bolts that only turn on a double-click, a mechanism whose options are on its right-click menu, and a furnace
+/// dial with no keys or input box, set by dragging it to the right spot. The server checks each step before it
+/// hands over what the next one needs: the menu's instruction, then the temperature.
+/// </summary>
+public sealed class TinkerersWorkbench : Room
+{
+    public const int Bolts = 4;
+    public const int DialMax = 500;
+    public const int DialStep = 10;
+
+    public static readonly string[] Tasks =
+    {
+        "Oil the gears", "Wind the mainspring", "Tighten the escapement", "Polish the cogs", "Reset the pendulum",
+    };
+
+    public override string[] Nudges { get; } =
+    {
+        "Three jobs, in order: the bolts, the mechanism behind the cover, then the furnace dial. A plain click won't do any of them.",
+        "The bolts want a double-click. The mechanism's options are on its right-click menu. The dial has no keys and no input box: press the mouse on it, move to the right spot, and let go.",
+        "DblClickAsync() each \"Bolt 1\" to \"Bolt 4\". Right-click the mechanism with ClickAsync(new() { Button = MouseButton.Right }) and pick the menu item named in the note. For the dial, get its BoundingBoxAsync(); the temperature sits at box.X + box.Width * temperature / 500. Page.Mouse: MoveAsync to the thumb, DownAsync, MoveAsync there, UpAsync.",
+    };
+
+    public override string[] TypeScriptNudges { get; } =
+    {
+        "Three jobs, in order: the bolts, the mechanism behind the cover, then the furnace dial. A plain click won't do any of them.",
+        "The bolts want a double-click. The mechanism's options are on its right-click menu. The dial has no keys and no input box: press the mouse on it, move to the right spot, and let go.",
+        "dblclick() each \"Bolt 1\" to \"Bolt 4\". Right-click the mechanism with click({ button: 'right' }) and pick the menu item named in the note. For the dial, get its boundingBox(); the temperature sits at box.x + box.width * temperature / 500. page.mouse: move() to the thumb, down(), move() there, up().",
+    };
+
+    public override string Slug => "tinkerers-workbench";
+    public override string Name => "The Tinkerer's Workbench";
+    public override string Objective =>
+        "The foundry's furnace won't light until its clockwork is serviced. Loosen the cover's four bolts, do the job " +
+        "scratched inside it, then set the furnace to the exact temperature and fire it. Every job takes a steady hand.";
+    public override TimeSpan TimeLimit => TimeSpan.FromSeconds(10);
+
+    public override RoomPuzzle Generate(Random rng)
+    {
+        var options = Tasks.OrderBy(_ => rng.Next()).ToArray();
+        var task = options[rng.Next(options.Length)];
+        // Well inside the dial, so neither end is the answer.
+        var temperature = rng.Next(10, 46) * DialStep;
+
+        return new RoomPuzzle(new { Bolts, DialMax, DialStep }, temperature.ToString())
+        {
+            Trials =
+            [
+                new(answer => answer.Trim() == "loosened", new { Note = task, Options = options }),
+                new(answer => answer.Trim() == task, new { Temperature = temperature }),
+            ],
+        };
+    }
+}
+
+/// <summary>
 /// Floor 7, the first boss: five trials in one run, one for each skill so far.
 /// The server checks every trial before it hands over what the next one needs,
 /// so the only way through is in order, at script speed.
