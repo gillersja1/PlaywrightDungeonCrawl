@@ -93,6 +93,11 @@
                                 {
                                     <span class="worn-title" title="A title from the loot shop">@worn</span>
                                 }
+                                @if (standing.BugsConfirmed > 0)
+                                {
+                                    <a class="worn-title bug-badge" href="/hall-of-bugslayers"
+                                       title="Found @standing.BugsConfirmed confirmed @(standing.BugsConfirmed == 1 ? "bug" : "bugs") in the dungeon">🐞 @PlaywrightDungeonCrawl.Dungeon.BugRules.Title@(standing.BugsConfirmed > 1 ? $" ×{standing.BugsConfirmed}" : "")</a>
+                                }
                             </th>
                             <td>@standing.FloorsCleared / @Model.FloorCount</td>
                             <td>@standing.Score XP</td>

@@ -33,6 +33,7 @@ public static class Accounts
             services.AddSingleton<IProgressStore, PostgresProgressStore>();
             services.AddSingleton<IPlayerRecords, PostgresPlayerRecords>();
             services.AddSingleton<IFeedbackStore, PostgresFeedbackStore>();
+            services.AddSingleton<IBugReports, PostgresBugReports>();
             services.AddDataProtection().SetApplicationName("PlaywrightDungeonCrawl");
             services.Configure<KeyManagementOptions>(options => options.XmlRepository = new PostgresXmlRepository(db));
         }
@@ -41,6 +42,7 @@ public static class Accounts
             services.AddSingleton<IProgressStore, InMemoryProgressStore>();
             services.AddSingleton<IPlayerRecords, InMemoryPlayerRecords>();
             services.AddSingleton<IFeedbackStore, InMemoryFeedbackStore>();
+            services.AddSingleton<IBugReports, InMemoryBugReports>();
         }
 
         var auth = services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

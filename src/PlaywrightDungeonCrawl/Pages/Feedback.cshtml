@@ -55,5 +55,6 @@ else
 }
 
 <p class="subtle-note">
-    Found a bug you can reproduce? You can also <a href="@Model.IssuesUrl">open an issue on GitHub</a>.
+    Found a bug you can reproduce? <a href="/report-a-bug?from=@Uri.EscapeDataString(Model.ReturnPath)">Report it</a>: confirmed
+    bugs earn a place in the <a href="/hall-of-bugslayers">Hall of Bugslayers</a>. You can also <a href="@Model.IssuesUrl">open an issue on GitHub</a>.
 </p>

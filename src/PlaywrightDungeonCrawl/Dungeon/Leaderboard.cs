@@ -63,6 +63,9 @@ public sealed record Standing(string Login, int FloorsCleared, int Score, DateTi
 
     /// <summary>A title bought in the loot shop and worn on the board (see <see cref="Shop.VerifiedTitle"/>).</summary>
     public string? Title { get; init; }
+
+    /// <summary>Confirmed bug reports: shown as the Bugslayer badge, never counted in the score or rank.</summary>
+    public int BugsConfirmed { get; init; }
 }
 
 public static class Leaderboard
@@ -120,15 +123,22 @@ public static class Leaderboard
     }
 
     /// <param name="includeRivals">Whether to rank the NPC rivals alongside the players.</param>
+    /// <param name="bugslayers">The Hall of Bugslayers, for the badge; it never changes the order.</param>
     public static async Task<IReadOnlyList<(int Rank, Standing Standing)>> BuildAsync(
-        IPlayerRecords records, IProgressStore progress, DungeonCatalog catalog, bool includeRivals = false, CancellationToken ct = default)
+        IPlayerRecords records, IProgressStore progress, DungeonCatalog catalog, bool includeRivals = false,
+        IReadOnlyList<Bugslayer>? bugslayers = null, CancellationToken ct = default)
     {
         var standings = includeRivals ? Rivals.StandingsFor(catalog).ToList() : [];
+        var bugs = (bugslayers ?? []).ToDictionary(b => b.PlayerId, b => b.Confirmed);
         foreach (var record in await records.ListedAsync(ct))
         {
             var saved = await progress.GetAsync(record.PlayerId, ct);
             var standing = Score(record, saved, catalog);
-            standings.Add(standing with { Title = Shop.VerifiedTitle(saved, standing.Score) });
+            standings.Add(standing with
+            {
+                Title = Shop.VerifiedTitle(saved, standing.Score),
+                BugsConfirmed = bugs.GetValueOrDefault(record.PlayerId),
+            });
         }
         return Rank(standings);
     }

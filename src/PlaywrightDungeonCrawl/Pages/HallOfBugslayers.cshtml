@@ -1,0 +1,43 @@
+@page "/hall-of-bugslayers"
+@model HallOfBugslayersModel
+@using PlaywrightDungeonCrawl.Dungeon
+@{
+    ViewData["Title"] = "Hall of Bugslayers";
+}
+
+<section class="hero">
+    <p class="eyebrow">Testers who tested the dungeon</p>
+    <h1>The Hall of Bugslayers</h1>
+    <p class="lead">
+        Every name here found a real bug in the Playwright Dungeon Crawl, reported it well enough to reproduce,
+        and had it confirmed. That's the job, done for real.
+    </p>
+    <p><a class="button" href="/report-a-bug?from=/hall-of-bugslayers">Report a bug</a></p>
+</section>
+
+<section class="panel">
+    @if (Model.Hall.Count == 0)
+    {
+        <p>No bugs slain yet. The Dungeon AI claims there aren't any. The Dungeon AI also wrote the dungeon.</p>
+    }
+    else
+    {
+        <table class="lesson-table leaderboard hall">
+            <thead><tr><th scope="col">Bugslayer</th><th scope="col">Confirmed bugs</th><th scope="col">First confirmed</th></tr></thead>
+            <tbody>
+                @foreach (var slayer in Model.Hall)
+                {
+                    <tr>
+                        <th scope="row">
+                            <img src="https://github.com/@(slayer.Login).png?size=48" alt="" width="24" height="24" loading="lazy" />
+                            @@@slayer.Login
+                            <span class="worn-title bug-badge">🐞 @BugRules.Title</span>
+                        </th>
+                        <td>@slayer.Confirmed</td>
+                        <td>@slayer.FirstConfirmedAt.ToString("d MMM yyyy")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</section>

@@ -37,6 +37,36 @@ public class PostgresTests
     }
 
     [Test]
+    public async Task BugReportsAreSavedReviewedAndRanked()
+    {
+        var bugs = new PostgresBugReports(db);
+        var ada = $"test-{Guid.NewGuid()}";
+        var grace = $"test-{Guid.NewGuid()}";
+
+        var first = await bugs.SubmitAsync(ada, "ada", "Timer keeps running", "Steps...", "/floors/setup");
+        var second = await bugs.SubmitAsync(ada, "ada", "Typo on floor 3", "Steps...", null);
+        var hers = await bugs.SubmitAsync(grace, "grace", "Door won't open", "Steps...", "/rooms/hall-of-doors");
+        await bugs.ReviewAsync(first.Id, BugStatus.Confirmed);
+        await bugs.ReviewAsync(second.Id, BugStatus.Confirmed);
+        await bugs.ReviewAsync(hers.Id, BugStatus.Rejected);
+        var missing = await bugs.ReviewAsync(-1, BugStatus.Confirmed);
+
+        var mine = await bugs.ForPlayerAsync(ada);
+        var hall = (await bugs.HallAsync()).Where(b => b.PlayerId == ada || b.PlayerId == grace).ToList();
+        Assert.Multiple(() =>
+        {
+            Assert.That(first.Status, Is.EqualTo(BugStatus.Pending));
+            Assert.That(first.Page, Is.EqualTo("/floors/setup"));
+            Assert.That(mine, Has.Count.EqualTo(2));
+            Assert.That(mine.All(r => r.Status == BugStatus.Confirmed && r.ReviewedAt is not null));
+            Assert.That(missing, Is.False);
+            Assert.That(hall, Has.Count.EqualTo(1), "a rejected report doesn't count");
+            Assert.That(hall[0].Login, Is.EqualTo("ada"));
+            Assert.That(hall[0].Confirmed, Is.EqualTo(2));
+        });
+    }
+
+    [Test]
     public async Task ProgressMergesAndResets()
     {
         var store = new PostgresProgressStore(db);

@@ -5,7 +5,7 @@ using PlaywrightDungeonCrawl.Dungeon;
 
 namespace PlaywrightDungeonCrawl.Pages;
 
-public class LeaderboardModel(IPlayerRecords records, IProgressStore progress, DungeonCatalog catalog, IConfiguration config) : PageModel
+public class LeaderboardModel(IPlayerRecords records, IProgressStore progress, DungeonCatalog catalog, IConfiguration config, IBugReports bugs) : PageModel
 {
     public IReadOnlyList<(int Rank, Standing Standing)> Rows { get; private set; } = [];
 
@@ -23,7 +23,8 @@ public class LeaderboardModel(IPlayerRecords records, IProgressStore progress, D
 
     public async Task OnGetAsync()
     {
-        Rows = await Leaderboard.BuildAsync(records, progress, catalog, includeRivals: AccountsOn, HttpContext.RequestAborted);
+        Rows = await Leaderboard.BuildAsync(records, progress, catalog, includeRivals: AccountsOn,
+            await bugs.HallAsync(HttpContext.RequestAborted), HttpContext.RequestAborted);
         if (PlayerId is { } playerId)
         {
             var record = await records.GetAsync(playerId, HttpContext.RequestAborted)
