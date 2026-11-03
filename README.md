@@ -49,7 +49,7 @@ Beaten a room? Beat it again, cursed. Each curse is enforced by the room itself 
 | Shifting Walls | Controls move, change case and get decoy twins | Whole-name, case-blind, order-free locators |
 | Flawless | One try a day, with no help taken on the floor | Getting it right first time |
 
-Anyone can practise with `?curse=<name>`. Signed-in players who've cleared a room get a run link to break curses for keeps: the badge shows on the leaderboard. Curses are worth no XP, so the score, rank and certificates stay about the floors.
+Anyone can practice with `?curse=<name>`. Signed-in players who've cleared a room get a run link to break curses for keeps: the badge shows on the leaderboard. Curses are worth no XP, so the score, rank and certificates stay about the floors.
 
 ## The Hall of Bugslayers
 

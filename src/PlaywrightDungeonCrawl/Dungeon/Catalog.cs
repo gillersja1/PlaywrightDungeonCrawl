@@ -317,7 +317,7 @@ public sealed class DungeonCatalog
                 new[]
                 {
                     new QuizQuestion(
-                        "How do you fill the text box labelled \"Adventurer name\"?",
+                        "How do you fill the text box labeled \"Adventurer name\"?",
                         new[]
                         {
                             "Page.GetByLabel(\"Adventurer name\").FillAsync(name)",
@@ -357,7 +357,7 @@ public sealed class DungeonCatalog
                 TypeScriptRiddles = new[]
                 {
                     new QuizQuestion(
-                        "How do you fill the text box labelled \"Adventurer name\"?",
+                        "How do you fill the text box labeled \"Adventurer name\"?",
                         new[]
                         {
                             "page.getByLabel('Adventurer name').fill(name)",
