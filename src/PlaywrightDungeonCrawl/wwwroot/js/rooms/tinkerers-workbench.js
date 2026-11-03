@@ -23,7 +23,7 @@ startRoom((arena, briefing, room) => {
                     <div class="dial-fill"></div>
                     <div class="dial-thumb"></div>
                 </div>
-                <p class="dial-reading">The needle reads <strong data-testid="dial-reading">0</strong>°.</p>
+                <p class="dial-reading">The needle reads <strong class="dial-value" data-testid="dial-reading">0</strong>°.</p>
                 <button type="button" class="fire">Fire the furnace</button>
             </section>
         </div>`;
@@ -122,7 +122,7 @@ startRoom((arena, briefing, room) => {
         const dial = step.querySelector(".dial");
         const fill = dial.querySelector(".dial-fill");
         const thumb = dial.querySelector(".dial-thumb");
-        const reading = step.querySelector("[data-testid=dial-reading]");
+        const reading = step.querySelector(".dial-value");
         let value = 0;
         let dragging = false;
 

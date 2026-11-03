@@ -39,9 +39,9 @@ startRoom((arena, briefing, room) => {
     // Trial 1, locators: open the right gate. Its twin is sealed.
     function gateOfNames() {
         stage(1, "The Gate of Names", `
-            <p class="target">Open the gate marked <strong data-testid="target-gate"></strong>.</p>
+            <p class="target">Open the gate marked <strong class="target-name" data-testid="target-gate"></strong>.</p>
             <section class="doors" aria-label="Gates"></section>`);
-        body.querySelector("[data-testid=target-gate]").textContent = briefing.target;
+        body.querySelector(".target-name").textContent = briefing.target;
         const gates = body.querySelector(".doors");
         for (const gate of briefing.gates) {
             const button = document.createElement("button");

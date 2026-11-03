@@ -66,6 +66,9 @@ public sealed record Standing(string Login, int FloorsCleared, int Score, DateTi
 
     /// <summary>Confirmed bug reports: shown as the Bugslayer badge, never counted in the score or rank.</summary>
     public int BugsConfirmed { get; init; }
+
+    /// <summary>Curses broken in Cursed Runs: a badge too, never counted in the score or rank.</summary>
+    public int CursesBroken { get; init; }
 }
 
 public static class Leaderboard
@@ -138,6 +141,7 @@ public static class Leaderboard
             {
                 Title = Shop.VerifiedTitle(saved, standing.Score),
                 BugsConfirmed = bugs.GetValueOrDefault(record.PlayerId),
+                CursesBroken = record.Achievements.Count(a => a.Kind == Curses.AchievementKind),
             });
         }
         return Rank(standings);

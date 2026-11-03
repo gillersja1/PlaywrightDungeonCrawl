@@ -440,3 +440,16 @@ a.bug-badge:hover { background: rgba(111, 191, 115, 0.15); }
 .bug-status.bug-rejected { border-color: var(--blood); color: var(--blood); }
 .bug-details { white-space: pre-wrap; overflow-wrap: anywhere; font-family: var(--sans); background: rgba(0, 0, 0, 0.25); padding: 10px 12px; border-radius: 8px; }
 .bug-verdict { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+/* Cursed Runs */
+.curse-banner { margin: 10px 0 0; padding: 8px 12px; border-radius: 8px; border: 1px solid #b06ad8; background: rgba(176, 106, 216, 0.12); color: #e3c8f5; font-weight: 600; }
+.curse-badge { border-color: #b06ad8; color: #d9b3f2; }
+.cursed-runs .curse-list { list-style: none; padding: 0; display: grid; gap: 12px; }
+.cursed-runs .curse { border: 1px solid var(--stone-600); border-radius: 8px; padding: 10px 14px; }
+.cursed-runs .curse.broken { border-color: #b06ad8; }
+.cursed-runs .curse h3 { margin: 0 0 4px; font-size: 1.05rem; }
+.curse-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.curse-actions form { margin: 0; }
+.cursed-run-link { border: 1px solid #b06ad8; border-radius: 8px; padding: 10px 14px; background: rgba(176, 106, 216, 0.08); }
+.cursed-run-link pre { overflow-x: auto; }
+.curse-broken { color: #d9b3f2; }

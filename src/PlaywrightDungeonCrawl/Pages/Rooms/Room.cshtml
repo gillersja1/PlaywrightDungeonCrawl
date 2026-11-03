@@ -42,7 +42,7 @@ else
         <div class="room-status">
             @if (Model.IsTimed)
             {
-                <p>Time limit: <strong>@room.TimeLimit.TotalSeconds seconds</strong></p>
+                <p>Time limit: <strong class="time-limit">@room.TimeLimit.TotalSeconds seconds</strong></p>
                 <p class="timer" aria-live="off">Time left: <span id="time-left">@room.TimeLimit.TotalSeconds.ToString("0.0")</span>s</p>
             }
             else
@@ -142,6 +142,11 @@ test('clear the room', async ({ page, dungeon }) =&gt; {
             </p>
         }
     </details>
+
+    @if (Model.CursesHere.Count > 0)
+    {
+        <partial name="_CursedRuns" model="Model" />
+    }
 }
 </div>
 

@@ -1,0 +1,72 @@
+@model PlaywrightDungeonCrawl.Pages.Rooms.RoomModel
+@using PlaywrightDungeonCrawl.Dungeon
+@{
+    var room = Model.Floor.Room;
+    var ts = Model.Language == CodeLanguage.TypeScript;
+}
+@* Cursed Runs: replay a cleared room with a twist the room enforces. Badges only, never XP. *@
+<section id="cursed-runs" class="panel cursed-runs" aria-labelledby="cursed-heading">
+    <h2 id="cursed-heading"><span aria-hidden="true">💀</span> Cursed Runs</h2>
+    <p>
+        Beaten this room? Beat it again, cursed. Each curse you break earns a badge on the leaderboard.
+        No XP: your score and certificate stay about the floors.
+    </p>
+
+    @if (Model.Run is { } run)
+    {
+        <div class="cursed-run-link" role="status">
+            <p><strong>@run.Curse.Name: your run link is ready.</strong> Point your test at it. It works for 30 minutes@(run.Curse == Curses.Flawless ? ", for one try" : ", until you break the curse").</p>
+<pre><code>@(ts ? $"await dungeon.enter('/rooms/{room.Slug}?run={run.Token}');" : $"await EnterAsync(\"/rooms/{room.Slug}?run={run.Token}\");")</code></pre>
+            <p class="subtle-note">Your test's browser isn't signed in, and doesn't need to be: the link says whose run it is.</p>
+        </div>
+    }
+    @if (Model.RunError is { } error)
+    {
+        <p class="form-error" role="alert">@error</p>
+    }
+
+    <ul class="curse-list">
+        @foreach (var curse in Model.CursesHere)
+        {
+            var broken = Model.Broken.Contains(curse.Code);
+            <li class="curse @(broken ? "broken" : "")">
+                <h3>@curse.Name @if (broken) { <span class="worn-title curse-badge">💀 Broken</span> }</h3>
+                <p>@curse.Description</p>
+                <p class="tip"><strong>What it teaches:</strong> @curse.Lesson</p>
+                <div class="curse-actions">
+                    @if (Model.SignedIn && Model.RoomCleared && !(curse == Curses.Flawless && Model.FlawlessBlocked is not null))
+                    {
+                        <form method="post" asp-page-handler="StartRun" asp-route-slug="@room.Slug">
+                            <input type="hidden" name="curse" value="@curse.Code" />
+                            <button type="submit">Start a cursed run</button>
+                        </form>
+                    }
+                    else if (curse == Curses.Flawless && Model.FlawlessBlocked is { } why)
+                    {
+                        <p class="subtle-note">@why</p>
+                    }
+                    @if (curse != Curses.Flawless)
+                    {
+                        <a class="button secondary" href="/rooms/@room.Slug?curse=@curse.Code">Practise it</a>
+                    }
+                </div>
+            </li>
+        }
+    </ul>
+
+    @if (!Model.SignedIn)
+    {
+        <p class="subtle-note">
+            Practice runs are open to anyone, but they don't earn a badge.
+            @if (Model.AccountsOn)
+            {
+                <a href="/signin?returnUrl=@Uri.EscapeDataString($"/rooms/{room.Slug}#cursed-runs")">Sign in with GitHub</a>
+                <text> and clear this room to break curses for keeps.</text>
+            }
+        </p>
+    }
+    else if (!Model.RoomCleared)
+    {
+        <p class="subtle-note">Clear this room while signed in (or claim its flag) to break curses for keeps. Practice runs are open now.</p>
+    }
+</section>

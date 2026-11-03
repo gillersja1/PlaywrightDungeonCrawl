@@ -36,6 +36,7 @@ builder.Services.AddSingleton<Room, WardensGauntlet>();
 builder.Services.AddSingleton<Room, PortalBazaar>();
 builder.Services.AddSingleton<Room, TinkerersWorkbench>();
 builder.Services.AddSingleton<DungeonCatalog>();
+builder.Services.AddSingleton<CursedRunStore>();
 
 // Set Dungeon__FlagSecret in any shared deployment; the default only suits local play.
 var flagSecret = builder.Configuration["Dungeon:FlagSecret"] ?? "local-dungeon-secret";

@@ -2,7 +2,10 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace PlaywrightDungeonCrawl.Dungeon;
 
-public sealed record Attempt(Guid Id, Room Room, RoomPuzzle Puzzle, DateTimeOffset StartedAt, DateTimeOffset Deadline)
+/// <param name="Curse">Set for a Cursed Run, practice or for keeps.</param>
+/// <param name="Run">Set when the attempt came from a run link: breaking the curse is recorded for its owner.</param>
+public sealed record Attempt(Guid Id, Room Room, RoomPuzzle Puzzle, DateTimeOffset StartedAt, DateTimeOffset Deadline,
+    Curse? Curse = null, CursedRun? Run = null)
 {
     /// <summary>How many of the puzzle's trials have been cleared, in order.</summary>
     public int TrialsCleared { get; set; }
@@ -21,13 +24,17 @@ public sealed class AttemptStore(IMemoryCache cache, TimeProvider clock)
 {
     private static readonly TimeSpan Retention = TimeSpan.FromMinutes(5);
 
-    public Attempt Start(Room room, Random rng)
+    public Attempt Start(Room room, Random rng, Curse? curse = null, CursedRun? run = null)
     {
         var now = clock.GetUtcNow();
-        var attempt = new Attempt(Guid.NewGuid(), room, room.Generate(rng), now, now + room.TimeLimit);
+        var attempt = new Attempt(Guid.NewGuid(), room, room.Generate(rng), now, now + Curses.TimeLimit(room, curse), curse, run);
         cache.Set(Key(room.Slug, attempt.Id), attempt, Retention);
         return attempt;
     }
+
+    /// <summary>The attempt, without using it up (e.g. for the portal tab to know the room's curse).</summary>
+    public Attempt? Peek(string roomSlug, Guid attemptId) =>
+        cache.TryGetValue(Key(roomSlug, attemptId), out Attempt? attempt) ? attempt : null;
 
     /// <summary>
     /// The room's hidden data, once its reveal delay has passed; null before
@@ -77,13 +84,18 @@ public sealed class AttemptStore(IMemoryCache cache, TimeProvider clock)
         }
     }
 
-    public AnswerOutcome Answer(string roomSlug, Guid attemptId, string answer)
+    public AnswerOutcome Answer(string roomSlug, Guid attemptId, string answer) => Answer(roomSlug, attemptId, answer, out _);
+
+    /// <param name="answered">The attempt that was answered, if there was one.</param>
+    public AnswerOutcome Answer(string roomSlug, Guid attemptId, string answer, out Attempt? answered)
     {
         var key = Key(roomSlug, attemptId);
         if (!cache.TryGetValue(key, out Attempt? attempt))
         {
+            answered = null;
             return AnswerOutcome.UnknownAttempt;
         }
+        answered = attempt;
         cache.Remove(key);
 
         if (clock.GetUtcNow() > attempt!.Deadline)
