@@ -51,7 +51,7 @@ No prior Playwright experience needed. Basic C# helps.
 
 ## For contributors
 
-> ⚠️ **Spoilers below.** `tests/PlaywrightDungeonCrawl.Solutions` holds a working solution for each room. To play the game, use the starter kit instead.
+> The reference solutions (a working answer for every room) are spoilers, so they live in a private repo. To play the game, use a starter kit.
 
 ### Stack
 
@@ -91,8 +91,8 @@ Then open http://localhost:8080.
 # Unit and integration tests
 dotnet test tests/PlaywrightDungeonCrawl.Tests
 
-# Reference solutions: crawl a running dungeon end to end
-DUNGEON_URL=http://localhost:8080 dotnet test tests/PlaywrightDungeonCrawl.Solutions
+# Reference solutions (private repo, cloned into solutions/): crawl a running dungeon end to end
+DUNGEON_URL=http://localhost:8080 dotnet test solutions/PlaywrightDungeonCrawl.Solutions
 ```
 
 CI runs both on every pull request. The reference solutions crawl the real Docker image, so a passing build means the image starts and every room can still be cleared. Results go to Grafana alongside the app's own telemetry.

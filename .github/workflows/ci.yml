@@ -8,6 +8,10 @@ on:
 jobs:
   build-and-crawl:
     runs-on: ubuntu-latest
+    # The reference solutions are spoilers, so they live in a private repo. Pull requests from forks
+    # can't read it (no secrets), so they skip the crawl; everything else still runs.
+    env:
+      HAS_SOLUTIONS: ${{ secrets.SOLUTIONS_TOKEN != '' }}
     # For the Postgres tests: saved progress and the sign-in cookie keys.
     services:
       postgres:
@@ -60,16 +64,30 @@ jobs:
           docker logs dungeon
           exit 1
 
+      - name: Check out the reference solutions (private)
+        if: env.HAS_SOLUTIONS == 'true'
+        uses: actions/checkout@v7
+        with:
+          repository: gillersja1/PlaywrightDungeonCrawl-Solutions
+          token: ${{ secrets.SOLUTIONS_TOKEN }}
+          path: solutions
+
+      - name: Build the reference solutions
+        if: env.HAS_SOLUTIONS == 'true'
+        run: dotnet build solutions/PlaywrightDungeonCrawl.Solutions -c Release
+
       - name: Install Playwright browsers
-        run: pwsh tests/PlaywrightDungeonCrawl.Solutions/bin/Release/net10.0/playwright.ps1 install --with-deps chromium
+        if: env.HAS_SOLUTIONS == 'true'
+        run: pwsh solutions/PlaywrightDungeonCrawl.Solutions/bin/Release/net10.0/playwright.ps1 install --with-deps chromium
 
       - name: Run reference solutions
+        if: env.HAS_SOLUTIONS == 'true'
         env:
           DUNGEON_URL: http://localhost:8080
-        run: dotnet test tests/PlaywrightDungeonCrawl.Solutions -c Release --no-build --logger "trx;LogFileName=solutions.trx" --results-directory TestResults
+        run: dotnet test solutions/PlaywrightDungeonCrawl.Solutions -c Release --no-build --logger "trx;LogFileName=solutions.trx" --results-directory TestResults
 
       - name: Send test results to Grafana
-        if: always()
+        if: always() && env.HAS_SOLUTIONS == 'true'
         uses: gillersja1/test-results-otel@v1
         with:
           results: TestResults/solutions.trx
@@ -80,16 +98,18 @@ jobs:
       # The same rooms, cleared in TypeScript from a fresh copy of the TypeScript
       # starter kit, so the kit, the TypeScript hints and the rooms stay in step.
       - uses: actions/setup-node@v5
+        if: env.HAS_SOLUTIONS == 'true'
         with:
           node-version: lts/*
 
       - name: Run TypeScript reference solutions
+        if: env.HAS_SOLUTIONS == 'true'
         env:
           DUNGEON_URL: http://localhost:8080
           CI: true
         run: |
           git clone --depth 1 https://github.com/gillersja1/PlaywrightDungeonCrawl-Starter-TS ts-kit
-          cp tests/ts-solutions/*.spec.ts ts-kit/tests/
+          cp solutions/ts-solutions/*.spec.ts ts-kit/tests/
           cd ts-kit
           npm ci
           npx playwright install --with-deps chromium
