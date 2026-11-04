@@ -65,6 +65,12 @@ public static class DungeonApi
                 : Results.StatusCode(425);
         });
 
+        // Floor 10's dispatch: a real file download, so the seal never appears on the page.
+        api.MapGet("/rooms/couriers-counter/attempts/{id:guid}/dispatch", (Guid id, AttemptStore attempts) =>
+            attempts.Peek("couriers-counter", id)?.Puzzle.Reveal is CouriersCounter.Dispatch dispatch
+                ? Results.File(System.Text.Encoding.UTF8.GetBytes(dispatch.Text), "text/plain", dispatch.FileName)
+                : Results.NotFound());
+
         // Multi-step rooms (the boss) clear their trials here, one at a time, before the final answer.
         api.MapPost("/rooms/{slug}/attempts/{id:guid}/trials", (string slug, Guid id, AnswerRequest body, AttemptStore attempts) =>
         {

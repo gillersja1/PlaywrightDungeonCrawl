@@ -35,6 +35,7 @@ builder.Services.AddSingleton<Room, WhisperingVault>();
 builder.Services.AddSingleton<Room, WardensGauntlet>();
 builder.Services.AddSingleton<Room, PortalBazaar>();
 builder.Services.AddSingleton<Room, TinkerersWorkbench>();
+builder.Services.AddSingleton<Room, CouriersCounter>();
 builder.Services.AddSingleton<DungeonCatalog>();
 builder.Services.AddSingleton<CursedRunStore>();
 
