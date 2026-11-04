@@ -416,6 +416,58 @@ public sealed class TinkerersWorkbench : Room
 }
 
 /// <summary>
+/// Floor 10, files: the counter hands over a sealed dispatch as a download, and the seal inside it only
+/// counts once it comes back as an upload, in a file with the name the dispatch asks for. Nothing secret is
+/// ever shown on the page: it's all in the files.
+/// </summary>
+public sealed class CouriersCounter : Room
+{
+    /// <summary>The dispatch file, served by the counter's download link.</summary>
+    public sealed record Dispatch(string FileName, string Text);
+
+    public override string[] Nudges { get; } =
+    {
+        "The seal isn't on the page. It's inside the dispatch the counter hands you, and the reply has to go back as a file.",
+        "Wait for the download while you click the link, then read the file it saved. Hand the reply over with the file input; it doesn't have to exist on disk.",
+        "var download = await Page.RunAndWaitForDownloadAsync(() => link.ClickAsync()); read File.ReadAllTextAsync(await download.PathAsync()). Then SetInputFilesAsync(new FilePayload { Name = \"<name from the dispatch>\", MimeType = \"text/plain\", Buffer = Encoding.UTF8.GetBytes(seal) }) and click Hand it over.",
+    };
+
+    public override string[] TypeScriptNudges { get; } =
+    {
+        "The seal isn't on the page. It's inside the dispatch the counter hands you, and the reply has to go back as a file.",
+        "Wait for the download while you click the link, then read the file it saved. Hand the reply over with the file input; it doesn't have to exist on disk.",
+        "Start page.waitForEvent('download') before the click, then fs.readFile(await download.path(), 'utf8'). Then setInputFiles({ name: '<name from the dispatch>', mimeType: 'text/plain', buffer: Buffer.from(seal) }) and click Hand it over.",
+    };
+
+    public override string Slug => "couriers-counter";
+    public override string Name => "The Courier's Counter";
+    public override string Objective =>
+        "The Courier Guild trusts paper, not screens. Collect your sealed dispatch, read the seal inside it, and " +
+        "hand back a reply with that seal in it, in a file with exactly the name the dispatch asks for.";
+    public override TimeSpan TimeLimit => TimeSpan.FromSeconds(10);
+
+    public override RoomPuzzle Generate(Random rng)
+    {
+        var seal = Rune(rng);
+        var reply = $"receipt-{Rune(rng, 4).ToLowerInvariant()}.txt";
+        var dispatch = new Dispatch($"dispatch-{Rune(rng, 4).ToLowerInvariant()}.txt",
+            "THE COURIER GUILD: SEALED DISPATCH\n\n" +
+            $"Seal: {seal}\n\n" +
+            $"Write the seal in a file named {reply} and hand it over at the counter.\n" +
+            "The Guild does not accept screenshots, photocopies or excuses.\n");
+        return new RoomPuzzle(new { }, $"{reply}\n{seal}", Reveal: dispatch);
+    }
+
+    /// <summary>The page sends the uploaded file as its name, a newline, then its contents.</summary>
+    public override bool IsCorrect(RoomPuzzle puzzle, string answer)
+    {
+        var expected = puzzle.Answer.Split('\n', 2);
+        var given = answer.Split('\n', 2);
+        return given.Length == 2 && given[0].Trim() == expected[0] && given[1].Trim() == expected[1];
+    }
+}
+
+/// <summary>
 /// Floor 7, the first boss: five trials in one run, one for each skill so far.
 /// The server checks every trial before it hands over what the next one needs,
 /// so the only way through is in order, at script speed.

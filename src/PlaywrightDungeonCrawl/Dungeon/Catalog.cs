@@ -809,13 +809,95 @@ public sealed class DungeonCatalog
                         "fill() and selectOption() need form fields. What would a person do with their hand?"),
                 },
             },
+            new Floor(10, "couriers", "The Courier Guild", "File upload and download",
+                "The Guild trusts paper, not screens. Learn to catch a download and read it, and to hand files back without touching your disk.",
+                bySlug["couriers-counter"],
+                new[]
+                {
+                    new QuizQuestion(
+                        "Clicking a link starts a download. How do you get hold of the file?",
+                        new[]
+                        {
+                            "await link.ClickAsync(); then look in your Downloads folder",
+                            "var download = await Page.RunAndWaitForDownloadAsync(() => link.ClickAsync());",
+                            "await Page.WaitForURLAsync(\"**/*.txt\");",
+                            "await link.GetAttributeAsync(\"download\");",
+                        },
+                        1,
+                        "Start waiting before the click, so the download can't slip past. The Download it hands back has the file's SuggestedFilename and, from PathAsync, where it was saved.",
+                        "A download is an event. When do you have to start listening for an event?"),
+                    new QuizQuestion(
+                        "You need to upload a file that doesn't exist on disk. What do you pass to SetInputFilesAsync?",
+                        new[]
+                        {
+                            "A FilePayload with a Name, a MimeType and a Buffer of bytes",
+                            "The text itself, as a string",
+                            "A data: URL",
+                            "Nothing: you have to save a file first",
+                        },
+                        0,
+                        "A FilePayload is a file made in memory. The page sees its Name as the file name, so you control that too.",
+                        "The page needs a name and some bytes. Does it care where they came from?"),
+                    new QuizQuestion(
+                        "The upload button opens the system file picker, and the input behind it is hidden. What do you do?",
+                        new[]
+                        {
+                            "Click the button, then type the path into the picker",
+                            "Wait for the FileChooser while you click the button, then SetFilesAsync on it",
+                            "Make the input visible with EvaluateAsync first",
+                            "Uploads with a hidden input can't be tested",
+                        },
+                        1,
+                        "RunAndWaitForFileChooserAsync catches the picker before it opens, and FileChooser.SetFilesAsync answers it. SetInputFilesAsync on the hidden input works too, without the click.",
+                        "Playwright never sees the operating system's picker. What could it catch instead?"),
+                })
+            {
+                TypeScriptRiddles = new[]
+                {
+                    new QuizQuestion(
+                        "Clicking a link starts a download. How do you get hold of the file?",
+                        new[]
+                        {
+                            "await link.click(); then look in your Downloads folder",
+                            "const downloadPromise = page.waitForEvent('download'); await link.click(); const download = await downloadPromise;",
+                            "await page.waitForURL('**/*.txt');",
+                            "await link.getAttribute('download');",
+                        },
+                        1,
+                        "Start waiting before the click, so the download can't slip past. The Download it resolves to has suggestedFilename() and, from path(), where it was saved.",
+                        "A download is an event. When do you have to start listening for an event?"),
+                    new QuizQuestion(
+                        "You need to upload a file that doesn't exist on disk. What do you pass to setInputFiles()?",
+                        new[]
+                        {
+                            "An object with a name, a mimeType and a buffer",
+                            "The text itself, as a string",
+                            "A data: URL",
+                            "Nothing: you have to save a file first",
+                        },
+                        0,
+                        "An object with name, mimeType and buffer is a file made in memory. The page sees its name as the file name, so you control that too.",
+                        "The page needs a name and some bytes. Does it care where they came from?"),
+                    new QuizQuestion(
+                        "The upload button opens the system file picker, and the input behind it is hidden. What do you do?",
+                        new[]
+                        {
+                            "Click the button, then type the path into the picker",
+                            "Start page.waitForEvent('filechooser') before clicking the button, then setFiles() on it",
+                            "Make the input visible with evaluate() first",
+                            "Uploads with a hidden input can't be tested",
+                        },
+                        1,
+                        "waitForEvent('filechooser') catches the picker before it opens, and fileChooser.setFiles() answers it. setInputFiles() on the hidden input works too, without the click.",
+                        "Playwright never sees the operating system's picker. What could it catch instead?"),
+                },
+            },
         };
     }
 
     /// <summary>The deeper floors, shown on the map as sealed until they're built.</summary>
     public IReadOnlyList<(int Number, string Title, string Skill)> SealedFloors { get; } = new[]
     {
-        (10, "The Courier Guild", "File upload and download"),
         (11, "The Masquerade", "Login state and browser contexts"),
         (12, "The Oracle's Well", "API testing"),
         (13, "The Illusionist's Theater", "Mocking responses"),

@@ -1,0 +1,58 @@
+<section>
+    <h2>Files go both ways</h2>
+    <p>
+        Real apps hand you files (invoices, exports, reports) and ask for them (avatars, CSVs, attachments). A test
+        can't look in your Downloads folder or click around the system file picker, and it doesn't need to:
+        Playwright catches the download before it lands, and fills a file input directly.
+    </p>
+</section>
+
+<section>
+    <h2>Catching a download</h2>
+    <p>A download is an event, so start waiting for it before the click that causes it:</p>
+<pre><code>import fs from 'node:fs/promises';
+
+const downloadPromise = page.waitForEvent('download');
+await page.getByRole('link', { name: 'Export' }).click();
+const download = await downloadPromise;
+
+console.log(download.suggestedFilename());              // the name the server gave it
+const text = await fs.readFile(await download.path(), 'utf8');   // where it was saved
+await download.saveAs('exports/report.csv');             // keep a copy</code></pre>
+    <p class="tip">
+        <strong>Wait first, click second.</strong> Don't <code>await</code> the promise before the click: start it,
+        click, then await it. Otherwise the download can come and go before you begin listening.
+    </p>
+</section>
+
+<section>
+    <h2>Uploading</h2>
+    <p>
+        <code>setInputFiles()</code> fills a file input. Give it a path, several paths, or a file made in memory,
+        so your test doesn't need a fixtures folder:
+    </p>
+<pre><code>const upload = page.getByLabel('Attachment');
+
+await upload.setInputFiles('fixtures/avatar.png');
+await upload.setInputFiles({
+  name: 'notes.txt',                       // the name the page sees
+  mimeType: 'text/plain',
+  buffer: Buffer.from('Hello from a test'),
+});
+await upload.setInputFiles([]);            // clear it again</code></pre>
+    <p>
+        When a button opens the picker and the input is hidden, catch the picker instead:
+    </p>
+<pre><code>const chooserPromise = page.waitForEvent('filechooser');
+await page.getByRole('button', { name: 'Upload' }).click();
+const chooser = await chooserPromise;
+await chooser.setFiles('fixtures/avatar.png');</code></pre>
+</section>
+
+<section>
+    <h2>The Courier's Counter</h2>
+    <p>
+        The Guild trusts paper, not screens. Collect your sealed dispatch, read the seal inside it, and hand back a
+        reply with the seal in it, in a file with exactly the name the dispatch asks for. Ten seconds.
+    </p>
+</section>
