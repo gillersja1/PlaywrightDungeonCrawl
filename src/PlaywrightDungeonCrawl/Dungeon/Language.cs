@@ -42,6 +42,7 @@ public static class Languages
             context.Response.Cookies.Append(Cookie, language.Code(), new CookieOptions
             {
                 MaxAge = TimeSpan.FromDays(365),
+                HttpOnly = true,   // no script reads it; the server picks the lessons
                 SameSite = SameSiteMode.Lax,
                 Secure = context.Request.IsHttps,
                 IsEssential = true,
