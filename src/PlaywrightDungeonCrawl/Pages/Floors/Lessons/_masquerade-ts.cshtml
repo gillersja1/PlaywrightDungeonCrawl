@@ -1,0 +1,60 @@
+<section>
+    <h2>Who is the browser?</h2>
+    <p>
+        Signing in leaves something behind in the browser: a cookie, a token in local storage. Playwright gives every
+        test a brand new <strong>browser context</strong>, a fresh profile with none of that, so tests can't leak into
+        each other. Two things follow: you can save a login and hand it to new contexts, and you can have two
+        different users signed in at once by giving each its own context.
+    </p>
+</section>
+
+<section>
+    <h2>Sign in once, reuse it everywhere</h2>
+    <p>Sign in in a setup project, then save the context's cookies and storage to a file:</p>
+<pre><code>// auth.setup.ts
+setup('sign in', async ({ page }) =&gt; {
+  await page.goto('/login');
+  await page.getByLabel('Email').fill('crawler@example.com');
+  await page.getByLabel('Password').fill(password);
+  await page.getByRole('button', { name: 'Sign in' }).click();
+  await page.context().storageState({ path: 'auth.json' });
+});
+
+// playwright.config.ts
+projects: [
+  { name: 'setup', testMatch: /auth\.setup\.ts/ },
+  { name: 'chromium', use: { storageState: 'auth.json' }, dependencies: ['setup'] },
+],</code></pre>
+    <p class="tip">
+        <strong>Don't share a page between tests.</strong> Share the saved state instead: each test still gets its
+        own fresh context, it just starts signed in.
+    </p>
+</section>
+
+<section>
+    <h2>Two users in one test</h2>
+    <p>
+        Pages in the same context share cookies, so they're the same user. For a second user, make a second context:
+    </p>
+<pre><code>test('Bob sees Alice\'s message', async ({ page, browser }) =&gt; {
+  const bobContext = await browser.newContext();   // its own cookies, its own storage
+  const bob = await bobContext.newPage();
+
+  await page.goto('/chat');     // Alice, in the test's own context
+  await bob.goto('/chat');      // Bob, signed in separately
+
+  await page.getByLabel('Message').fill('Hi Bob');
+  await page.keyboard.press('Enter');
+  await expect(bob.getByText('Hi Bob')).toBeVisible();
+  await bobContext.close();
+});</code></pre>
+</section>
+
+<section>
+    <h2>The Masked Ball</h2>
+    <p>
+        Fox and Owl are on the guest list, and both wear a cookie called <code>mask</code>. Sign Fox in on the room
+        page, open Owl's invitation, sign Owl in and return Fox's bow, then bring Owl's whisper back to Fox. A context
+        can only hold one mask. Twenty seconds.
+    </p>
+</section>

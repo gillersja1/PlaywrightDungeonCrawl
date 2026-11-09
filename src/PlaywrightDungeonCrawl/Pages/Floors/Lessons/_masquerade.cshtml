@@ -1,0 +1,54 @@
+<section>
+    <h2>Who is the browser?</h2>
+    <p>
+        Signing in leaves something behind in the browser: a cookie, a token in local storage. Playwright gives every
+        test a brand new <strong>browser context</strong>, a fresh profile with none of that, so tests can't leak into
+        each other. Two things follow: you can save a login and hand it to new contexts, and you can have two
+        different users signed in at once by giving each its own context.
+    </p>
+</section>
+
+<section>
+    <h2>Sign in once, reuse it everywhere</h2>
+    <p>Sign in through the page one time, then save the context's cookies and storage to a file:</p>
+<pre><code>// once, e.g. in a [OneTimeSetUp]
+var context = await Browser.NewContextAsync();
+var page = await context.NewPageAsync();
+await page.GotoAsync("/login");
+await page.GetByLabel("Email").FillAsync("crawler@example.com");
+await page.GetByLabel("Password").FillAsync(password);
+await page.GetByRole(AriaRole.Button, new() { Name = "Sign in" }).ClickAsync();
+await context.StorageStateAsync(new() { Path = "auth.json" });
+
+// in every test that wants to start signed in
+public override BrowserNewContextOptions ContextOptions() => new() { StorageStatePath = "auth.json" };</code></pre>
+    <p class="tip">
+        <strong>Don't share a Page between tests.</strong> Share the saved state instead: each test still gets its
+        own fresh context, it just starts signed in.
+    </p>
+</section>
+
+<section>
+    <h2>Two users in one test</h2>
+    <p>
+        Pages in the same context share cookies, so they're the same user. For a second user, make a second context:
+    </p>
+<pre><code>await using var bobContext = await Browser.NewContextAsync();   // its own cookies, its own storage
+var bob = await bobContext.NewPageAsync();
+
+await Page.GotoAsync("/chat");      // Alice, in the test's own context
+await bob.GotoAsync("/chat");       // Bob, signed in separately
+
+await Page.GetByLabel("Message").FillAsync("Hi Bob");
+await Page.Keyboard.PressAsync("Enter");
+await Expect(bob.GetByText("Hi Bob")).ToBeVisibleAsync();</code></pre>
+</section>
+
+<section>
+    <h2>The Masked Ball</h2>
+    <p>
+        Fox and Owl are on the guest list, and both wear a cookie called <code>mask</code>. Sign Fox in on the room
+        page, open Owl's invitation, sign Owl in and return Fox's bow, then bring Owl's whisper back to Fox. A context
+        can only hold one mask. Twenty seconds.
+    </p>
+</section>

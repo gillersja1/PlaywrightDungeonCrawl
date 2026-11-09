@@ -576,3 +576,56 @@ public sealed class WardensGauntlet : Room
 
     public sealed record OathSubmission(string? Title, string? Guild, int? Torches, bool Sworn);
 }
+
+/// <summary>
+/// Floor 11, login state and browser contexts: two guests, Fox and Owl, have to be at the ball at the same time.
+/// Every guest wears the same cookie, "mask", so one browser context can only hold one guest: signing Owl in where
+/// Fox is signed in takes Fox's mask off, and signing Fox in again starts Fox's evening over (Owl's curtsy was to the
+/// old Fox). Two contexts, two masks, both at once.
+/// </summary>
+public sealed class MaskedBall : Room
+{
+    /// <summary>Who's at the ball right now. Kept out of /reveal by a reveal time no attempt lives to see.</summary>
+    public sealed class Ball(string foxPassword, string owlPassword, string whisper)
+    {
+        public object Gate { get; } = new();
+        public string FoxPassword { get; } = foxPassword;
+        public string OwlPassword { get; } = owlPassword;
+        public string Whisper { get; } = whisper;
+        public string? FoxMask { get; set; }
+        public string? OwlMask { get; set; }
+        /// <summary>The Fox mask Owl curtsied to; a Fox who signs in again is a new Fox.</summary>
+        public string? CurtsiedTo { get; set; }
+    }
+
+    public const string Cookie = "mask";
+
+    public override string[] Nudges { get; } =
+    {
+        "Fox and Owl both wear a cookie called mask, and a browser context keeps one cookie of each name. Two guests at once means two contexts.",
+        "Sign Fox in on the room page. Open the invitation in a second context, from Browser.NewContextAsync(), sign Owl in there and return the bow. Then come back to Fox's page.",
+        "var owlContext = await Browser.NewContextAsync(); var owl = await owlContext.NewPageAsync(); await owl.GotoAsync(invitationUrl); sign in as Owl, click Return the bow, read the whisper, then type it into Fox's Unmask form on the original Page.",
+    };
+
+    public override string[] TypeScriptNudges { get; } =
+    {
+        "Fox and Owl both wear a cookie called mask, and a browser context keeps one cookie of each name. Two guests at once means two contexts.",
+        "Sign Fox in on the room page. Open the invitation in a second context, from browser.newContext(), sign Owl in there and return the bow. Then come back to Fox's page.",
+        "const owlContext = await browser.newContext(); const owl = await owlContext.newPage(); await owl.goto(invitationUrl); sign in as Owl, click Return the bow, read the whisper, then type it into Fox's Unmask form on the original page.",
+    };
+
+    public override string Slug => "masked-ball";
+    public override string Name => "The Masked Ball";
+    public override string Objective =>
+        "Two guests are on the list, Fox and Owl, and the host only unmasks for Fox once Owl has returned Fox's bow. " +
+        "Sign Fox in here, send Owl the invitation, sign Owl in there, and bring Owl's whisper back to Fox. " +
+        "Both have to be at the ball at the same time.";
+    public override TimeSpan TimeLimit => TimeSpan.FromSeconds(20);
+
+    public override RoomPuzzle Generate(Random rng)
+    {
+        var ball = new Ball(Rune(rng, 8).ToLowerInvariant(), Rune(rng, 8).ToLowerInvariant(), Rune(rng));
+        var briefing = new { guests = new[] { new { name = "Fox", password = ball.FoxPassword }, new { name = "Owl", password = ball.OwlPassword } } };
+        return new RoomPuzzle(briefing, Rune(rng, 8), Reveal: ball, RevealAfter: TimeSpan.FromDays(1));
+    }
+}

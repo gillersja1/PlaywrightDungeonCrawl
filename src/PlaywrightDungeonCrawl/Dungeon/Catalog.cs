@@ -892,13 +892,95 @@ public sealed class DungeonCatalog
                         "Playwright never sees the operating system's picker. What could it catch instead?"),
                 },
             },
+            new Floor(11, "masquerade", "The Masquerade", "Login state and browser contexts",
+                "Everyone at the ball wears a mask, and nobody can wear two. Learn to save a login and reuse it, and to put two signed-in users in one test.",
+                bySlug["masked-ball"],
+                new[]
+                {
+                    new QuizQuestion(
+                        "Every test signs in through the login page, and it's slow. How do you sign in once and reuse it?",
+                        new[]
+                        {
+                            "Sign in in a [OneTimeSetUp] and share the Page between tests",
+                            "Sign in once, save await context.StorageStateAsync(new() { Path = \"auth.json\" }), and create later contexts with StorageStatePath = \"auth.json\"",
+                            "Turn off authentication on the test server",
+                            "Copy the cookie value from your own browser into the test",
+                        },
+                        1,
+                        "StorageState saves cookies and local storage to a file. Every new context created from it starts already signed in, and each test still gets its own fresh context.",
+                        "What does a browser remember after you sign in, and can you write it down?"),
+                    new QuizQuestion(
+                        "A chat test needs two users signed in at the same time. What do you use?",
+                        new[]
+                        {
+                            "Two pages in the same context",
+                            "One page, signing out and in again between messages",
+                            "Two contexts from Browser.NewContextAsync(), each signed in as a different user",
+                            "Two separate test runs",
+                        },
+                        2,
+                        "A browser context is a fresh, isolated profile with its own cookies and storage. Pages in the same context share one set of cookies, so they'd be the same user.",
+                        "Two tabs in your own browser are signed in as the same person. Why?"),
+                    new QuizQuestion(
+                        "Why does every Playwright test get a brand new browser context?",
+                        new[]
+                        {
+                            "So cookies and storage from one test can't leak into the next",
+                            "Because contexts are faster than pages",
+                            "Because a context can only open one page",
+                            "It doesn't; tests share one context by default",
+                        },
+                        0,
+                        "Isolation: each test starts with no cookies, no storage and no signed-in user unless you give it one. Contexts are cheap, so this costs almost nothing.",
+                        "If test A signs in and test B expects to be signed out, what has to be true?"),
+                })
+            {
+                TypeScriptRiddles = new[]
+                {
+                    new QuizQuestion(
+                        "Every test signs in through the login page, and it's slow. How do you sign in once and reuse it?",
+                        new[]
+                        {
+                            "Sign in in beforeAll and share the page between tests",
+                            "Sign in once in a setup project, save page.context().storageState({ path: 'auth.json' }), and set use: { storageState: 'auth.json' }",
+                            "Turn off authentication on the test server",
+                            "Copy the cookie value from your own browser into the test",
+                        },
+                        1,
+                        "storageState saves cookies and local storage to a file. Every new context created from it starts already signed in, and each test still gets its own fresh context.",
+                        "What does a browser remember after you sign in, and can you write it down?"),
+                    new QuizQuestion(
+                        "A chat test needs two users signed in at the same time. What do you use?",
+                        new[]
+                        {
+                            "Two pages in the same context",
+                            "One page, signing out and in again between messages",
+                            "Two contexts from browser.newContext(), each signed in as a different user",
+                            "Two separate test runs",
+                        },
+                        2,
+                        "A browser context is a fresh, isolated profile with its own cookies and storage. Pages in the same context share one set of cookies, so they'd be the same user.",
+                        "Two tabs in your own browser are signed in as the same person. Why?"),
+                    new QuizQuestion(
+                        "Why does every Playwright test get a brand new browser context?",
+                        new[]
+                        {
+                            "So cookies and storage from one test can't leak into the next",
+                            "Because contexts are faster than pages",
+                            "Because a context can only open one page",
+                            "It doesn't; tests share one context by default",
+                        },
+                        0,
+                        "Isolation: each test starts with no cookies, no storage and no signed-in user unless you give it one. Contexts are cheap, so this costs almost nothing.",
+                        "If test A signs in and test B expects to be signed out, what has to be true?"),
+                },
+            },
         };
     }
 
     /// <summary>The deeper floors, shown on the map as sealed until they're built.</summary>
     public IReadOnlyList<(int Number, string Title, string Skill)> SealedFloors { get; } = new[]
     {
-        (11, "The Masquerade", "Login state and browser contexts"),
         (12, "The Oracle's Well", "API testing"),
         (13, "The Illusionist's Theater", "Mocking responses"),
         (14, "The Architect's Atelier", "Page Object Model"),

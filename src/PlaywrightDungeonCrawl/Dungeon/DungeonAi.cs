@@ -18,6 +18,7 @@ public static class DungeonAi
         ["portals"] = "Welcome to the bazaar, where every door leads somewhere else and nobody tells you where. Keep track of your tabs. The Dungeon AI keeps track of everything.",
         ["clockwork"] = "Welcome to the foundry. Everything here is gears, and the gears do not respond to polite single clicks. Twist, prod, drag. The Dungeon AI recommends keeping your fingers clear of the escapement.",
         ["couriers"] = "Welcome to the Courier Guild. Everything here travels on paper, in files, through slots in the wall. The Dungeon AI has never seen a courier read anything on a screen. It finds this charming.",
+        ["masquerade"] = "Welcome to the Masquerade. Everyone here wears a mask, and nobody can wear two. The Dungeon AI has seen crawlers try. It was undignified.",
         ["gauntlet"] = "The Warden has watched every crawler who came down those stairs. It has notes. Five trials, one breath, no do-overs. The Dungeon AI has reserved a seat in the front row.",
     };
 
@@ -28,5 +29,5 @@ public static class DungeonAi
 
     /// <summary>Said under the sealed floors on the map.</summary>
     public const string SealedFloors =
-        "Floors eleven to nineteen are under construction. The Dungeon AI apologizes for the inconvenience. It does not apologize for what's down there.";
+        "Floors twelve to nineteen are under construction. The Dungeon AI apologizes for the inconvenience. It does not apologize for what's down there.";
 }
