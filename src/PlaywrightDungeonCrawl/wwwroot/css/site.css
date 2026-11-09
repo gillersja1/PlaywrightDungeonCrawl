@@ -464,3 +464,9 @@ a.bug-badge:hover { background: rgba(111, 191, 115, 0.15); }
 .ball form { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; margin: 10px 0; }
 .ball-status { color: var(--stone-400); font-style: italic; min-height: 2em; margin: 0 0 10px; }
 .guest-list { margin: 0 0 10px; }
+
+/* Floor 12: the Oracle's Well */
+.well { padding: 16px 12px; border-radius: var(--radius); background: linear-gradient(#14202a, #0a1016); }
+.well-notice pre { overflow-x: auto; }
+.well-status { color: var(--stone-400); font-style: italic; min-height: 2em; }
+.well form { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; }

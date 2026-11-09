@@ -975,13 +975,95 @@ public sealed class DungeonCatalog
                         "If test A signs in and test B expects to be signed out, what has to be true?"),
                 },
             },
+            new Floor(12, "oracle", "The Oracle's Well", "API testing",
+                "The Oracle has no buttons. Learn to send requests from your test, check status codes and headers, and read the JSON that comes back.",
+                bySlug["oracles-well"],
+                new[]
+                {
+                    new QuizQuestion(
+                        "Your test needs a user to exist before it opens the page. What's the quickest way to make one?",
+                        new[]
+                        {
+                            "Fill in the sign-up form at the start of every test",
+                            "Call the API directly with Page.APIRequest, then open the page",
+                            "Insert a row into the database from the test",
+                            "Ask a teammate to create it by hand",
+                        },
+                        1,
+                        "Page.APIRequest sends real HTTP from the test, sharing the context's cookies. Setting data up through the API is fast and doesn't depend on the UI you're about to test.",
+                        "Which is faster: a person filling in a form, or the request the form would send?"),
+                    new QuizQuestion(
+                        "You PostAsync(url, new() { DataObject = new { name = \"Rae\" } }). How do you know it worked?",
+                        new[]
+                        {
+                            "If no exception was thrown, it worked",
+                            "Check the status: Assert.That(reply.Ok, Is.True), or compare reply.Status with 201",
+                            "Take a screenshot of the reply",
+                            "Wait a second and check the page",
+                        },
+                        1,
+                        "An API reply with a 404 or 500 is still a reply: nothing throws. Asserting on the status (and then the body) is the test.",
+                        "Does a 500 Internal Server Error count as a successful request?"),
+                    new QuizQuestion(
+                        "A POST answers 201 Created with an empty body. Where is the thing you created?",
+                        new[]
+                        {
+                            "Nowhere: 201 means it's still being made",
+                            "At the URL in the Location header: reply.Headers[\"location\"]",
+                            "In the cookies",
+                            "In the reply's status text",
+                        },
+                        1,
+                        "201 Created points at the new resource with a Location header. GET that URL to read it.",
+                        "Created, but where? Which header names a place?"),
+                })
+            {
+                TypeScriptRiddles = new[]
+                {
+                    new QuizQuestion(
+                        "Your test needs a user to exist before it opens the page. What's the quickest way to make one?",
+                        new[]
+                        {
+                            "Fill in the sign-up form at the start of every test",
+                            "Call the API directly with page.request, then open the page",
+                            "Insert a row into the database from the test",
+                            "Ask a teammate to create it by hand",
+                        },
+                        1,
+                        "page.request sends real HTTP from the test, sharing the context's cookies. Setting data up through the API is fast and doesn't depend on the UI you're about to test.",
+                        "Which is faster: a person filling in a form, or the request the form would send?"),
+                    new QuizQuestion(
+                        "You post(url, { data: { name: 'Rae' } }). How do you know it worked?",
+                        new[]
+                        {
+                            "If no exception was thrown, it worked",
+                            "Check the status: expect(reply).toBeOK(), or compare reply.Status() with 201",
+                            "Take a screenshot of the reply",
+                            "Wait a second and check the page",
+                        },
+                        1,
+                        "An API reply with a 404 or 500 is still a reply: nothing throws. Asserting on the status (and then the body) is the test.",
+                        "Does a 500 Internal Server Error count as a successful request?"),
+                    new QuizQuestion(
+                        "A POST answers 201 Created with an empty body. Where is the thing you created?",
+                        new[]
+                        {
+                            "Nowhere: 201 means it's still being made",
+                            "At the URL in the Location header: reply.headers()['location']",
+                            "In the cookies",
+                            "In the reply's status text",
+                        },
+                        1,
+                        "201 Created points at the new resource with a Location header. GET that URL to read it.",
+                        "Created, but where? Which header names a place?"),
+                },
+            },
         };
     }
 
     /// <summary>The deeper floors, shown on the map as sealed until they're built.</summary>
     public IReadOnlyList<(int Number, string Title, string Skill)> SealedFloors { get; } = new[]
     {
-        (12, "The Oracle's Well", "API testing"),
         (13, "The Illusionist's Theater", "Mocking responses"),
         (14, "The Architect's Atelier", "Page Object Model"),
         (15, "The Hydra Pits", "Fixtures, setup and parallel tests"),

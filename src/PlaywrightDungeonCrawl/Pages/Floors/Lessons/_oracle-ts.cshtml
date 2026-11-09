@@ -1,0 +1,43 @@
+<section>
+    <h2>Tests can talk HTTP too</h2>
+    <p>
+        Not everything worth testing has a button. Playwright can send requests straight from the test: to set data up
+        before the page opens, to check an API on its own, or to read what the UI just saved. <code>page.request</code>
+        shares the page's cookies, so a signed-in page makes signed-in requests.
+    </p>
+</section>
+
+<section>
+    <h2>Sending a request</h2>
+<pre><code>const reply = await page.request.post('/api/orders', {
+  data: { item: 'lantern', quantity: 2 },          // sent as JSON
+  headers: { 'X-Api-Key': key },
+});
+
+expect(reply.status()).toBe(201);                 // nothing throws on a 404 or 500
+const location = reply.headers()['location'];     // header names are lower case
+const order = await (await page.request.get(location)).json();
+expect(order.item).toBe('lantern');</code></pre>
+    <p class="tip">
+        <strong>Always check the status.</strong> An error reply is still a reply, so a request that failed looks
+        exactly like one that worked until you assert on it.
+    </p>
+</section>
+
+<section>
+    <h2>Without a page</h2>
+    <p>For a pure API test, use the <code>request</code> fixture, with a base URL and headers from the config:</p>
+<pre><code>test('order 42 exists', async ({ request }) =&gt; {
+  const reply = await request.get('/api/orders/42', { headers: { 'X-Api-Key': key } });
+  await expect(reply).toBeOK();
+});</code></pre>
+</section>
+
+<section>
+    <h2>The Oracle's Well</h2>
+    <p>
+        The Oracle has no buttons. Read the notice by the well, POST a question with your offering in the
+        <code>X-Offering</code> header, follow the reply to where the answer is kept, and speak the prophecy on the
+        page. Ten seconds.
+    </p>
+</section>

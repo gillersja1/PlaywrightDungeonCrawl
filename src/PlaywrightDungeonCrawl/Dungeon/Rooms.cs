@@ -629,3 +629,46 @@ public sealed class MaskedBall : Room
         return new RoomPuzzle(briefing, Rune(rng, 8), Reveal: ball, RevealAfter: TimeSpan.FromDays(1));
     }
 }
+
+/// <summary>
+/// Floor 12, API testing: the Oracle has no buttons. Ask your question with a POST and the offering header, follow
+/// the Location of the 201 it answers with, and read the prophecy from that resource. Only then speak it on the page.
+/// </summary>
+public sealed class OraclesWell : Room
+{
+    /// <summary>The questions asked so far. Kept out of /reveal by a reveal time no attempt lives to see.</summary>
+    public sealed class Well(string offering)
+    {
+        public string Offering { get; } = offering;
+        public System.Collections.Concurrent.ConcurrentDictionary<Guid, string> Questions { get; } = new();
+    }
+
+    public const string OfferingHeader = "X-Offering";
+
+    public override string[] Nudges { get; } =
+    {
+        "The Oracle doesn't answer buttons. It answers HTTP requests, and the notice by the well says which ones.",
+        "POST your question as JSON with the X-Offering header. The answer isn't in the reply body: look at the reply's status and its Location header.",
+        "var reply = await Page.APIRequest.PostAsync(questionsUrl, new() { DataObject = new { question = \"Will I pass?\" }, Headers = new Dictionary<string, string> { [\"X-Offering\"] = offering } }); then GetAsync(reply.Headers[\"location\"]) with the same header and read the prophecy from its JSON.",
+    };
+
+    public override string[] TypeScriptNudges { get; } =
+    {
+        "The Oracle doesn't answer buttons. It answers HTTP requests, and the notice by the well says which ones.",
+        "POST your question as JSON with the X-Offering header. The answer isn't in the reply body: look at the reply's status and its Location header.",
+        "const reply = await page.request.post(questionsUrl, { data: { question: 'Will I pass?' }, headers: { 'X-Offering': offering } }); then page.request.get(reply.headers()['location']) with the same header and read the prophecy from its JSON.",
+    };
+
+    public override string Slug => "oracles-well";
+    public override string Name => "The Oracle's Well";
+    public override string Objective =>
+        "The Oracle speaks only HTTP. Ask it a question through its API, with your offering in the X-Offering header, " +
+        "follow it to where the answer lives, and speak the prophecy aloud on this page.";
+    public override TimeSpan TimeLimit => TimeSpan.FromSeconds(10);
+
+    public override RoomPuzzle Generate(Random rng)
+    {
+        var well = new Well(Rune(rng, 10).ToLowerInvariant());
+        return new RoomPuzzle(new { offering = well.Offering }, Rune(rng, 8), Reveal: well, RevealAfter: TimeSpan.FromDays(1));
+    }
+}
