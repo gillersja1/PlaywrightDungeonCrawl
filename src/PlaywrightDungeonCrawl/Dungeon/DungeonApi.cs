@@ -2,6 +2,7 @@ namespace PlaywrightDungeonCrawl.Dungeon;
 
 public sealed record AnswerRequest(string? Answer);
 public sealed record LoginRequest(string? Guest, string? Password);
+public sealed record QuestionRequest(string? Question);
 
 public sealed record ClaimRequest(string? Room, string? Flag);
 
@@ -119,6 +120,27 @@ public static class DungeonApi
             return body.Answer?.Trim() == b.Whisper
                 ? Results.Ok(new { phrase = attempt.Puzzle.Answer })
                 : Results.Json(new { error = "That isn't what Owl whispered." }, statusCode: 403);
+        });
+
+        // Floor 12's well: an API with no buttons. POST a question with the offering, follow the 201's Location.
+        const string well = "/rooms/oracles-well/attempts/{id:guid}/questions";
+        static bool Offered(OraclesWell.Well w, HttpContext context) =>
+            context.Request.Headers[OraclesWell.OfferingHeader] == w.Offering;
+        api.MapPost(well, (Guid id, QuestionRequest body, AttemptStore attempts, HttpContext context) =>
+        {
+            if (attempts.Peek("oracles-well", id)?.Puzzle.Reveal is not OraclesWell.Well w) return Results.NotFound();
+            if (!Offered(w, context)) return Results.Json(new { error = "The well stays silent. It wants your offering, in the X-Offering header." }, statusCode: 401);
+            if (string.IsNullOrWhiteSpace(body.Question)) return Results.BadRequest(new { error = "The Oracle can't answer a question you didn't ask." });
+            var q = Guid.NewGuid();
+            w.Questions[q] = body.Question.Trim();
+            return Results.Created($"/api/rooms/oracles-well/attempts/{id}/questions/{q}", new { status = "The Oracle is pondering. Your answer is elsewhere." });
+        });
+        api.MapGet(well + "/{q:guid}", (Guid id, Guid q, AttemptStore attempts, HttpContext context) =>
+        {
+            if (attempts.Peek("oracles-well", id) is not { Puzzle.Reveal: OraclesWell.Well w } attempt || !w.Questions.TryGetValue(q, out var question)) return Results.NotFound();
+            return Offered(w, context)
+                ? Results.Ok(new { question, prophecy = attempt.Puzzle.Answer })
+                : Results.Json(new { error = "The well stays silent. It wants your offering, in the X-Offering header." }, statusCode: 401);
         });
 
         // Multi-step rooms (the boss) clear their trials here, one at a time, before the final answer.

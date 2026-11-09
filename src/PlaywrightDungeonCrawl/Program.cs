@@ -37,6 +37,7 @@ builder.Services.AddSingleton<Room, PortalBazaar>();
 builder.Services.AddSingleton<Room, TinkerersWorkbench>();
 builder.Services.AddSingleton<Room, CouriersCounter>();
 builder.Services.AddSingleton<Room, MaskedBall>();
+builder.Services.AddSingleton<Room, OraclesWell>();
 builder.Services.AddSingleton<DungeonCatalog>();
 builder.Services.AddSingleton<CursedRunStore>();
 

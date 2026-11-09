@@ -1,0 +1,47 @@
+<section>
+    <h2>Tests can talk HTTP too</h2>
+    <p>
+        Not everything worth testing has a button. Playwright can send requests straight from the test: to set data up
+        before the page opens, to check an API on its own, or to read what the UI just saved. <code>Page.APIRequest</code>
+        shares the page's cookies, so a signed-in page makes signed-in requests.
+    </p>
+</section>
+
+<section>
+    <h2>Sending a request</h2>
+<pre><code>var reply = await Page.APIRequest.PostAsync("/api/orders", new()
+{
+    DataObject = new { item = "lantern", quantity = 2 },          // sent as JSON
+    Headers = new Dictionary&lt;string, string&gt; { ["X-Api-Key"] = key },
+});
+
+Assert.That(reply.Status, Is.EqualTo(201));                     // nothing throws on a 404 or 500
+var location = reply.Headers["location"];                         // header names are lower case
+var order = await (await Page.APIRequest.GetAsync(location)).JsonAsync();
+Assert.That(order?.GetProperty("item").GetString(), Is.EqualTo("lantern"));</code></pre>
+    <p class="tip">
+        <strong>Always check the status.</strong> An error reply is still a reply, so a request that failed looks
+        exactly like one that worked until you assert on it.
+    </p>
+</section>
+
+<section>
+    <h2>Without a page</h2>
+    <p>For a pure API test, make a request context of its own, with a base URL and headers every request shares:</p>
+<pre><code>await using var api = await Playwright.APIRequest.NewContextAsync(new()
+{
+    BaseURL = "https://shop.example",
+    ExtraHTTPHeaders = new Dictionary&lt;string, string&gt; { ["X-Api-Key"] = key },
+});
+var reply = await api.GetAsync("/api/orders/42");
+await Expect(reply).ToBeOKAsync();</code></pre>
+</section>
+
+<section>
+    <h2>The Oracle's Well</h2>
+    <p>
+        The Oracle has no buttons. Read the notice by the well, POST a question with your offering in the
+        <code>X-Offering</code> header, follow the reply to where the answer is kept, and speak the prophecy on the
+        page. Ten seconds.
+    </p>
+</section>
