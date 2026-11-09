@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>The strongroom</title>
+    <style>
+        body { margin: 0; padding: 24px; background: #120f0c; color: #ece4d4; font-family: system-ui, "Segoe UI", sans-serif; }
+        a { color: #f0c36a; }
+        .desk { display: flex; gap: 48px; align-items: center; margin: 24px 0; user-select: none; }
+        .seal { width: 72px; height: 72px; border-radius: 50%; background: #8f1d1d; box-shadow: 0 0 0 4px #5c1010 inset;
+                display: grid; place-items: center; font-size: 28px; cursor: grab; touch-action: none; }
+        .seal.lifted { cursor: grabbing; outline: 2px dashed #f0c36a; outline-offset: 4px; }
+        .charter { width: 220px; height: 150px; background: #e9dcc0; color: #3a2d1c; border-radius: 4px; padding: 12px;
+                   box-sizing: border-box; font-family: Georgia, serif; }
+        .charter.sealed { box-shadow: 0 0 0 3px #8f1d1d; }
+        [hidden] { display: none !important; }
+    </style>
+</head>
+<body>
+    <!-- Floor 13: the seal only presses if it's carried onto the charter. A click won't lift it. -->
+    <h1>The strongroom</h1>
+    <p class="status" role="status">The charter lies unsealed. The seal is too heavy to click; it has to be carried.</p>
+    <div class="desk">
+        <div class="seal" role="img" aria-label="The Chancellor's seal">⚜</div>
+        <div class="charter" role="region" aria-label="The charter">Charter of the Journeyman. Seal here.</div>
+    </div>
+    <p class="collect" hidden><a class="charter-link" download>Collect the charter</a></p>
+    <script src="strongroom.js"></script>
+</body>
+</html>

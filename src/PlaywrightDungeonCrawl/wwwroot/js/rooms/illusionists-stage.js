@@ -1,4 +1,4 @@
-// Floor 13, mocking responses: as soon as the room opens, the stage fetches its act and a heckler. The real act has
+// Floor 14, mocking responses: as soon as the room opens, the stage fetches its act and a heckler. The real act has
 // the curtain down and the real heckler always turns up, so only a test that changes the replies sees the show.
 import { startRoom } from "../room.js";
 

@@ -674,7 +674,84 @@ public sealed class OraclesWell : Room
 }
 
 /// <summary>
-/// Floor 13, mocking responses: the stage fetches its act and a heckler as the page loads. The real act keeps the
+/// Floor 13, the second boss: one scenario where each skill from floors 8 to 12 unlocks the next. The Chancellor's
+/// password is only filed with the Registry API. The Clerk and the Chancellor wear a cookie of the same name, so they
+/// need two contexts. The Chancellor's chambers open the strongroom in a new tab. The seal is dragged onto the charter,
+/// and the sealed charter is a download that the Clerk files back as an upload. The server checks every link of the
+/// chain, so no step can be skipped.
+/// </summary>
+public sealed class ChancellorsSeal : Room
+{
+    /// <summary>Who's signed in and what's been sealed. Kept out of /reveal by a reveal time no attempt lives to see.</summary>
+    public sealed class Chancellery(string petition, string clerkPassword, string chancellorPassword, string charterName)
+    {
+        public object Gate { get; } = new();
+        public string Petition { get; } = petition;
+        public string ClerkPassword { get; } = clerkPassword;
+        public string ChancellorPassword { get; } = chancellorPassword;
+        /// <summary>The name the Clerk must file the charter under, written only inside the charter.</summary>
+        public string CharterName { get; } = charterName;
+        public System.Collections.Concurrent.ConcurrentDictionary<Guid, string> Petitions { get; } = new();
+        public string? ClerkSeal { get; set; }
+        public string? ChancellorSeal { get; set; }
+        /// <summary>Minted when the charter is sealed, for the Clerk and Chancellor signed in at that moment.</summary>
+        public string? CharterSeal { get; set; }
+        public string? SealedForClerk { get; set; }
+        public string? SealedByChancellor { get; set; }
+    }
+
+    public const string Cookie = "seal";
+    public const string PetitionHeader = "X-Petition";
+    public const string Office = "Chancellor";
+
+    public override string[] Nudges { get; } =
+    {
+        "One chain, five links, in order: the Registry API, two people signed in at once, a strongroom that opens in a new tab, a seal that has to be dragged, and a charter that goes out as a download and comes back as an upload.",
+        "The Chancellor's password is only in the Registry: POST a petition with the X-Petition header and follow the Location. The Clerk and the Chancellor both wear a cookie called seal, so the chambers need a second context. In there, catch the strongroom tab as it opens.",
+        "var reply = await Page.APIRequest.PostAsync(registryUrl, new() { DataObject = new { office = \"Chancellor\" }, Headers = ... }); GetAsync(reply.Headers[\"location\"]) for the password. Sign the Clerk in on Page; open the chambers in Browser.NewContextAsync(). var strongroom = await chambers.RunAndWaitForPopupAsync(...); seal.DragToAsync(charter); RunAndWaitForDownloadAsync on Collect the charter; read the name inside, then SetInputFilesAsync with a FilePayload on the Clerk's Page.",
+    };
+
+    public override string[] TypeScriptNudges { get; } =
+    {
+        "One chain, five links, in order: the Registry API, two people signed in at once, a strongroom that opens in a new tab, a seal that has to be dragged, and a charter that goes out as a download and comes back as an upload.",
+        "The Chancellor's password is only in the Registry: POST a petition with the X-Petition header and follow the Location. The Clerk and the Chancellor both wear a cookie called seal, so the chambers need a second context. In there, catch the strongroom tab as it opens.",
+        "const reply = await page.request.post(registryUrl, { data: { office: 'Chancellor' }, headers: { 'X-Petition': petition } }); page.request.get(reply.headers()['location'], ...) for the password. Sign the Clerk in on page; open the chambers in browser.newContext(). Start chambers.waitForEvent('popup') before the click; seal.dragTo(charter); start waitForEvent('download') before Collect the charter; read the name inside, then setInputFiles({ name, mimeType, buffer }) on the Clerk's page.",
+    };
+
+    public override string Slug => "chancellors-seal";
+    public override string Name => "The Chancellor's Seal";
+    public override string Objective =>
+        "The Journeyman's charter needs the Chancellor's seal, and the Chancellor trusts nobody. Get the password from " +
+        "the Registry, keep the Clerk and the Chancellor signed in at the same time, seal the charter in the strongroom, " +
+        "and have the Clerk file it under the name written inside.";
+    public override TimeSpan TimeLimit => TimeSpan.FromSeconds(30);
+
+    public override RoomPuzzle Generate(Random rng)
+    {
+        var chancellery = new Chancellery(Rune(rng, 10).ToLowerInvariant(), Rune(rng, 8).ToLowerInvariant(),
+            Rune(rng, 8).ToLowerInvariant(), $"charter-{Rune(rng, 4).ToLowerInvariant()}.txt");
+        return new RoomPuzzle(new { petition = chancellery.Petition, clerkPassword = chancellery.ClerkPassword }, Rune(rng, 8),
+            Reveal: chancellery, RevealAfter: TimeSpan.FromDays(1));
+    }
+
+    /// <summary>The sealed charter, as the strongroom hands it over.</summary>
+    public static string CharterText(Chancellery c) =>
+        "THE CHANCELLERY: CHARTER OF THE JOURNEYMAN\n\n" +
+        $"Seal: {c.CharterSeal}\n\n" +
+        $"The Clerk on duty must file this charter under the name {c.CharterName}.\n" +
+        "A charter filed under any other name is kindling.\n";
+
+    /// <summary>The Clerk files the charter as its name, a newline, then its contents. Only the seal line has to survive.</summary>
+    public static bool IsFiled(Chancellery c, string filing)
+    {
+        var parts = filing.Split('\n', 2);
+        return c.CharterSeal is { } seal && parts.Length == 2 && parts[0].Trim() == c.CharterName
+            && parts[1].Contains(seal, StringComparison.Ordinal);
+    }
+}
+
+/// <summary>
+/// Floor 14, mocking responses: the stage fetches its act and a heckler as the page loads. The real act keeps the
 /// curtain down, so the test has to fetch it and hand the page a changed copy, and the heckler has to be stopped
 /// before he says a word. The word on the real act is the answer, so a fake made from nothing won't do.
 /// </summary>
@@ -706,7 +783,7 @@ public sealed class IllusionistsStage : Room
 }
 
 /// <summary>
-/// Floor 14, the Page Object Model: four identical blueprint panels, shuffled, each to be filled in from the work
+/// Floor 15, the Page Object Model: four identical blueprint panels, shuffled, each to be filled in from the work
 /// order. Written out longhand it's sixteen near-identical blocks; written as one component object, it's a loop.
 /// </summary>
 public sealed class DraftingTable : Room

@@ -295,7 +295,7 @@ public class CertificateTests
     public void TiersOpenOnlyWhenTheirFloorsExist()
     {
         var journeyman = CertificateRules.For(CertificateTier.Journeyman);
-        var cleared = new Standing("ada", 13, 1000, DateTimeOffset.UtcNow);
+        var cleared = new Standing("ada", 13, 1000, DateTimeOffset.UtcNow) { ClearedThrough = 13 };
 
         Assert.Multiple(() =>
         {
@@ -305,6 +305,26 @@ public class CertificateTests
             Assert.That(CertificateRules.Tiers.Select(t => t.Floors), Is.Ordered.Ascending);
             Assert.That(CertificateRules.ParseTier("MASTER"), Is.EqualTo(CertificateTier.Master));
             Assert.That(CertificateRules.ParseTier("grandmaster"), Is.Null);
+        });
+    }
+
+    [Test]
+    public async Task ATierNeedsItsOwnFloorsNotJustAsManyFloors()
+    {
+        var player = dungeon.ClientFor("ada");
+        // Every floor but the Chancellery (13): more than 13 floors cleared, but not floors 1 to 13.
+        foreach (var floor in Catalog.Floors.Where(f => f.Number != 13))
+        {
+            await Records.RecordAsync("id-ada", "ada", Achievement.Riddle, floor.Slug);
+            await Records.RecordAsync("id-ada", "ada", Achievement.Treasure, floor.Room.Slug);
+        }
+
+        var reply = await IssueTierAsync(player, "journeyman");
+
+        Assert.Multiple(async () =>
+        {
+            Assert.That(await reply.Content.ReadAsStringAsync(), Does.Contain("The Journeyman certificate needs floors 1 to 13 verified as cleared."));
+            Assert.That(await Records.CertificatesForAsync("id-ada"), Is.Empty);
         });
     }
 

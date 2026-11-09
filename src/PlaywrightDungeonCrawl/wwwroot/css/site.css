@@ -471,11 +471,20 @@ a.bug-badge:hover { background: rgba(111, 191, 115, 0.15); }
 .well-status { color: var(--stone-400); font-style: italic; min-height: 2em; }
 .well form { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; }
 
-/* Floor 13: the Illusionist's Stage */
+/* Floor 13: the Chancellor's Seal */
+.chancellery { padding: 16px 12px; border-radius: var(--radius); background: linear-gradient(#1d1a2b, #0c0b12); }
+.chancellery form { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; margin: 10px 0; }
+.chancellery code { overflow-wrap: anywhere; }
+.registry-notice { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; margin: 0 0 10px; }
+.registry-notice dt { font-weight: 600; }
+.registry-notice dd { margin: 0; min-width: 0; }
+.chancellery-status { color: var(--stone-400); font-style: italic; min-height: 2em; }
+
+/* Floor 14: the Illusionist's Stage */
 .stage { padding: 16px 12px; border-radius: var(--radius); background: linear-gradient(#2e1416, #140809); }
 .stage-status { color: var(--stone-400); font-style: italic; min-height: 2em; }
 
-/* Floor 14: the Drafting Table */
+/* Floor 15: the Drafting Table */
 .drafting { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
 .blueprint { display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 1px solid #3b6ea5; border-radius: 10px; background: rgba(59, 110, 165, 0.1); }
 .work-order { border-collapse: collapse; margin-bottom: 12px; }

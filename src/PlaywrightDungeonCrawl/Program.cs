@@ -38,6 +38,7 @@ builder.Services.AddSingleton<Room, TinkerersWorkbench>();
 builder.Services.AddSingleton<Room, CouriersCounter>();
 builder.Services.AddSingleton<Room, MaskedBall>();
 builder.Services.AddSingleton<Room, OraclesWell>();
+builder.Services.AddSingleton<Room, ChancellorsSeal>();
 builder.Services.AddSingleton<Room, IllusionistsStage>();
 builder.Services.AddSingleton<Room, DraftingTable>();
 builder.Services.AddSingleton<DungeonCatalog>();

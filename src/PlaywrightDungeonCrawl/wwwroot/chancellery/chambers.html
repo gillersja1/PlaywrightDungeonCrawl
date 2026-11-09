@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>The Chancellor's chambers</title>
+    <style>
+        body { margin: 0; padding: 24px; background: #15161f; color: #ece4d4; font-family: system-ui, "Segoe UI", sans-serif; }
+        a { color: #f0c36a; }
+        form { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; margin: 12px 0; }
+        [hidden] { display: none !important; }
+    </style>
+</head>
+<body>
+    <!-- Floor 13: the Chancellor's side. The Chancellor's cookie has the same name as the Clerk's. -->
+    <h1>The Chancellor's chambers</h1>
+    <p class="status" role="status">The Chancellor looks up from a pile of petitions. "Password?"</p>
+    <form class="chancellor-login">
+        <label>Chancellor's password <input name="password" autocomplete="off"></label>
+        <button type="submit">Sign in as Chancellor</button>
+    </form>
+    <p class="strongroom" hidden><a class="strongroom-link" target="_blank">Open the strongroom</a></p>
+    <script src="chambers.js"></script>
+</body>
+</html>

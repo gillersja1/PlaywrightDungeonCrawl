@@ -3,6 +3,8 @@ namespace PlaywrightDungeonCrawl.Dungeon;
 public sealed record AnswerRequest(string? Answer);
 public sealed record LoginRequest(string? Guest, string? Password);
 public sealed record QuestionRequest(string? Question);
+public sealed record PetitionRequest(string? Office);
+public sealed record SignInRequest(string? Role, string? Password);
 
 public sealed record ClaimRequest(string? Room, string? Flag);
 
@@ -143,7 +145,95 @@ public static class DungeonApi
                 : Results.Json(new { error = "The well stays silent. It wants your offering, in the X-Offering header." }, statusCode: 401);
         });
 
-        // Floor 13's stage: the real act keeps the curtain down, and the heckler always turns up. Tests change both.
+        // Floor 13, the second boss: a chain where every link is checked here, so none can be skipped or faked.
+        const string chancellery = "/rooms/chancellors-seal/attempts/{id:guid}";
+        static ChancellorsSeal.Chancellery? ChancelleryOf(AttemptStore attempts, Guid id) =>
+            attempts.Peek("chancellors-seal", id)?.Puzzle.Reveal as ChancellorsSeal.Chancellery;
+        static IResult Refused(string error, int status) => Results.Json(new { error }, statusCode: status);
+
+        // Link 1, the API: the Chancellor's password is only ever filed with the Registry.
+        api.MapPost(chancellery + "/registry", (Guid id, PetitionRequest body, AttemptStore attempts, HttpContext context) =>
+        {
+            if (ChancelleryOf(attempts, id) is not { } c) return Results.NotFound();
+            if (context.Request.Headers[ChancellorsSeal.PetitionHeader] != c.Petition) return Refused("The Registry won't read a petition without its number, in the X-Petition header.", 401);
+            if (body.Office?.Trim() != ChancellorsSeal.Office) return Refused("The Registry only keeps records for the office of Chancellor.", 422);
+            var p = Guid.NewGuid();
+            c.Petitions[p] = ChancellorsSeal.Office;
+            return Results.Created($"/api/rooms/chancellors-seal/attempts/{id}/registry/{p}", new { status = "Filed. The record is elsewhere." });
+        });
+        api.MapGet(chancellery + "/registry/{p:guid}", (Guid id, Guid p, AttemptStore attempts, HttpContext context) =>
+        {
+            if (ChancelleryOf(attempts, id) is not { } c || !c.Petitions.ContainsKey(p)) return Results.NotFound();
+            return context.Request.Headers[ChancellorsSeal.PetitionHeader] == c.Petition
+                ? Results.Ok(new { office = ChancellorsSeal.Office, password = c.ChancellorPassword })
+                : Refused("The Registry won't read a petition without its number, in the X-Petition header.", 401);
+        });
+
+        // Link 2, contexts: the Clerk and the Chancellor wear a cookie of the same name.
+        api.MapPost(chancellery + "/login", (Guid id, SignInRequest body, AttemptStore attempts, HttpContext context) =>
+        {
+            if (ChancelleryOf(attempts, id) is not { } c) return Results.NotFound();
+            var seal = Guid.NewGuid().ToString("N");
+            lock (c.Gate)
+            {
+                switch (body.Role)
+                {
+                    case "Clerk" when body.Password == c.ClerkPassword: c.ClerkSeal = seal; break;
+                    case ChancellorsSeal.Office when body.Password == c.ChancellorPassword: c.ChancellorSeal = seal; break;
+                    default: return Refused("The usher checks the roll twice and shakes his head.", 403);
+                }
+            }
+            context.Response.Cookies.Append(ChancellorsSeal.Cookie, seal, new CookieOptions
+            {
+                HttpOnly = true, SameSite = SameSiteMode.Strict, Path = $"/api/rooms/chancellors-seal/attempts/{id}",
+            });
+            return Results.Ok(new { role = body.Role });
+        });
+
+        // Link 4, the mouse: the strongroom page sends this when the seal is dropped on the charter.
+        api.MapPost(chancellery + "/seal", (Guid id, AttemptStore attempts, HttpContext context) =>
+        {
+            if (ChancelleryOf(attempts, id) is not { } c) return Results.NotFound();
+            var seal = context.Request.Cookies[ChancellorsSeal.Cookie];
+            lock (c.Gate)
+            {
+                if (seal is null || seal != c.ChancellorSeal) return Refused("Only the Chancellor can press the seal, and you aren't wearing the Chancellor's.", 403);
+                if (c.ClerkSeal is null) return Refused("There's no Clerk on duty to receive the charter.", 409);
+                c.CharterSeal = Guid.NewGuid().ToString("N")[..10].ToUpperInvariant();
+                c.SealedForClerk = c.ClerkSeal;
+                c.SealedByChancellor = c.ChancellorSeal;
+            }
+            return Results.Ok(new { charter = $"/api/rooms/chancellors-seal/attempts/{id}/charter" });
+        });
+
+        // Link 5, files: the sealed charter is a real download, and only the Chancellor who sealed it can collect it.
+        api.MapGet(chancellery + "/charter", (Guid id, AttemptStore attempts, HttpContext context) =>
+        {
+            if (ChancelleryOf(attempts, id) is not { } c) return Results.NotFound();
+            lock (c.Gate)
+            {
+                if (c.CharterSeal is null) return Refused("The charter hasn't been sealed yet.", 409);
+                if (context.Request.Cookies[ChancellorsSeal.Cookie] != c.SealedByChancellor) return Refused("The strongroom only opens for the Chancellor who sealed it.", 403);
+                return Results.File(System.Text.Encoding.UTF8.GetBytes(ChancellorsSeal.CharterText(c)), "text/plain", "sealed-charter.txt");
+            }
+        });
+        api.MapPost(chancellery + "/file", (Guid id, AnswerRequest body, AttemptStore attempts, HttpContext context) =>
+        {
+            if (attempts.Peek("chancellors-seal", id) is not { Puzzle.Reveal: ChancellorsSeal.Chancellery c } attempt) return Results.NotFound();
+            var seal = context.Request.Cookies[ChancellorsSeal.Cookie];
+            lock (c.Gate)
+            {
+                if (seal is null || seal != c.ClerkSeal) return Refused("Only the Clerk files charters, and you aren't wearing the Clerk's seal.", 403);
+                if (c.CharterSeal is null || c.SealedForClerk != seal) return Refused("No charter has been sealed for this Clerk.", 409);
+                // Both still at their posts: a Chancellor who signed in again isn't the one who sealed it.
+                if (c.ChancellorSeal != c.SealedByChancellor) return Refused("The Chancellor who sealed this charter has left the building.", 409);
+            }
+            return ChancellorsSeal.IsFiled(c, body.Answer ?? "")
+                ? Results.Ok(new { phrase = attempt.Puzzle.Answer })
+                : Refused("The Clerk reads it twice. That isn't the charter, or it isn't filed under the right name.", 422);
+        });
+
+        // Floor 14's stage: the real act keeps the curtain down, and the heckler always turns up. Tests change both.
         api.MapGet("/rooms/illusionists-stage/attempts/{id:guid}/act", (Guid id, AttemptStore attempts) =>
             attempts.Peek("illusionists-stage", id) is { } attempt
                 ? Results.Ok(new { curtain = "down", word = attempt.Puzzle.Answer })
