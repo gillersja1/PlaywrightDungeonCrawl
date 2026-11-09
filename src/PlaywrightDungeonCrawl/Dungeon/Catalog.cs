@@ -1003,7 +1003,7 @@ public sealed class DungeonCatalog
                         },
                         1,
                         "An API reply with a 404 or 500 is still a reply: nothing throws. Asserting on the status (and then the body) is the test.",
-                        "Does a 500 Internal Server Error count as a successful request?"),
+                        "If the server answers 500, did the request succeed?"),
                     new QuizQuestion(
                         "A POST answers 201 Created with an empty body. Where is the thing you created?",
                         new[]
@@ -1043,7 +1043,7 @@ public sealed class DungeonCatalog
                         },
                         1,
                         "An API reply with a 404 or 500 is still a reply: nothing throws. Asserting on the status (and then the body) is the test.",
-                        "Does a 500 Internal Server Error count as a successful request?"),
+                        "If the server answers 500, did the request succeed?"),
                     new QuizQuestion(
                         "A POST answers 201 Created with an empty body. Where is the thing you created?",
                         new[]
