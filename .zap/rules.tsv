@@ -1,0 +1,8 @@
+10023	IGNORE	(Debug error messages: home page; no error text is rendered, not reproduced locally)
+10027	IGNORE	(Suspicious comments: the room scripts' teaching comments, on purpose)
+10029	IGNORE	(Cookie poisoning: ?lang= only ever sets csharp or ts, parsed to an enum)
+10031	IGNORE	(User-controllable attribute: ?from= is validated to a local path and HTML-encoded)
+10049	IGNORE	(Non-storable content: dynamic pages are meant to be uncached)
+10055	IGNORE	(CSP style-src unsafe-inline: rooms set inline styles; scripts stay nonce-only)
+10112	IGNORE	(Session management response: informational)
+90004	IGNORE	(COEP: require-corp would block the unpkg scripts; no cross-origin isolation needed)
