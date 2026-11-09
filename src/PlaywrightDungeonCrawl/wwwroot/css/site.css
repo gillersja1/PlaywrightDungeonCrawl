@@ -470,3 +470,13 @@ a.bug-badge:hover { background: rgba(111, 191, 115, 0.15); }
 .well-notice pre { overflow-x: auto; }
 .well-status { color: var(--stone-400); font-style: italic; min-height: 2em; }
 .well form { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; }
+
+/* Floor 13: the Illusionist's Stage */
+.stage { padding: 16px 12px; border-radius: var(--radius); background: linear-gradient(#2e1416, #140809); }
+.stage-status { color: var(--stone-400); font-style: italic; min-height: 2em; }
+
+/* Floor 14: the Drafting Table */
+.drafting { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.blueprint { display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 1px solid #3b6ea5; border-radius: 10px; background: rgba(59, 110, 165, 0.1); }
+.work-order { border-collapse: collapse; margin-bottom: 12px; }
+.work-order th, .work-order td { padding: 4px 10px; border-bottom: 1px solid var(--stone-600, #444); text-align: left; }

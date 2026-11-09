@@ -143,6 +143,16 @@ public static class DungeonApi
                 : Results.Json(new { error = "The well stays silent. It wants your offering, in the X-Offering header." }, statusCode: 401);
         });
 
+        // Floor 13's stage: the real act keeps the curtain down, and the heckler always turns up. Tests change both.
+        api.MapGet("/rooms/illusionists-stage/attempts/{id:guid}/act", (Guid id, AttemptStore attempts) =>
+            attempts.Peek("illusionists-stage", id) is { } attempt
+                ? Results.Ok(new { curtain = "down", word = attempt.Puzzle.Answer })
+                : Results.NotFound());
+        api.MapGet("/rooms/illusionists-stage/attempts/{id:guid}/heckler", (Guid id, AttemptStore attempts) =>
+            attempts.Peek("illusionists-stage", id) is not null
+                ? Results.Ok(new { heckle = "I can see the wires!" })
+                : Results.NotFound());
+
         // Multi-step rooms (the boss) clear their trials here, one at a time, before the final answer.
         api.MapPost("/rooms/{slug}/attempts/{id:guid}/trials", (string slug, Guid id, AnswerRequest body, AttemptStore attempts) =>
         {

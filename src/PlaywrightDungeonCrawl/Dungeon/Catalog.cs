@@ -1058,14 +1058,178 @@ public sealed class DungeonCatalog
                         "Created, but where? Which header names a place?"),
                 },
             },
+            new Floor(13, "illusion", "The Illusionist's Theater", "Mocking responses",
+                "Nothing on stage is what the server sent. Learn to catch requests in the browser, answer them yourself, change real replies and stop the ones you don't want.",
+                bySlug["illusionists-stage"],
+                new[]
+                {
+                    new QuizQuestion(
+                        "Your test needs the shop to show an empty basket, but the real API always has items in it. What do you do?",
+                        new[]
+                        {
+                            "Delete every item through the UI first",
+                            "Page.RouteAsync(\"**/api/basket\", ...) and answer with your own JSON, before the page asks",
+                            "Edit the page's HTML after it loads",
+                            "Point the test at a different server",
+                        },
+                        1,
+                        "A route catches the request in the browser. route.FulfillAsync(new() { Json = new[] { new { name = \"Rae\" } } }) answers it with whatever you like, and the real server never hears about it.",
+                        "Who answers a request if you get to it first?"),
+                    new QuizQuestion(
+                        "You only want to change one field of the real reply. How?",
+                        new[]
+                        {
+                            "Fake the whole reply by hand",
+                            "In the route: var real = await route.FetchAsync(); read its JSON, change the field, and fulfill with Response = real and the new JSON",
+                            "You can't: a route either mocks or doesn't",
+                            "Use page.on('response') to edit it",
+                        },
+                        1,
+                        "route.FetchAsync() makes the real request for you. Fulfilling with that response plus your changes keeps its status and headers and swaps the body.",
+                        "Can you ask the real server first, then lie about what it said?"),
+                    new QuizQuestion(
+                        "The page fires an analytics request as it loads, and you added a route to block it after GotoAsync. It still got through. Why?",
+                        new[]
+                        {
+                            "Analytics can't be blocked",
+                            "The route was set up too late: call Page.RouteAsync before GotoAsync",
+                            "route.AbortAsync() only works on images",
+                            "The glob needs to start with https://",
+                        },
+                        1,
+                        "A route only catches requests made after it exists. Requests fired while the page loads need their routes set up before you open the page.",
+                        "When did the request happen, and when did your route start listening?"),
+                })
+            {
+                TypeScriptRiddles = new[]
+                {
+                    new QuizQuestion(
+                        "Your test needs the shop to show an empty basket, but the real API always has items in it. What do you do?",
+                        new[]
+                        {
+                            "Delete every item through the UI first",
+                            "page.route(\"**/api/basket\", ...) and answer with your own JSON, before the page asks",
+                            "Edit the page's HTML after it loads",
+                            "Point the test at a different server",
+                        },
+                        1,
+                        "A route catches the request in the browser. route.fulfill({ json: [{ name: 'Rae' }] }) answers it with whatever you like, and the real server never hears about it.",
+                        "Who answers a request if you get to it first?"),
+                    new QuizQuestion(
+                        "You only want to change one field of the real reply. How?",
+                        new[]
+                        {
+                            "Fake the whole reply by hand",
+                            "In the route: const response = await route.fetch(); read its JSON, change the field, and fulfill({ response, json })",
+                            "You can't: a route either mocks or doesn't",
+                            "Use page.on('response') to edit it",
+                        },
+                        1,
+                        "route.fetch() makes the real request for you. Fulfilling with that response plus your changes keeps its status and headers and swaps the body.",
+                        "Can you ask the real server first, then lie about what it said?"),
+                    new QuizQuestion(
+                        "The page fires an analytics request as it loads, and you added a route to block it after goto. It still got through. Why?",
+                        new[]
+                        {
+                            "Analytics can't be blocked",
+                            "The route was set up too late: call page.route before goto",
+                            "route.abort() only works on images",
+                            "The glob needs to start with https://",
+                        },
+                        1,
+                        "A route only catches requests made after it exists. Requests fired while the page loads need their routes set up before you open the page.",
+                        "When did the request happen, and when did your route start listening?"),
+                },
+            },
+            new Floor(14, "atelier", "The Architect's Atelier", "Page Object Model",
+                "Every blueprint here is the same blueprint, drawn again. Learn to wrap a page, or one part of it, in a class your tests can reuse.",
+                bySlug["drafting-table"],
+                new[]
+                {
+                    new QuizQuestion(
+                        "What is a page object?",
+                        new[]
+                        {
+                            "A copy of the page's HTML saved for later",
+                            "A class that wraps a page (or part of one): it holds the locators and offers actions like SignInAsync",
+                            "Playwright's internal name for a browser tab",
+                            "A JSON file listing every selector",
+                        },
+                        1,
+                        "Tests then say what they do (signIn, addToBasket) and the page object knows how. When the page changes, you fix one class instead of every test.",
+                        "If the Sign in button moves, how many places should you have to change?"),
+                    new QuizQuestion(
+                        "A page has five identical product cards. How do you model them?",
+                        new[]
+                        {
+                            "One component class that takes the card's ILocator as its root, made once per card",
+                            "Five classes, one per card",
+                            "One giant page object with card1Title, card2Title, ...",
+                            "Don't: cards are too small for page objects",
+                        },
+                        0,
+                        "A component object scoped to a root locator works for any card. Every locator inside it starts from the root, so it never reaches into the card next door.",
+                        "What's different between the cards: the shape, or just where they are?"),
+                    new QuizQuestion(
+                        "Where should most assertions live?",
+                        new[]
+                        {
+                            "In the page object's constructor",
+                            "In the tests: page objects find things and do things, tests decide what's right",
+                            "In a separate assertions page object",
+                            "Nowhere: page objects make assertions unnecessary",
+                        },
+                        1,
+                        "Keeping checks in the test keeps the test readable as a story. A page object that asserts can't be reused by a test that expects something else. The IPage goes in, behavior comes out.",
+                        "Two tests use the same page object and expect different results. Who should know the difference?"),
+                })
+            {
+                TypeScriptRiddles = new[]
+                {
+                    new QuizQuestion(
+                        "What is a page object?",
+                        new[]
+                        {
+                            "A copy of the page's HTML saved for later",
+                            "A class that wraps a page (or part of one): it holds the locators and offers actions like signIn()",
+                            "Playwright's internal name for a browser tab",
+                            "A JSON file listing every selector",
+                        },
+                        1,
+                        "Tests then say what they do (signIn, addToBasket) and the page object knows how. When the page changes, you fix one class instead of every test.",
+                        "If the Sign in button moves, how many places should you have to change?"),
+                    new QuizQuestion(
+                        "A page has five identical product cards. How do you model them?",
+                        new[]
+                        {
+                            "One component class that takes the card's Locator as its root, made once per card",
+                            "Five classes, one per card",
+                            "One giant page object with card1Title, card2Title, ...",
+                            "Don't: cards are too small for page objects",
+                        },
+                        0,
+                        "A component object scoped to a root locator works for any card. Every locator inside it starts from the root, so it never reaches into the card next door.",
+                        "What's different between the cards: the shape, or just where they are?"),
+                    new QuizQuestion(
+                        "Where should most assertions live?",
+                        new[]
+                        {
+                            "In the page object's constructor",
+                            "In the tests: page objects find things and do things, tests decide what's right",
+                            "In a separate assertions page object",
+                            "Nowhere: page objects make assertions unnecessary",
+                        },
+                        1,
+                        "Keeping checks in the test keeps the test readable as a story. A page object that asserts can't be reused by a test that expects something else. The Page goes in, behavior comes out.",
+                        "Two tests use the same page object and expect different results. Who should know the difference?"),
+                },
+            },
         };
     }
 
     /// <summary>The deeper floors, shown on the map as sealed until they're built.</summary>
     public IReadOnlyList<(int Number, string Title, string Skill)> SealedFloors { get; } = new[]
     {
-        (13, "The Illusionist's Theater", "Mocking responses"),
-        (14, "The Architect's Atelier", "Page Object Model"),
         (15, "The Hydra Pits", "Fixtures, setup and parallel tests"),
         (16, "The Haunted Archive", "Tracing and debugging"),
         (17, "The Portrait Gallery", "Screenshots and visual comparison"),

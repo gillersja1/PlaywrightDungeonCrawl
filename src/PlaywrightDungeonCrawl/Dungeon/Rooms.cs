@@ -672,3 +672,75 @@ public sealed class OraclesWell : Room
         return new RoomPuzzle(new { offering = well.Offering }, Rune(rng, 8), Reveal: well, RevealAfter: TimeSpan.FromDays(1));
     }
 }
+
+/// <summary>
+/// Floor 13, mocking responses: the stage fetches its act and a heckler as the page loads. The real act keeps the
+/// curtain down, so the test has to fetch it and hand the page a changed copy, and the heckler has to be stopped
+/// before he says a word. The word on the real act is the answer, so a fake made from nothing won't do.
+/// </summary>
+public sealed class IllusionistsStage : Room
+{
+    public override string[] Nudges { get; } =
+    {
+        "The page asks the server for two things as it loads: the act and a heckler. Watch what comes back, and change it before the page sees it.",
+        "Set your routes up before you open the page. Stop the heckler's request, and let the act's request through but change the reply: the curtain has to be up.",
+        "await Page.RouteAsync(\"**/heckler\", r => r.AbortAsync()); await Page.RouteAsync(\"**/act\", async r => { var real = await r.FetchAsync(); var act = await real.JsonAsync(); ... await r.FulfillAsync(new() { Response = real, Json = new { curtain = \"up\", word = <the real word> } }); }); then GotoAsync.",
+    };
+
+    public override string[] TypeScriptNudges { get; } =
+    {
+        "The page asks the server for two things as it loads: the act and a heckler. Watch what comes back, and change it before the page sees it.",
+        "Set your routes up before you open the page. Stop the heckler's request, and let the act's request through but change the reply: the curtain has to be up.",
+        "await page.route('**/heckler', r => r.abort()); await page.route('**/act', async r => { const response = await r.fetch(); const act = await response.json(); await r.fulfill({ response, json: { ...act, curtain: 'up' } }); }); then goto.",
+    };
+
+    public override string Slug => "illusionists-stage";
+    public override string Name => "The Illusionist's Stage";
+    public override string Objective =>
+        "The illusionist won't perform with the curtain down, and the act the server sends always has it down. " +
+        "A heckler in the back row ruins every show. Change the act on its way to the page, and silence the heckler " +
+        "before he opens his mouth.";
+    public override TimeSpan TimeLimit => TimeSpan.FromSeconds(10);
+
+    public override RoomPuzzle Generate(Random rng) => new(new { }, Rune(rng, 8));
+}
+
+/// <summary>
+/// Floor 14, the Page Object Model: four identical blueprint panels, shuffled, each to be filled in from the work
+/// order. Written out longhand it's sixteen near-identical blocks; written as one component object, it's a loop.
+/// </summary>
+public sealed class DraftingTable : Room
+{
+    private static readonly string[] Names = { "Tower", "Bridge", "Archway", "Vault", "Spire", "Cellar", "Gatehouse" };
+    private static readonly string[] Materials = { "Oak", "Granite", "Iron", "Marble" };
+
+    public override string[] Nudges { get; } =
+    {
+        "Four panels, all the same shape. Write the steps for one panel once, and point it at each panel in turn.",
+        "Make a small class that takes the panel's Locator (its region, found by name) and has one method that fills in the material, the length and the corners and stamps it.",
+        "class Blueprint(ILocator root) { public async Task DraftAsync(string material, int length, bool square) { await root.GetByLabel(\"Material\").SelectOptionAsync(material); ... } } then new Blueprint(Page.GetByRole(AriaRole.Region, new() { Name = \"Blueprint: \" + name })) for every row of the work order.",
+    };
+
+    public override string[] TypeScriptNudges { get; } =
+    {
+        "Four panels, all the same shape. Write the steps for one panel once, and point it at each panel in turn.",
+        "Make a small class that takes the panel's Locator (its region, found by name) and has one method that fills in the material, the length and the corners and stamps it.",
+        "class Blueprint { constructor(private root: Locator) {} async draft(material: string, length: number, square: boolean) { await this.root.getByLabel('Material').selectOption(material); ... } } then new Blueprint(page.getByRole('region', { name: 'Blueprint: ' + name })) for every row of the work order.",
+    };
+
+    public override string Slug => "drafting-table";
+    public override string Name => "The Drafting Table";
+    public override string Objective =>
+        "The Architect has left a work order and four blank blueprints, in no particular order. Fill in every " +
+        "blueprint exactly as the work order says, and stamp each one. A wrong measurement brings the ceiling down.";
+    public override TimeSpan TimeLimit => TimeSpan.FromSeconds(10);
+
+    public override RoomPuzzle Generate(Random rng)
+    {
+        var blueprints = Names.OrderBy(_ => rng.Next()).Take(4)
+            .Select(name => new { name, material = Materials[rng.Next(Materials.Length)], length = rng.Next(2, 41), square = rng.Next(2) == 0 })
+            .ToArray();
+        var answer = System.Text.Json.JsonSerializer.Serialize(blueprints.OrderBy(b => b.name, StringComparer.Ordinal));
+        return new RoomPuzzle(new { blueprints, materials = Materials }, answer);
+    }
+}

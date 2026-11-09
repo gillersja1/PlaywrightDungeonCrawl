@@ -1,0 +1,60 @@
+<section>
+    <h2>Say what, hide how</h2>
+    <p>
+        Tests that click by selector everywhere get long, and when the page changes, every one of them breaks. A
+        <strong>page object</strong> is a class that knows how a page (or one part of it) works: it holds the
+        locators and offers actions. Tests say what they do; the page object knows how.
+    </p>
+</section>
+
+<section>
+    <h2>A page object</h2>
+<pre><code>export class SignInPage {
+  constructor(private readonly page: Page) {}
+
+  private email = () =&gt; this.page.getByLabel('Email');
+  private password = () =&gt; this.page.getByLabel('Password');
+
+  async open() { await this.page.goto('/sign-in'); }
+
+  async signIn(email: string, password: string) {
+    await this.email().fill(email);
+    await this.password().fill(password);
+    await this.page.getByRole('button', { name: 'Sign in' }).click();
+  }
+}
+
+// in a test
+const signIn = new SignInPage(page);
+await signIn.open();
+await signIn.signIn('crawler@example.com', password);
+await expect(page.getByText('Welcome back')).toBeVisible();</code></pre>
+</section>
+
+<section>
+    <h2>Components</h2>
+    <p>
+        When a page repeats the same shape (product cards, table rows, panels), model one of them, rooted at a
+        locator. Everything inside starts from the root, so it can't reach into its neighbor:
+    </p>
+<pre><code>export class ProductCard {
+  constructor(private readonly root: Locator) {}
+  price() { return this.root.getByTestId('price'); }
+  async addToBasket() { await this.root.getByRole('button', { name: 'Add' }).click(); }
+}
+
+const lantern = new ProductCard(page.getByRole('article', { name: 'Lantern' }));
+await lantern.addToBasket();</code></pre>
+    <p class="tip">
+        <strong>Keep most assertions in the test.</strong> Page objects find things and do things; the test decides
+        what's right. That way two tests can use the same page object and expect different outcomes.
+    </p>
+</section>
+
+<section>
+    <h2>The Drafting Table</h2>
+    <p>
+        Four blank blueprints, shuffled, and a work order. Fill every blueprint as the work order says and stamp it.
+        One component object and a loop will do it. Ten seconds.
+    </p>
+</section>
