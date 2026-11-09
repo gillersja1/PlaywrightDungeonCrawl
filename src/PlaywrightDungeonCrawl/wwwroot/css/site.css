@@ -458,3 +458,9 @@ a.bug-badge:hover { background: rgba(111, 191, 115, 0.15); }
 .counter { padding: 16px 12px; border-radius: var(--radius); background: linear-gradient(#2a2218, #15110c); }
 .counter-status { color: var(--stone-400); font-style: italic; min-height: 2em; margin: 0 0 10px; }
 .reply-slot { display: flex; flex-direction: column; gap: 6px; margin: 14px 0 10px; padding: 12px; border: 2px dashed #8a6a2a; border-radius: 10px; }
+
+/* Floor 11: the Masked Ball */
+.ball { padding: 16px 12px; border-radius: var(--radius); background: linear-gradient(#251a2e, #120c17); }
+.ball form { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; margin: 10px 0; }
+.ball-status { color: var(--stone-400); font-style: italic; min-height: 2em; margin: 0 0 10px; }
+.guest-list { margin: 0 0 10px; }

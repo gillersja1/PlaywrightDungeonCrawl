@@ -1,6 +1,7 @@
 namespace PlaywrightDungeonCrawl.Dungeon;
 
 public sealed record AnswerRequest(string? Answer);
+public sealed record LoginRequest(string? Guest, string? Password);
 
 public sealed record ClaimRequest(string? Room, string? Flag);
 
@@ -70,6 +71,55 @@ public static class DungeonApi
             attempts.Peek("couriers-counter", id)?.Puzzle.Reveal is CouriersCounter.Dispatch dispatch
                 ? Results.File(System.Text.Encoding.UTF8.GetBytes(dispatch.Text), "text/plain", dispatch.FileName)
                 : Results.NotFound());
+
+        // Floor 11's ball: each guest signs in with a cookie of the same name, so two guests need two contexts.
+        const string ball = "/rooms/masked-ball/attempts/{id:guid}";
+        static MaskedBall.Ball? BallOf(AttemptStore attempts, Guid id) =>
+            attempts.Peek("masked-ball", id)?.Puzzle.Reveal as MaskedBall.Ball;
+        api.MapPost(ball + "/login", (Guid id, LoginRequest body, AttemptStore attempts, HttpContext context) =>
+        {
+            if (BallOf(attempts, id) is not { } b) return Results.NotFound();
+            var mask = Guid.NewGuid().ToString("N");
+            lock (b.Gate)
+            {
+                switch (body.Guest)
+                {
+                    case "Fox" when body.Password == b.FoxPassword: b.FoxMask = mask; break;
+                    case "Owl" when body.Password == b.OwlPassword: b.OwlMask = mask; break;
+                    default: return Results.Json(new { error = "The doorman checks the list twice and shakes his head." }, statusCode: 403);
+                }
+            }
+            context.Response.Cookies.Append(MaskedBall.Cookie, mask, new CookieOptions
+            {
+                HttpOnly = true, SameSite = SameSiteMode.Strict, Path = $"/api/rooms/masked-ball/attempts/{id}",
+            });
+            return Results.Ok(new { guest = body.Guest });
+        });
+        api.MapPost(ball + "/curtsy", (Guid id, AttemptStore attempts, HttpContext context) =>
+        {
+            if (BallOf(attempts, id) is not { } b) return Results.NotFound();
+            var mask = context.Request.Cookies[MaskedBall.Cookie];
+            lock (b.Gate)
+            {
+                if (mask is null || mask != b.OwlMask) return Results.Json(new { error = "Only Owl can return the bow, and you aren't wearing Owl's mask." }, statusCode: 403);
+                if (b.FoxMask is null) return Results.Json(new { error = "Owl curtsies to an empty ballroom. Fox hasn't arrived." }, statusCode: 409);
+                b.CurtsiedTo = b.FoxMask;
+            }
+            return Results.Ok(new { whisper = b.Whisper });
+        });
+        api.MapPost(ball + "/unmask", (Guid id, AnswerRequest body, AttemptStore attempts, HttpContext context) =>
+        {
+            if (attempts.Peek("masked-ball", id) is not { Puzzle.Reveal: MaskedBall.Ball b } attempt) return Results.NotFound();
+            var mask = context.Request.Cookies[MaskedBall.Cookie];
+            lock (b.Gate)
+            {
+                if (mask is null || mask != b.FoxMask) return Results.Json(new { error = "The host only unmasks for Fox, and you aren't wearing Fox's mask." }, statusCode: 403);
+                if (b.CurtsiedTo != mask) return Results.Json(new { error = "Owl hasn't returned this Fox's bow." }, statusCode: 409);
+            }
+            return body.Answer?.Trim() == b.Whisper
+                ? Results.Ok(new { phrase = attempt.Puzzle.Answer })
+                : Results.Json(new { error = "That isn't what Owl whispered." }, statusCode: 403);
+        });
 
         // Multi-step rooms (the boss) clear their trials here, one at a time, before the final answer.
         api.MapPost("/rooms/{slug}/attempts/{id:guid}/trials", (string slug, Guid id, AnswerRequest body, AttemptStore attempts) =>

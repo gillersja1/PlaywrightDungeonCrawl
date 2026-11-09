@@ -32,6 +32,7 @@ Every room is a trap built around one Playwright skill. The puzzle changes on ev
 | 8 | The Portal Bazaar | Tabs, pop-ups and navigation: following a link into a new tab and back |
 | 9 | The Clockwork Foundry | Mouse and keyboard: double-clicks, right-click menus and dragging to an exact spot |
 | 10 | The Courier Guild | Files: catching a download and uploading a file made in memory |
+| 11 | The Masquerade | Login state and browser contexts: two signed-in guests at once, one per context |
 
 ## Leaderboard and certificate
 
