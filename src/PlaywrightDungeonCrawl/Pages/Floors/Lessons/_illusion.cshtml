@@ -1,0 +1,51 @@
+<section>
+    <h2>Answering for the server</h2>
+    <p>
+        Some states are hard to reach for real: an empty basket, a server error, a slow reply, a feature flag that's
+        off. Playwright can catch a request inside the browser and answer it itself, so the page sees exactly what
+        the test wants it to see.
+    </p>
+</section>
+
+<section>
+    <h2>Routes</h2>
+<pre><code>// Answer with your own JSON: the server never hears about it
+await Page.RouteAsync("**/api/basket", route =&gt;
+    route.FulfillAsync(new() { Json = new { items = Array.Empty&lt;object&gt;() } }));
+
+// Fake an outage
+await Page.RouteAsync("**/api/prices", route =&gt; route.FulfillAsync(new() { Status = 503 }));
+
+// Stop a request altogether (analytics, ads, a slow third party)
+await Page.RouteAsync("**/analytics/**", route =&gt; route.AbortAsync());
+
+await Page.GotoAsync("/shop");   // routes first, then open the page</code></pre>
+    <p class="tip">
+        <strong>Routes before navigation.</strong> A route only catches requests made after it exists. Anything
+        the page asks for while it loads needs its route set up before <code>GotoAsync</code>.
+    </p>
+</section>
+
+<section>
+    <h2>Changing a real reply</h2>
+    <p>Often you want the real thing with one detail changed. Fetch it, edit it, hand it on:</p>
+<pre><code>await Page.RouteAsync("**/api/profile", async route =&gt;
+{
+    var real = await route.FetchAsync();                 // the real request, made for you
+    var profile = await real.JsonAsync();
+    var name = profile?.GetProperty("name").GetString();
+    await route.FulfillAsync(new()
+    {
+        Response = real,                                   // keep its status and headers
+        Json = new { name, plan = "premium" },             // swap the body
+    });
+});</code></pre>
+</section>
+
+<section>
+    <h2>The Illusionist's Stage</h2>
+    <p>
+        As the room opens, the stage fetches its act and a heckler. The real act has the curtain down. Change it on
+        the way in, and silence the heckler. Ten seconds.
+    </p>
+</section>

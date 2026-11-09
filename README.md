@@ -34,6 +34,8 @@ Every room is a trap built around one Playwright skill. The puzzle changes on ev
 | 10 | The Courier Guild | Files: catching a download and uploading a file made in memory |
 | 11 | The Masquerade | Login state and browser contexts: two signed-in guests at once, one per context |
 | 12 | The Oracle's Well | API testing: POST with a header, follow the 201's Location, read the JSON |
+| 13 | The Illusionist's Theater | Mocking responses: change a real reply on its way in, block a request |
+| 14 | The Architect's Atelier | Page Object Model: one component object, used for four panels |
 
 ## Leaderboard and certificate
 

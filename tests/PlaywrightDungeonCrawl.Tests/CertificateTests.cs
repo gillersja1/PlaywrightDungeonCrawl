@@ -229,8 +229,7 @@ public class CertificateTests
         {
             Assert.That(page, Does.Contain("class=\"panel cert-tier ready\" aria-labelledby=\"tier-apprentice\""));
             Assert.That(page, Does.Contain("Issue my Apprentice certificate"));
-            // Floors 8 and on aren't built yet, so the deeper tiers are sealed.
-            Assert.That(page, Does.Contain("class=\"panel cert-tier sealed\" aria-labelledby=\"tier-journeyman\""));
+            // Floor 19 isn't built yet, so the Master tier is sealed.
             Assert.That(page, Does.Contain("class=\"panel cert-tier sealed\" aria-labelledby=\"tier-master\""));
         });
     }
@@ -241,12 +240,12 @@ public class CertificateTests
         var player = dungeon.ClientFor("ada");
         await ClearFloorsAsync("ada", Catalog.Floors.Count);
 
-        var reply = await IssueTierAsync(player, "journeyman");
+        var reply = await IssueTierAsync(player, "master");
 
         Assert.Multiple(async () =>
         {
             Assert.That(reply.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-            Assert.That(await reply.Content.ReadAsStringAsync(), Does.Contain("The Journeyman certificate opens once floors 1 to 13 are built."));
+            Assert.That(await reply.Content.ReadAsStringAsync(), Does.Contain("The Master certificate opens once floors 1 to 19 are built."));
             Assert.That(await Records.CertificatesForAsync("id-ada"), Is.Empty);
         });
     }
