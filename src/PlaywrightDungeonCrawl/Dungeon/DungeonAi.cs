@@ -20,6 +20,7 @@ public static class DungeonAi
         ["couriers"] = "Welcome to the Courier Guild. Everything here travels on paper, in files, through slots in the wall. The Dungeon AI has never seen a courier read anything on a screen. It finds this charming.",
         ["masquerade"] = "Welcome to the Masquerade. Everyone here wears a mask, and nobody can wear two. The Dungeon AI has seen crawlers try. It was undignified.",
         ["oracle"] = "Welcome to the Oracle's Well. The Oracle has no face, no buttons and no patience for clicking. It speaks HTTP. The Dungeon AI finds it refreshingly honest about status codes.",
+        ["chancellery"] = "Welcome to the Chancellery. Nothing happens here without a petition, two signatures, a seal and a file. The Chancellor has never once been in a hurry. Today you will be. The Dungeon AI has filed a petition to watch.",
         ["illusion"] = "Welcome to the Illusionist's Theater, where nothing on stage is what the server sent. The Dungeon AI approves. It has been editing what you see since floor one.",
         ["atelier"] = "Welcome to the Architect's Atelier. Every blueprint here is the same blueprint, drawn again. The Architect calls it design. The Dungeon AI calls it a page object.",
         ["gauntlet"] = "The Warden has watched every crawler who came down those stairs. It has notes. Five trials, one breath, no do-overs. The Dungeon AI has reserved a seat in the front row.",
@@ -32,5 +33,5 @@ public static class DungeonAi
 
     /// <summary>Said under the sealed floors on the map.</summary>
     public const string SealedFloors =
-        "Floors fifteen to nineteen are under construction. The Dungeon AI apologizes for the inconvenience. It does not apologize for what's down there.";
+        "Floors sixteen to nineteen are under construction. The Dungeon AI apologizes for the inconvenience. It does not apologize for what's down there.";
 }

@@ -1,0 +1,76 @@
+<section>
+    <h2>One errand, five floors</h2>
+    <p>
+        The Warden tested floors 2 to 6 one trial at a time. The Chancellor doesn't do trials. It's one errand, and every
+        step hands the next one what it needs: a password from an API, two people signed in at once, a tab that opens
+        from a tab, a seal that has to be carried, and a file that goes out and comes back. That's what real end-to-end
+        tests look like. This scroll is about keeping one long test, across two contexts, under control.
+    </p>
+</section>
+
+<section>
+    <h2>Know which page you're holding</h2>
+    <p>
+        With two contexts and a popup, a test holds several pages at once. Give each one a name that says who it
+        belongs to, and never reach for <code>page</code> out of habit. Events like popups and downloads fire on the page
+        that caused them, so wait on that page:
+    </p>
+<pre><code>const clerk = page;                                       // the test's own context
+
+const chancellorContext = await browser.newContext();
+const chambers = await chancellorContext.newPage();       // a second cookie jar
+
+const opening = chambers.waitForEvent('popup');
+await chambers.getByRole('link', { name: 'Open the strongroom' }).click();
+const strongroom = await opening;</code></pre>
+    <p>The strongroom opened from the chambers, so it lives in the Chancellor's context and wears the Chancellor's cookies.</p>
+</section>
+
+<section>
+    <h2>The API is a step, too</h2>
+    <p>
+        <code>page.request</code> belongs to a context, and shares its cookies. When an API call only fetches a value,
+        like a password, it doesn't matter which context sends it. When it signs someone in, it matters a lot. Pull the
+        value out, check the status as you go, and pass it on:
+    </p>
+<pre><code>const headers = { 'X-Petition': petition };
+const filed = await page.request.post(registryUrl, { data: { office: 'Chancellor' }, headers });
+expect(filed.status()).toBe(201);
+const record = await page.request.get(new URL(filed.headers()['location'], page.url()).href, { headers });
+const { password } = await record.json();</code></pre>
+</section>
+
+<section>
+    <h2>Drag with intent</h2>
+    <p>
+        On floor 9 you dragged by hand with the mouse. When you only need to carry one thing onto another,
+        <code>dragTo</code> does the pressing, moving and letting go for you:
+    </p>
+<pre><code>await strongroom.getByRole('img', { name: "The Chancellor's seal" })
+  .dragTo(strongroom.getByRole('region', { name: 'The charter' }));</code></pre>
+</section>
+
+<section>
+    <h2>Name the steps</h2>
+    <p>
+        A test this long reads best as a list of steps that return what the next step needs. Small functions do it,
+        each taking the page it works on:
+    </p>
+<pre><code>const password = await askTheRegistry(page, petition);
+await signIn(clerk, 'Clerk', clerkPassword);
+const strongroom = await openTheStrongroom(chambers, password);
+const charter = await sealAndCollect(strongroom);
+await file(clerk, charter);</code></pre>
+    <p>
+        Close the second context when you're done with it (<code>await chancellorContext.close()</code>). When the test
+        fails, <code>npx playwright show-report</code> has its trace.
+    </p>
+</section>
+
+<section>
+    <h2>Face the Chancellor</h2>
+    <p>
+        A petition, two seals, a strongroom, a charter. Both people have to stay signed in until the end: a Chancellor who
+        signs in again isn't the one who sealed it. Thirty seconds.
+    </p>
+</section>

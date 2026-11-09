@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace PlaywrightDungeonCrawl.Tests;
 
-/// <summary>Floors 13 and 14: the stage's real replies, and the drafting table's work order.</summary>
+/// <summary>Floors 14 and 15: the stage's real replies, and the drafting table's work order.</summary>
 public class StageAndAtelierTests
 {
     [Test]

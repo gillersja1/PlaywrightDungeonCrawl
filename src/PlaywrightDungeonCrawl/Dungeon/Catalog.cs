@@ -1058,7 +1058,90 @@ public sealed class DungeonCatalog
                         "Created, but where? Which header names a place?"),
                 },
             },
-            new Floor(13, "illusion", "The Illusionist's Theater", "Mocking responses",
+            new Floor(13, "chancellery", "The Chancellery", "Boss: floors 8 to 12 in one chain",
+                "The second boss. One errand, five floors: an API, two people signed in at once, a new tab, a steady hand and a file that goes out and comes back. Learn to carry values through a long test that spans contexts.",
+                bySlug["chancellors-seal"],
+                new[]
+                {
+                    new QuizQuestion(
+                        "Your test calls Page.APIRequest.PostAsync(...). Whose cookies go with the request?",
+                        new[]
+                        {
+                            "None: API requests never send cookies",
+                            "The cookies of Page's browser context, and any cookie the reply sets lands there too",
+                            "Every context's cookies at once",
+                            "Only the ones you add to the headers yourself",
+                        },
+                        1,
+                        "Page.APIRequest shares its context's cookie jar. Signing in through the API signs that context's pages in, and a page's cookies go out with its API calls.",
+                        "Page.APIRequest hangs off a page. Which jar of cookies does that page use?"),
+                    new QuizQuestion(
+                        "A page in your second context has a link that opens a new tab. How do you catch the tab?",
+                        new[]
+                        {
+                            "Page.RunAndWaitForPopupAsync(...) on the test's first page",
+                            "chambers.RunAndWaitForPopupAsync(...), on the page that has the link",
+                            "Browser.Contexts[0].Pages.Last()",
+                            "You can't: popups only work in the first context",
+                        },
+                        1,
+                        "A popup is an event on the page that opened it, and it opens in that page's context. Waiting on another page's events waits forever.",
+                        "Which page fires the popup event: the one you started with, or the one you clicked on?"),
+                    new QuizQuestion(
+                        "The Clerk signs in on Page. You open the chambers with Page.Context.NewPageAsync() and sign the Chancellor in there. Now the Clerk is refused. Why?",
+                        new[]
+                        {
+                            "New pages log everyone out",
+                            "Both pages share one context, so the Chancellor's cookie replaced the Clerk's: the chambers need Browser.NewContextAsync()",
+                            "The Clerk's page needs reloading",
+                            "Cookies only work in the first tab",
+                        },
+                        1,
+                        "Pages in one context share every cookie. Two people with the same cookie name need two contexts, each with its own jar.",
+                        "Is a new tab in the same context a new cookie jar?"),
+                })
+            {
+                TypeScriptRiddles = new[]
+                {
+                    new QuizQuestion(
+                        "Your test calls page.request.post(...). Whose cookies go with the request?",
+                        new[]
+                        {
+                            "None: API requests never send cookies",
+                            "The cookies of page's browser context, and any cookie the reply sets lands there too",
+                            "Every context's cookies at once",
+                            "Only the ones you add to the headers yourself",
+                        },
+                        1,
+                        "page.request shares its context's cookie jar. Signing in through the API signs that context's pages in, and a page's cookies go out with its API calls.",
+                        "page.request hangs off a page. Which jar of cookies does that page use?"),
+                    new QuizQuestion(
+                        "A page in your second context has a link that opens a new tab. How do you catch the tab?",
+                        new[]
+                        {
+                            "page.waitForEvent('popup') on the test's first page",
+                            "chambers.waitForEvent('popup'), started before the click, on the page that has the link",
+                            "browser.contexts()[0].pages().at(-1)",
+                            "You can't: popups only work in the first context",
+                        },
+                        1,
+                        "A popup is an event on the page that opened it, and it opens in that page's context. Waiting on another page's events waits forever.",
+                        "Which page fires the popup event: the one you started with, or the one you clicked on?"),
+                    new QuizQuestion(
+                        "The Clerk signs in on page. You open the chambers with page.context().newPage() and sign the Chancellor in there. Now the Clerk is refused. Why?",
+                        new[]
+                        {
+                            "New pages log everyone out",
+                            "Both pages share one context, so the Chancellor's cookie replaced the Clerk's: the chambers need browser.newContext()",
+                            "The Clerk's page needs reloading",
+                            "Cookies only work in the first tab",
+                        },
+                        1,
+                        "Pages in one context share every cookie. Two people with the same cookie name need two contexts, each with its own jar.",
+                        "Is a new tab in the same context a new cookie jar?"),
+                },
+            },
+            new Floor(14, "illusion", "The Illusionist's Theater", "Mocking responses",
                 "Nothing on stage is what the server sent. Learn to catch requests in the browser, answer them yourself, change real replies and stop the ones you don't want.",
                 bySlug["illusionists-stage"],
                 new[]
@@ -1141,7 +1224,7 @@ public sealed class DungeonCatalog
                         "When did the request happen, and when did your route start listening?"),
                 },
             },
-            new Floor(14, "atelier", "The Architect's Atelier", "Page Object Model",
+            new Floor(15, "atelier", "The Architect's Atelier", "Page Object Model",
                 "Every blueprint here is the same blueprint, drawn again. Learn to wrap a page, or one part of it, in a class your tests can reuse.",
                 bySlug["drafting-table"],
                 new[]
@@ -1230,8 +1313,7 @@ public sealed class DungeonCatalog
     /// <summary>The deeper floors, shown on the map as sealed until they're built.</summary>
     public IReadOnlyList<(int Number, string Title, string Skill)> SealedFloors { get; } = new[]
     {
-        (15, "The Hydra Pits", "Fixtures, setup and parallel tests"),
-        (16, "The Haunted Archive", "Tracing and debugging"),
+        (16, "The Hydra Pits", "Fixtures, setup and parallel tests"),
         (17, "The Portrait Gallery", "Screenshots and visual comparison"),
         (18, "The Clocktower of Elsewhere", "Emulation and the clock"),
         (19, "The Flake", "The final boss: a flaky-test hunt"),

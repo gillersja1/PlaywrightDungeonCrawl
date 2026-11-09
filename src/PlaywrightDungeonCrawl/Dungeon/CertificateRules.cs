@@ -35,7 +35,7 @@ public static partial class CertificateRules
     public static readonly IReadOnlyList<TierRules> Tiers =
     [
         new(CertificateTier.Apprentice, "Apprentice", 7, "from setup to the Warden's Keep"),
-        new(CertificateTier.Journeyman, "Journeyman", 13, "deeper, past a second boss"),
+        new(CertificateTier.Journeyman, "Journeyman", 13, "through the Chancellery, the second boss"),
         new(CertificateTier.Master, "Master", 19, "all the way down to The Flake"),
     ];
 
@@ -57,9 +57,9 @@ public static partial class CertificateRules
     /// <summary>A tier opens once the dungeon has built every floor it covers.</summary>
     public static bool IsOpen(TierRules tier, DungeonCatalog catalog) => catalog.Floors.Count >= tier.Floors;
 
-    /// <summary>Earned once every floor the tier covers is verified as cleared.</summary>
+    /// <summary>Earned once every floor the tier covers, 1 to <see cref="TierRules.Floors"/>, is verified as cleared.</summary>
     public static bool IsEligible(Standing standing, TierRules tier, DungeonCatalog catalog) =>
-        IsOpen(tier, catalog) && standing.FloorsCleared >= tier.Floors;
+        IsOpen(tier, catalog) && standing.ClearedThrough >= tier.Floors;
 
     /// <summary>The printed name, or null if it's empty, too long or has control characters.</summary>
     public static string? CleanName(string? name)

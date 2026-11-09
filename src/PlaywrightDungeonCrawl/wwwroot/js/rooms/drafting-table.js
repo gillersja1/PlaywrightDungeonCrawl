@@ -1,4 +1,4 @@
-// Floor 14, the Page Object Model: four identical blueprint panels in a shuffled order. The work order says how to
+// Floor 15, the Page Object Model: four identical blueprint panels in a shuffled order. The work order says how to
 // fill each one; a component object scoped to one panel fills them all.
 import { startRoom } from "../room.js";
 

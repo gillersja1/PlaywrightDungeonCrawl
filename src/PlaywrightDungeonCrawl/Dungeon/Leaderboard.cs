@@ -61,6 +61,12 @@ public sealed record Standing(string Login, int FloorsCleared, int Score, DateTi
 
     public bool IsNpc => Npc is not null;
 
+    /// <summary>
+    /// The highest N where floors 1 to N are all cleared. Certificate tiers count this, not <see cref="FloorsCleared"/>,
+    /// so a tier can't be earned by clearing other floors instead of its boss.
+    /// </summary>
+    public int ClearedThrough { get; init; }
+
     /// <summary>A title bought in the loot shop and worn on the board (see <see cref="Shop.VerifiedTitle"/>).</summary>
     public string? Title { get; init; }
 
@@ -97,7 +103,8 @@ public static class Leaderboard
                 .Where(a => (a.Kind == Achievement.Riddle && a.Slug == f.Slug) || (a.Kind == Achievement.Treasure && a.Slug == f.Room.Slug))
                 .Max(a => a.EarnedAt));
 
-        return new(record.Login, cleared.Count, score, reached);
+        var through = catalog.Floors.OrderBy(f => f.Number).TakeWhile(cleared.Contains).Count();
+        return new(record.Login, cleared.Count, score, reached) { ClearedThrough = through };
     }
 
     /// <summary>
