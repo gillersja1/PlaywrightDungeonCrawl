@@ -10,7 +10,7 @@ COPY src/ src/
 RUN dotnet publish src/PlaywrightDungeonCrawl/PlaywrightDungeonCrawl.csproj -c Release -o /app --no-restore
 
 # Runtime stage: only the ASP.NET runtime and the published site.
-FROM mcr.microsoft.com/dotnet/aspnet:10.0
+FROM mcr.microsoft.com/dotnet/aspnet:11.0
 WORKDIR /app
 COPY --from=build /app .
 
