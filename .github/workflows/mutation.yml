@@ -1,0 +1,53 @@
+# Mutation testing with Stryker.NET: it makes small changes ("mutants") to the
+# game-rule code and checks that the unit tests notice. The mutation score is
+# the share of mutants the tests catch. Slow, so it runs weekly, on demand, and
+# on PRs that touch the mutated files (listed in stryker-config.json).
+name: Mutation tests
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 6 * * 1'
+  pull_request:
+    paths:
+      - 'src/PlaywrightDungeonCrawl/Dungeon/CertificateRules.cs'
+      - 'src/PlaywrightDungeonCrawl/Dungeon/Curses.cs'
+      - 'src/PlaywrightDungeonCrawl/Dungeon/Leaderboard.cs'
+      - 'src/PlaywrightDungeonCrawl/Dungeon/Shop.cs'
+      - 'src/PlaywrightDungeonCrawl/Dungeon/FlagService.cs'
+      - 'src/PlaywrightDungeonCrawl/Dungeon/Rivals.cs'
+      - 'tests/PlaywrightDungeonCrawl.Tests/**'
+      - '.github/workflows/mutation.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  stryker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore tools
+        run: dotnet tool restore
+
+      - name: Run Stryker
+        working-directory: tests/PlaywrightDungeonCrawl.Tests
+        run: dotnet stryker
+
+      - name: Add score to run summary
+        if: always()
+        run: cat tests/PlaywrightDungeonCrawl.Tests/StrykerOutput/*/reports/mutation-report.md >> "$GITHUB_STEP_SUMMARY" || true
+
+      - name: Upload mutation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutation-report
+          path: tests/PlaywrightDungeonCrawl.Tests/StrykerOutput/*/reports/
+          if-no-files-found: ignore
