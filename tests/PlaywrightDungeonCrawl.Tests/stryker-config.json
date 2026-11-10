@@ -12,6 +12,6 @@
     ],
     "reporters": [ "html", "markdown", "progress" ],
     "concurrency": 4,
-    "thresholds": { "high": 80, "low": 60, "break": 50 }
+    "thresholds": { "high": 80, "low": 60, "break": 55 }
   }
 }

@@ -132,7 +132,7 @@ CI runs both on every pull request. The reference solutions crawl the real Docke
 | Reference solutions (C# and TypeScript) | Every room can still be cleared in the real Docker image, in both languages. | Every PR |
 | Timeline report | Where the TypeScript crawl spends its time, test by test (on the run summary, plus an HTML report artifact). | Every PR |
 | OWASP ZAP baseline | No new passive security findings on the running site ([reviewed exceptions](.zap/rules.tsv)). | Every PR |
-| Stryker.NET mutation tests | The unit tests catch deliberate bugs in the game-rule code. The build fails if the score drops below 50%. | Weekly, and on PRs that touch that code |
+| Stryker.NET mutation tests | The unit tests catch deliberate bugs in the game-rule code. The build fails if the score drops below 55% (currently 57%). | Weekly, and on PRs that touch that code |
 
 Run the mutation tests locally (about 10 minutes):
 
