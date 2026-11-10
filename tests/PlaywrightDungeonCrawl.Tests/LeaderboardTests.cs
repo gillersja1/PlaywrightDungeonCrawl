@@ -182,6 +182,22 @@ public class LeaderboardTests
     }
 
     [Test]
+    public void RivalsScoreFullXpPerFloorLessTheHelpTheyTook()
+    {
+        // 85 XP a floor (scroll 10 + riddle 25 + treasure 50), less hints taken, never below zero.
+        var scores = Rivals.StandingsFor(Catalog).Select(r => (r.Login, r.FloorsCleared, r.Score));
+
+        Assert.That(scores, Is.EqualTo(new[]
+        {
+            ("The Warden", 6, 470),
+            ("Skeleton Intern", 4, 315),
+            ("The Quartermaster", 2, 170),
+            ("Rattlebones the Flaky", 1, 70),
+            ("The Dungeon AI", 0, 0),
+        }));
+    }
+
+    [Test]
     public void RivalsNeverClaimMoreFloorsThanAreOpen()
     {
         Assert.Multiple(() =>

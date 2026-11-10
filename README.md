@@ -120,6 +120,27 @@ DUNGEON_URL=http://localhost:8080 dotnet test solutions/PlaywrightDungeonCrawl.S
 
 CI runs both on every pull request. The reference solutions crawl the real Docker image, so a passing build means the image starts and every room can still be cleared. Results go to Grafana alongside the app's own telemetry.
 
+### Quality checks
+
+[![CI](https://github.com/gillersja1/PlaywrightDungeonCrawl/actions/workflows/ci.yml/badge.svg)](https://github.com/gillersja1/PlaywrightDungeonCrawl/actions/workflows/ci.yml)
+[![ZAP baseline](https://github.com/gillersja1/PlaywrightDungeonCrawl/actions/workflows/zap.yml/badge.svg)](https://github.com/gillersja1/PlaywrightDungeonCrawl/actions/workflows/zap.yml)
+[![Mutation tests](https://github.com/gillersja1/PlaywrightDungeonCrawl/actions/workflows/mutation.yml/badge.svg)](https://github.com/gillersja1/PlaywrightDungeonCrawl/actions/workflows/mutation.yml)
+
+| Check | What it proves | When |
+|---|---|---|
+| Unit and integration tests | Game rules, accounts, leaderboard and pages behave as specified. | Every PR |
+| Reference solutions (C# and TypeScript) | Every room can still be cleared in the real Docker image, in both languages. | Every PR |
+| Timeline report | Where the TypeScript crawl spends its time, test by test (on the run summary, plus an HTML report artifact). | Every PR |
+| OWASP ZAP baseline | No new passive security findings on the running site ([reviewed exceptions](.zap/rules.tsv)). | Every PR |
+| Stryker.NET mutation tests | The unit tests catch deliberate bugs in the game-rule code. The build fails if the score drops below 50%. | Weekly, and on PRs that touch that code |
+
+Run the mutation tests locally (about 10 minutes):
+
+```bash
+dotnet tool restore
+cd tests/PlaywrightDungeonCrawl.Tests && dotnet stryker
+```
+
 ## Feedback
 
 Stuck on a room, found a bug, or have an idea for a new floor? Use [Send feedback](https://playwright-dungeon-crawl.onrender.com/feedback) on any page, or [open an issue](https://github.com/gillersja1/PlaywrightDungeonCrawl-Starter/issues) on the starter kit.

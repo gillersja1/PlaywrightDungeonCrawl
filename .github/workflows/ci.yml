@@ -114,7 +114,7 @@ jobs:
           cp solutions/ts-solutions/*.spec.ts ts-kit/tests/
           cd ts-kit
           npm ci
-          npm install --no-save playwright-timeline-reporter
+          npm install --no-save playwright-timeline-reporter@1.3.0
           npx playwright install --with-deps chromium
           npx --yes -p typescript tsc -p .
           npx playwright test --reporter=list,playwright-timeline-reporter

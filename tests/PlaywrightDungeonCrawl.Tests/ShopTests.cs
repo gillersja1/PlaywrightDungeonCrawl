@@ -31,6 +31,41 @@ public class ShopTests
     }
 
     [Test]
+    public void Find_returns_the_item_by_id_and_null_for_anything_else()
+    {
+        Assert.Multiple(() =>
+        {
+            Assert.That(Shop.Find("torch-ghostfire")?.Name, Is.EqualTo("Ghostfire torch"));
+            Assert.That(Shop.Find("torch-made-up"), Is.Null);
+            Assert.That(Shop.Find(null), Is.Null);
+        });
+    }
+
+    [Test]
+    public void Spent_adds_up_the_prices_paid()
+    {
+        Assert.Multiple(() =>
+        {
+            Assert.That(Shop.Spent(With(new() { ["title-lockpicker"] = 40, ["torch-verdigris"] = 75 }, [])), Is.EqualTo(115));
+            Assert.That(Shop.Spent(PlayerProgress.Empty), Is.Zero);
+        });
+    }
+
+    [Test]
+    public void Only_a_title_can_be_shown_as_a_title()
+    {
+        // An owned torch forced into the title slot (by editing what the browser sends) shows nothing.
+        var torchAsTitle = With(new() { ["torch-ghostfire"] = 50 }, new() { ["title"] = "torch-ghostfire" });
+        var notOwned = With([], new() { ["title"] = "title-lockpicker" });
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(Shop.VerifiedTitle(torchAsTitle, verifiedScore: 500), Is.Null);
+            Assert.That(Shop.VerifiedTitle(notOwned, verifiedScore: 500), Is.Null);
+        });
+    }
+
+    [Test]
     public void Sanitize_drops_unknown_loot_and_impossible_prices()
     {
         var progress = With(
