@@ -63,6 +63,9 @@ button.link-button:hover { background: none; color: var(--torch-bright); }
 .lang-switch a { padding: 3px 10px; color: var(--stone-400); }
 .lang-switch a[aria-current="true"] { background: var(--torch-dim); color: var(--stone-900); font-weight: 600; }
 .choose-language .weapons { display: flex; flex-wrap: wrap; gap: 12px; }
+/* The chooser is a dark panel inside the parchment scroll, so it takes back the dark-page colors. */
+.scroll .choose-language { color: var(--bone); }
+.scroll .choose-language h2 { color: #fff6e6; }
 .weapon { flex: 1 1 200px; display: flex; flex-direction: column; gap: 4px; padding: 12px 16px; border: 1px solid var(--stone-600); border-radius: var(--radius); background: var(--stone-900); color: var(--bone); text-decoration: none; }
 .weapon strong { font-size: 1.15rem; }
 .weapon span { color: var(--stone-400); font-size: 0.9rem; }
