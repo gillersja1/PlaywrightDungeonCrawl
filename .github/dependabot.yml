@@ -1,0 +1,23 @@
+# Weekly update PRs, grouped so each ecosystem opens at most one PR a week.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
+
+  - package-ecosystem: nuget
+    directories: ["/src/PlaywrightDungeonCrawl", "/tests/PlaywrightDungeonCrawl.Tests"]
+    schedule:
+      interval: weekly
+    groups:
+      nuget:
+        patterns: ["*"]
+
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
