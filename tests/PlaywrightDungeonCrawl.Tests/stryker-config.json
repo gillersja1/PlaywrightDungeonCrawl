@@ -1,0 +1,17 @@
+{
+  "stryker-config": {
+    "project": "PlaywrightDungeonCrawl.csproj",
+    "test-projects": [ "PlaywrightDungeonCrawl.Tests.csproj" ],
+    "mutate": [
+      "**/Dungeon/CertificateRules.cs",
+      "**/Dungeon/Curses.cs",
+      "**/Dungeon/Leaderboard.cs",
+      "**/Dungeon/Shop.cs",
+      "**/Dungeon/FlagService.cs",
+      "**/Dungeon/Rivals.cs"
+    ],
+    "reporters": [ "html", "markdown", "progress" ],
+    "concurrency": 4,
+    "thresholds": { "high": 80, "low": 60, "break": 50 }
+  }
+}

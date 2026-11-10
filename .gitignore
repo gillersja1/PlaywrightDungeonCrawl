@@ -483,3 +483,4 @@ $RECYCLE.BIN/
 
 # The private reference solutions, cloned here for local runs (spoilers; never commit them)
 solutions/
+StrykerOutput/
