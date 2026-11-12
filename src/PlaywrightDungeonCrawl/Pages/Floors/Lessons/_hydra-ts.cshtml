@@ -1,0 +1,65 @@
+<section>
+    <h2>Setting the table once</h2>
+    <p>
+        Most tests need something ready before they start: a user, a basket, a record in the database. Playwright
+        Test gives you hooks for it. <code>test.beforeEach</code> runs before every test.
+        <code>test.beforeAll</code> runs once per worker. And <code>globalSetup</code> runs once for the whole run,
+        before any worker starts.
+    </p>
+<pre><code>// report-setup.ts: runs once, in the main process
+import { request } from '@@playwright/test';
+
+export default async function globalSetup() {
+  const api = await request.newContext({ baseURL: process.env.DUNGEON_URL ?? 'https://playwright-dungeon-crawl.onrender.com' });
+  const reply = await api.post('/api/reports');
+  process.env.REPORT_ID = (await reply.json()).id;   // the workers inherit this
+  await api.dispose();
+}</code></pre>
+    <p class="tip">
+        <strong>Workers are processes.</strong> Each worker runs its own <code>beforeAll</code>, so with five
+        workers it runs five times. Anything that must happen exactly once goes in <code>globalSetup</code>, and a
+        short value like an id reaches the workers through <code>process.env</code>.
+    </p>
+</section>
+
+<section>
+    <h2>Clean hands</h2>
+    <p>
+        Every test already gets a fresh browser context through the <code>page</code> fixture: its own cookies, its
+        own storage, nothing left over from the test before. Keep it that way. A test that depends on what another
+        test left behind passes on its own and fails in a crowd.
+    </p>
+</section>
+
+<section>
+    <h2>Side by side</h2>
+    <p>
+        The kit runs one worker, so rooms take turns on the small dungeon server. For parallel tests, give them a
+        config of their own that builds on the kit's:
+    </p>
+<pre><code>// parallel.config.ts
+import { defineConfig } from '@@playwright/test';
+import base from './playwright.config';
+
+export default defineConfig(base, {
+  globalSetup: './report-setup.ts',
+  testMatch: '**/*.parallel.ts',   // only these files, so the normal run never picks them up
+  workers: 5,
+  fullyParallel: true,             // tests in the same file may run at the same time
+});</code></pre>
+<pre><code>npx playwright test -c parallel.config.ts</code></pre>
+    <p class="tip">
+        <strong>fullyParallel.</strong> Without it, Playwright keeps a file's tests together, in order, in one
+        worker. Five workers and one file would still mean one test at a time.
+    </p>
+</section>
+
+<section>
+    <h2>The Severing Pit</h2>
+    <p>
+        The hydra has five heads, and they only rear when a crawler stands at every one. Then all five have to fall
+        within three seconds, or they grow back. Start one hunt, then send five crawlers, each with clean hands, all
+        at once. One after another never works: the hydra won't wait ten seconds for the rest, and a crawler already
+        at the pit can't face a second head.
+    </p>
+</section>

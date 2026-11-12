@@ -8,6 +8,10 @@ const OUTCOMES = {
     "too-slow": "Too slow. The trap had time to finish its coffee before you finished.",
     "unknown-attempt": "This attempt is used up. The dungeon doesn't do refunds, but it does do reloads.",
     "cursed-decoy": "You touched a decoy. The curse is delighted. The Dungeon AI is taking notes.",
+    "regrown": "The heads grew back. A hydra only dies if every head falls at once: one crawler per head, all at the same time.",
+    "lunged": "The head lunged while you hesitated. Strike while its throat is bared.",
+    "scarred": "This hand already cut a head, and the hydra remembers. The head grew back. Every head needs a crawler with clean hands.",
+    "already-cut": "That head was already off. Each crawler needs a head of their own.",
 };
 
 export async function startRoom(render) {
@@ -124,7 +128,7 @@ export async function startRoom(render) {
             limit.textContent = `${attempt.timeLimitMs / 1000} seconds`;
         }
     }
-    render(arena, attempt.briefing, { answer, trial, reveal, attemptId: attempt.attemptId });
+    render(arena, attempt.briefing, { answer, trial, reveal, fail, attemptId: attempt.attemptId });
     if (attempt.curse) {
         applyCurse(attempt.curse.code, arena, () => fail("cursed-decoy"));
     }

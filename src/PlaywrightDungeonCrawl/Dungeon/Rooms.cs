@@ -821,3 +821,81 @@ public sealed class DraftingTable : Room
         return new RoomPuzzle(new { blueprints, materials = Materials }, answer);
     }
 }
+
+/// <summary>
+/// Floor 16, fixtures, setup and parallel tests: a hydra with five heads. One setup call starts the hunt. Each head
+/// needs its own crawler in its own fresh browser context (a hand already at the pit can't face a second head), and
+/// the heads only rear once all five crawlers are there together. If they don't gather in time, or don't all cut
+/// within a few seconds, the heads grow back. Only tests running side by side get there.
+/// </summary>
+public sealed class SeveringPit : Room
+{
+    public const int Heads = 5;
+    /// <summary>How long after the first cut the last head must fall.</summary>
+    public static readonly TimeSpan Window = TimeSpan.FromSeconds(3);
+    /// <summary>How long after the first crawler arrives the other four have to turn up.</summary>
+    public static readonly TimeSpan Patience = TimeSpan.FromSeconds(10);
+    public const string ScarCookie = "pit-scar";
+
+    public enum HuntState { Gathering, Rearing, Slain, Regrown }
+
+    /// <summary>One hunt, shared by the five crawlers who answer it. Started by the setup call, kept in the cache.</summary>
+    public sealed class Hunt
+    {
+        public Guid Id { get; } = Guid.NewGuid();
+        public object Gate { get; } = new();
+        public Dictionary<int, (Guid Attempt, DateTimeOffset At)> Faced { get; } = new();
+        public Dictionary<int, (Guid Attempt, DateTimeOffset At)> Cuts { get; } = new();
+
+        public HuntState StateAt(DateTimeOffset now)
+        {
+            lock (Gate)
+            {
+                if (Cuts.Count > 0)
+                {
+                    var first = Cuts.Values.Min(c => c.At);
+                    if (Cuts.Count == Heads && Cuts.Values.Max(c => c.At) - first <= Window) return HuntState.Slain;
+                    if (now - first > Window) return HuntState.Regrown;
+                }
+                if (Faced.Count == Heads) return HuntState.Rearing;
+                return Faced.Count > 0 && now - Faced.Values.Min(f => f.At) > Patience ? HuntState.Regrown : HuntState.Gathering;
+            }
+        }
+
+        public bool WasCutBy(Guid attempt)
+        {
+            lock (Gate) return Cuts.Values.Any(c => c.Attempt == attempt);
+        }
+    }
+
+    public override string[] Nudges { get; } =
+    {
+        "One crawler can't do this: the heads only rear when all five crawlers are at the pit together, each with clean hands. Your tests need to share one hunt, and run side by side.",
+        "Start the hunt once, before the tests, in a [OneTimeSetUp]. Then write one test per head (a [TestCase] for each number) and let NUnit run them in parallel: [Parallelizable(ParallelScope.All)], one instance per test case, and at least five workers.",
+        "[Parallelizable(ParallelScope.All)] [FixtureLifeCycle(LifeCycle.InstancePerTestCase)] on the class, [assembly: LevelOfParallelism(5)], a static [OneTimeSetUp] that POSTs /api/rooms/severing-pit/hunts and keeps its huntId, and [TestCase(1)]...[TestCase(5)] Cut(int head): EnterAsync($\"/rooms/severing-pit?hunt={huntId}&head={head}\"), click Cut, TakeTreasureAsync().",
+    };
+
+    public override string[] TypeScriptNudges { get; } =
+    {
+        "One crawler can't do this: the heads only rear when all five crawlers are at the pit together, each with clean hands. Your tests need to share one hunt, and run side by side.",
+        "Workers are separate processes, so a beforeAll would start five hunts. Start one hunt in a globalSetup and hand its id to the workers in an environment variable. Then run five tests in parallel, with five workers.",
+        "A pit.config.ts that builds on the kit's config with globalSetup: './pit-setup.ts', workers: 5, fullyParallel: true and testMatch: '**/*.pit.ts'. The setup POSTs /api/rooms/severing-pit/hunts and sets process.env.HUNT_ID. Then for head 1 to 5: test(`head ${head}`, ...) goes to /rooms/severing-pit?hunt=...&head=..., clicks Cut and takes the treasure. Run it with npx playwright test -c pit.config.ts.",
+    };
+
+    public override string Slug => "severing-pit";
+    public override string Name => "The Severing Pit";
+    public override string Objective =>
+        "The hydra has five heads. They only rear when a crawler stands at every one, and they only stay down if all " +
+        "five fall within three seconds. Start one hunt, then send a crawler for each head, each with clean hands, all at once.";
+    public override TimeSpan TimeLimit => TimeSpan.FromSeconds(20);
+
+    public override RoomPuzzle Generate(Random rng) =>
+        new(new
+        {
+            heads = Heads,
+            windowMs = (int)Window.TotalMilliseconds,
+            patienceMs = (int)Patience.TotalMilliseconds,
+            rearMs = 300 + rng.Next(600),
+            openMs = 1500,
+        }, Rune(rng, 8));
+}

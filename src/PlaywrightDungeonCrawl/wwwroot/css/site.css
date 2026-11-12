@@ -492,3 +492,11 @@ a.bug-badge:hover { background: rgba(111, 191, 115, 0.15); }
 .blueprint { display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 1px solid #3b6ea5; border-radius: 10px; background: rgba(59, 110, 165, 0.1); }
 .work-order { border-collapse: collapse; margin-bottom: 12px; }
 .work-order th, .work-order td { padding: 4px 10px; border-bottom: 1px solid var(--stone-600, #444); text-align: left; }
+
+/* Floor 16: the Severing Pit */
+.pit { padding: 16px 12px; border-radius: var(--radius); background: linear-gradient(#1c1410, #0b0806); }
+.pit-notice pre { overflow-x: auto; }
+.pit-head { font-size: 1.4em; margin: 0 0 8px; transition: transform 0.2s; }
+.pit-head.reared { transform: translateY(-6px) scale(1.08); }
+.pit-head.severed { opacity: 0.4; text-decoration: line-through; }
+.pit-status { color: var(--stone-400); font-style: italic; min-height: 2em; }
