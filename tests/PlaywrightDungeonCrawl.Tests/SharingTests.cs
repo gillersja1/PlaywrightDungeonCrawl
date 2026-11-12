@@ -29,7 +29,7 @@ public class SharingTests
         {
             Assert.That(Meta(html, "og:title"), Is.EqualTo("Playwright Dungeon Crawl: learn Playwright by beating a dungeon"));
             Assert.That(Meta(html, "og:description"), Does.Contain("C# or TypeScript"));
-            Assert.That(Meta(html, "og:image"), Does.EndWith("/img/brand/og-image-2.png"));
+            Assert.That(Meta(html, "og:image"), Does.EndWith("/img/brand/og-image-3.png"));
             Assert.That(Meta(html, "og:image:width"), Is.EqualTo("1200"));
             Assert.That(Meta(html, "og:image:height"), Is.EqualTo("630"));
         });
@@ -46,7 +46,7 @@ public class SharingTests
     [Test]
     public async Task ThePreviewImageIsServed()
     {
-        var reply = await dungeon.ClientFor(null).GetAsync("/img/brand/og-image-2.png");
+        var reply = await dungeon.ClientFor(null).GetAsync("/img/brand/og-image-3.png");
 
         Assert.Multiple(() =>
         {
