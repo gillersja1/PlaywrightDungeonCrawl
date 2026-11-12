@@ -1,0 +1,71 @@
+<section>
+    <h2>Setting the table once</h2>
+    <p>
+        Most tests need something ready before they start: a user, a basket, a record in the database. NUnit gives
+        you two places to make it. <code>[SetUp]</code> runs before <em>every</em> test, so each one gets its own.
+        <code>[OneTimeSetUp]</code> runs <em>once</em> for the whole class, for things the tests can share.
+    </p>
+<pre><code>public class ReportTests : DungeonTest
+{
+    private static string reportId = "";
+
+    [OneTimeSetUp]                       // once, before any test in this class
+    public static async Task CreateReport()
+    {
+        using var pw = await Microsoft.Playwright.Playwright.CreateAsync();
+        var api = await pw.APIRequest.NewContextAsync(new() { BaseURL = DungeonUrl });
+        var reply = await api.PostAsync("/api/reports");
+        reportId = (await reply.JsonAsync())?.GetProperty("id").GetString() ?? "";
+    }
+
+    [SetUp]                              // before every test
+    public async Task OpenIt() =&gt; await EnterAsync($"/reports/{reportId}");
+}</code></pre>
+    <p class="tip">
+        <strong>Setup through the API, not the UI.</strong> A test that clicks through three screens to make its
+        data is slow and breaks when those screens change. An API call makes the same thing in milliseconds.
+    </p>
+</section>
+
+<section>
+    <h2>Clean hands</h2>
+    <p>
+        Every Playwright test already gets a fresh browser context: its own cookies, its own storage, nothing left
+        over from the test before. Keep it that way. A test that depends on what another test left behind passes on
+        its own and fails in a crowd.
+    </p>
+</section>
+
+<section>
+    <h2>Side by side</h2>
+    <p>
+        NUnit runs tests one at a time unless you tell it otherwise. Three attributes switch it to parallel:
+    </p>
+<pre><code>[assembly: LevelOfParallelism(5)]      // up to five tests at once (default: one per CPU core)
+
+[Parallelizable(ParallelScope.All)]   // this class, and every test in it, may run alongside others
+[FixtureLifeCycle(LifeCycle.InstancePerTestCase)]   // a new object per test, so each gets its own Page
+public class ParallelTests : DungeonTest
+{
+    [TestCase(1)]
+    [TestCase(2)]
+    [TestCase(3)]
+    public async Task Open(int n) =&gt; await EnterAsync($"/rooms/{n}");
+}</code></pre>
+    <p class="tip">
+        <strong>Why one instance per test case?</strong> By default NUnit makes one object per class, and all its
+        tests share it. Run them at the same time and they share its <code>Page</code> too: one test clicks on
+        another's page. With an instance per test case, shared things have to be <code>static</code>, which is
+        exactly what <code>[OneTimeSetUp]</code> fills in.
+    </p>
+</section>
+
+<section>
+    <h2>The Severing Pit</h2>
+    <p>
+        The hydra has five heads, and they only rear when a crawler stands at every one. Then all five have to fall
+        within three seconds, or they grow back. Start one hunt, then send five crawlers, each with clean hands, all
+        at once. One after another never works: the hydra won't wait ten seconds for the rest, and a crawler already
+        at the pit can't face a second head.
+    </p>
+</section>

@@ -1,8 +1,11 @@
+using Microsoft.Extensions.Caching.Memory;
+
 namespace PlaywrightDungeonCrawl.Dungeon;
 
 public sealed record AnswerRequest(string? Answer);
 public sealed record LoginRequest(string? Guest, string? Password);
 public sealed record QuestionRequest(string? Question);
+public sealed record CutRequest(Guid? Attempt);
 public sealed record PetitionRequest(string? Office);
 public sealed record SignInRequest(string? Role, string? Password);
 
@@ -122,6 +125,74 @@ public static class DungeonApi
             return body.Answer?.Trim() == b.Whisper
                 ? Results.Ok(new { phrase = attempt.Puzzle.Answer })
                 : Results.Json(new { error = "That isn't what Owl whispered." }, statusCode: 403);
+        });
+
+        // Floor 16's pit: one hunt (the setup call), five heads, each faced and cut by its own crawler in its own context.
+        const string pit = "/rooms/severing-pit/hunts";
+        static SeveringPit.Hunt? HuntOf(IMemoryCache cache, Guid hunt) =>
+            cache.TryGetValue($"hunt:{hunt}", out SeveringPit.Hunt? h) ? h : null;
+        static IResult Refuse(string outcome, string error, int status) => Results.Json(new { outcome, error }, statusCode: status);
+        api.MapPost(pit, (IMemoryCache cache) =>
+        {
+            var hunt = new SeveringPit.Hunt();
+            cache.Set($"hunt:{hunt.Id}", hunt, TimeSpan.FromMinutes(5));
+            events.LogInformation("Hunt started in {Room}", "severing-pit");
+            return Results.Created($"/api/rooms/severing-pit/hunts/{hunt.Id}",
+                new { huntId = hunt.Id, heads = SeveringPit.Heads, windowSeconds = SeveringPit.Window.TotalSeconds });
+        });
+        api.MapPost(pit + "/{hunt:guid}/heads/{head:int}/face", (Guid hunt, int head, CutRequest body, IMemoryCache cache,
+            AttemptStore attempts, TimeProvider clock, HttpContext context) =>
+        {
+            if (HuntOf(cache, hunt) is not { } h || head is < 1 or > SeveringPit.Heads) return Results.NotFound();
+            if (attempts.Peek("severing-pit", body.Attempt ?? Guid.Empty) is not { } attempt) return Results.NotFound();
+            if (context.Request.Cookies[SeveringPit.ScarCookie] == hunt.ToString())
+                return Refuse("scarred", "This hand is already at the pit, facing another head. Each head needs a crawler of their own.", 409);
+            var now = clock.GetUtcNow();
+            if (h.StateAt(now) is SeveringPit.HuntState.Regrown or SeveringPit.HuntState.Slain)
+                return Refuse("regrown", "This hunt is over.", 409);
+            int faced;
+            lock (h.Gate)
+            {
+                if (!h.Faced.TryAdd(head, (attempt.Id, now)))
+                    return Refuse("already-cut", "Another crawler is already facing that head.", 409);
+                faced = h.Faced.Count;
+            }
+            context.Response.Cookies.Append(SeveringPit.ScarCookie, hunt.ToString(), new CookieOptions
+            {
+                HttpOnly = true, SameSite = SameSiteMode.Strict, Path = $"/api/rooms/severing-pit/hunts/{hunt}",
+            });
+            return Results.Ok(new { faced });
+        });
+        api.MapPost(pit + "/{hunt:guid}/heads/{head:int}/cut", (Guid hunt, int head, CutRequest body, IMemoryCache cache,
+            TimeProvider clock) =>
+        {
+            if (HuntOf(cache, hunt) is not { } h || head is < 1 or > SeveringPit.Heads) return Results.NotFound();
+            var now = clock.GetUtcNow();
+            var state = h.StateAt(now);
+            if (state == SeveringPit.HuntState.Regrown) return Refuse("regrown", "Too late: the heads have grown back.", 409);
+            if (state == SeveringPit.HuntState.Gathering) return Refuse("too-soon", "The heads are still coiled, waiting for every crawler.", 425);
+            int fallen;
+            lock (h.Gate)
+            {
+                if (!h.Faced.TryGetValue(head, out var facer) || facer.Attempt != body.Attempt)
+                    return Refuse("already-cut", "You aren't the crawler facing that head.", 409);
+                if (!h.Cuts.TryAdd(head, (facer.Attempt, now)))
+                    return Refuse("already-cut", "That head is already off.", 409);
+                fallen = h.Cuts.Count;
+            }
+            return Results.Ok(new { fallen });
+        });
+        api.MapGet(pit + "/{hunt:guid}", (Guid hunt, Guid? attempt, IMemoryCache cache, AttemptStore attempts, TimeProvider clock) =>
+        {
+            if (HuntOf(cache, hunt) is not { } h) return Results.NotFound();
+            var state = h.StateAt(clock.GetUtcNow());
+            int faced, fallen;
+            lock (h.Gate) (faced, fallen) = (h.Faced.Count, h.Cuts.Count);
+            // The fang goes only to a crawler who cut one of the heads of a slain hydra.
+            var fang = state == SeveringPit.HuntState.Slain && attempt is { } a && h.WasCutBy(a)
+                ? attempts.Peek("severing-pit", a)?.Puzzle.Answer
+                : null;
+            return Results.Ok(new { state = state.ToString().ToLowerInvariant(), faced, fallen, heads = SeveringPit.Heads, fang });
         });
 
         // Floor 12's well: an API with no buttons. POST a question with the offering, follow the 201's Location.

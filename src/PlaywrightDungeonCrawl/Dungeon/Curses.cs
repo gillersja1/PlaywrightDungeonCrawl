@@ -41,8 +41,11 @@ public static class Curses
 
     public static Curse? Find(string? code) => All.FirstOrDefault(c => c.Code == code);
 
-    /// <summary>The curses a room offers. The setup room has no timer to halve and no tricks to shift: it offers none.</summary>
-    public static IReadOnlyList<Curse> For(Room room) => room.TimeLimit >= TimeSpan.FromMinutes(5)
+    /// <summary>
+    /// The curses a room offers. The setup room has no timer to halve and no tricks to shift: it offers none. Nor does
+    /// the Severing Pit: one hunt takes five crawlers at once, and a run link (or a Flawless try) is for one.
+    /// </summary>
+    public static IReadOnlyList<Curse> For(Room room) => room.TimeLimit >= TimeSpan.FromMinutes(5) || room.Slug == "severing-pit"
         ? []
         : All.Where(c => c != MissingIds || RoomsWithTestIds.Contains(room.Slug)).ToList();
 

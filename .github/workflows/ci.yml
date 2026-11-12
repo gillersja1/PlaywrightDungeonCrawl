@@ -112,12 +112,18 @@ jobs:
         run: |
           git clone --depth 1 https://github.com/gillersja1/PlaywrightDungeonCrawl-Starter-TS ts-kit
           cp solutions/ts-solutions/*.spec.ts ts-kit/tests/
+          # Floor 16 runs five workers at once, from its own config in the kit's root.
+          if [ -f solutions/ts-solutions/pit.config.ts ]; then
+            cp solutions/ts-solutions/*.pit.ts ts-kit/tests/
+            cp solutions/ts-solutions/pit.config.ts solutions/ts-solutions/pit-setup.ts ts-kit/
+          fi
           cd ts-kit
           npm ci
           npm install --no-save playwright-timeline-reporter@1.3.0
           npx playwright install --with-deps chromium
           npx --yes -p typescript tsc -p .
           npx playwright test --reporter=list,playwright-timeline-reporter
+          if [ -f pit.config.ts ]; then npx playwright test -c pit.config.ts --reporter=list; fi
 
       # Interactive timeline of the TypeScript run (download, open index.html).
       - name: Upload timeline report

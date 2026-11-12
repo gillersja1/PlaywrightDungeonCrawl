@@ -37,6 +37,7 @@ Every room is a trap built around one Playwright skill. The puzzle changes on ev
 | 13 | The Chancellery | **Boss:** one chain through floors 8 to 12: an API, two contexts, a new tab, a drag, a download and an upload |
 | 14 | The Illusionist's Theater | Mocking responses: change a real reply on its way in, block a request |
 | 15 | The Architect's Atelier | Page Object Model: one component object, used for four panels |
+| 16 | The Hydra Pits | Fixtures, setup and parallel tests: one shared hunt, five heads, five tests at once |
 
 ## Leaderboard and certificate
 

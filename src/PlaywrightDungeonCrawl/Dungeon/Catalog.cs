@@ -1307,13 +1307,95 @@ public sealed class DungeonCatalog
                         "Two tests use the same page object and expect different results. Who should know the difference?"),
                 },
             },
+            new Floor(16, "hydra", "The Hydra Pits", "Fixtures, setup and parallel tests",
+                "Cut one head and it grows back. Learn to set things up once for many tests, keep each test's hands clean, and run tests side by side.",
+                bySlug["severing-pit"],
+                new[]
+                {
+                    new QuizQuestion(
+                        "Five tests all need the same hunt, started once before any of them run. Where does that call go?",
+                        new[]
+                        {
+                            "In a [SetUp] method, so every test has it",
+                            "In a static [OneTimeSetUp] that keeps the result in a static field",
+                            "In the first test, while the others wait for it",
+                            "In the class's constructor",
+                        },
+                        1,
+                        "[SetUp] runs before every test, so five tests would start five hunts. [OneTimeSetUp] runs once for the whole class, and a static field lets every test instance read what it made.",
+                        "How many times does each kind of setup run?"),
+                    new QuizQuestion(
+                        "You marked the class [Parallelizable(ParallelScope.All)], and now tests click on each other's pages. Why?",
+                        new[]
+                        {
+                            "Playwright can't run tests in parallel",
+                            "NUnit shares one instance of the class between its tests, so they share its Page. Add [FixtureLifeCycle(LifeCycle.InstancePerTestCase)]",
+                            "Parallel tests need a separate browser each, set in the runsettings",
+                            "The tests need Thread.Sleep between them",
+                        },
+                        1,
+                        "By default NUnit makes one object per test class. Tests running at the same time in that one object share its fields, Page included. One instance per test case gives each test its own.",
+                        "What does NUnit create once per class, and what lives on it?"),
+                    new QuizQuestion(
+                        "Five parallel tests only ever run four at a time on your laptop. What's holding the fifth back?",
+                        new[]
+                        {
+                            "Chromium only allows four contexts",
+                            "NUnit's worker count, which defaults to your number of CPU cores. Raise it with [assembly: LevelOfParallelism(5)]",
+                            "The dungeon only accepts four connections",
+                            "Parallel tests always run in batches of four",
+                        },
+                        1,
+                        "NUnit runs as many tests at once as it has workers, and by default that's one per core. LevelOfParallelism sets it for the whole test project.",
+                        "Who decides how many tests run at the same moment?"),
+                })
+            {
+                TypeScriptRiddles = new[]
+                {
+                    new QuizQuestion(
+                        "Five tests run in five workers and need one shared hunt. Why doesn't a test.beforeAll work?",
+                        new[]
+                        {
+                            "beforeAll can't make API calls",
+                            "Each worker is its own process and runs its own beforeAll, so you'd get five hunts. Start it once in a globalSetup",
+                            "beforeAll runs after the tests",
+                            "It does work, if the hook is async",
+                        },
+                        1,
+                        "Playwright's workers are separate processes, and hooks run in every worker that needs them. globalSetup runs once, in the main process, before any worker starts.",
+                        "How many times does a beforeAll run when its tests are spread over five workers?"),
+                    new QuizQuestion(
+                        "You set workers: 5, but the five tests in your file still run one after another. Why?",
+                        new[]
+                        {
+                            "Five workers is too many for one file",
+                            "By default a file's tests run in order, in one worker. Set fullyParallel: true, or test.describe.configure({ mode: 'parallel' })",
+                            "Workers only apply to the HTML reporter",
+                            "Tests named with a template string can't run in parallel",
+                        },
+                        1,
+                        "Playwright spreads files over workers, but keeps the tests inside a file together, in order, unless you tell it they're independent.",
+                        "What does Playwright assume about tests that live in the same file?"),
+                    new QuizQuestion(
+                        "Your globalSetup started the hunt. How do the tests in the workers find out its id?",
+                        new[]
+                        {
+                            "They can't: globalSetup can't share anything",
+                            "Set process.env.HUNT_ID in the globalSetup: workers start after it and inherit its environment",
+                            "Return it from globalSetup and read it from test.info()",
+                            "Each test calls globalSetup again",
+                        },
+                        1,
+                        "Environment variables set in globalSetup are passed on to every worker it starts, so a short value like an id travels for free. Bigger things go in a file.",
+                        "What do child processes inherit from the process that started them?"),
+                },
+            },
         };
     }
 
     /// <summary>The deeper floors, shown on the map as sealed until they're built.</summary>
     public IReadOnlyList<(int Number, string Title, string Skill)> SealedFloors { get; } = new[]
     {
-        (16, "The Hydra Pits", "Fixtures, setup and parallel tests"),
         (17, "The Portrait Gallery", "Screenshots and visual comparison"),
         (18, "The Clocktower of Elsewhere", "Emulation and the clock"),
         (19, "The Flake", "The final boss: a flaky-test hunt"),

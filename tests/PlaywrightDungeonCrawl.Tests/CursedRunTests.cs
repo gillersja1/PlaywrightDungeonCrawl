@@ -228,7 +228,8 @@ public class CursedRunTests
         foreach (var floor in catalog.Floors)
         {
             var offered = Curses.For(floor.Room).Select(c => c.Code).ToList();
-            if (floor.Room.TimeLimit >= TimeSpan.FromMinutes(5))
+            // The setup room has no timer; the Severing Pit takes five crawlers per hunt, and a run link is for one.
+            if (floor.Room.TimeLimit >= TimeSpan.FromMinutes(5) || floor.Room.Slug == "severing-pit")
             {
                 Assert.That(offered, Is.Empty, floor.Room.Slug);
                 continue;
