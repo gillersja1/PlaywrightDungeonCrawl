@@ -73,14 +73,8 @@ startRoom(async (arena, briefing, room) => {
     function rear() {
         headEl.classList.replace("coiled", "reared");
         status.textContent = `Every head is faced. Head ${head} rears up and bares its throat. Now!`;
+        // It stays bared until the hunt ends: the server's window decides whether the cuts came together.
         cut.disabled = false;
-        setTimeout(() => {
-            if (!struck) {
-                clearInterval(poll);
-                cut.disabled = true;
-                room.fail("lunged");
-            }
-        }, briefing.openMs);
     }
 
     cut.addEventListener("click", async () => {

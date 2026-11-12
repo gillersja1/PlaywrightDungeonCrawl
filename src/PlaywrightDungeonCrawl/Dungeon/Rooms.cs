@@ -895,8 +895,8 @@ public sealed class SeveringPit : Room
             heads = Heads,
             windowMs = (int)Window.TotalMilliseconds,
             patienceMs = (int)Patience.TotalMilliseconds,
-            rearMs = 300 + rng.Next(600),
-            openMs = 1500,
+            // Every head rears the same moment after the last crawler arrives, so the cuts can land together.
+            rearMs = 500,
         }, Rune(rng, 8));
 }
 
