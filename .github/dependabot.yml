@@ -16,8 +16,21 @@ updates:
     groups:
       nuget:
         patterns: ["*"]
+    # Framework packages move with the target framework (net10.0), not on their own.
+    ignore:
+      - dependency-name: "Microsoft.AspNetCore.*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "Microsoft.Extensions.*"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: docker
     directory: /
     schedule:
       interval: weekly
+    # A new .NET major means changing the target framework too, so it's done by hand.
+    # (The runtime image must match net10.0; aspnet:11.0 can't start the app.)
+    ignore:
+      - dependency-name: "dotnet/aspnet"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "dotnet/sdk"
+        update-types: ["version-update:semver-major"]
