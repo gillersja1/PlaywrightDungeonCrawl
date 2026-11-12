@@ -511,3 +511,18 @@ a.bug-badge:hover { background: rgba(111, 191, 115, 0.15); }
 @keyframes flicker { from { opacity: 0.55; transform: rotate(-4deg) scale(0.94); } to { opacity: 1; transform: rotate(3deg) scale(1.06); } }
 .gallery-status { color: var(--stone-400); font-style: italic; min-height: 2em; }
 .accuse { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; }
+
+/* Floor 18: the Belfry */
+.belfry { padding: 16px 12px; border-radius: var(--radius); background: linear-gradient(#141826, #07080d); }
+.belfry-door ul { margin: 4px 0 8px 1.2em; }
+.belfry-clock { font-family: var(--mono, monospace); font-size: 2em; letter-spacing: 0.08em; text-align: center; margin: 8px 0; }
+.belfry-status { color: var(--stone-400); font-style: italic; min-height: 2em; }
+
+/* Floor 19: The Flake */
+.flake { padding: 16px 12px; border-radius: var(--radius); background: radial-gradient(circle at 50% 30%, #1e2430, #08090c); }
+.flake-round { font-weight: bold; margin: 0 0 8px; }
+.flake-field { position: relative; min-height: 64px; display: flex; align-items: center; justify-content: center; }
+.flake-mist { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    background: rgba(170, 180, 200, 0.85); color: #39404d; font-style: italic; border-radius: var(--radius); z-index: 2; }
+.flake-voice p { color: var(--stone-400); font-style: italic; min-height: 2em; }
+.banish { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; }

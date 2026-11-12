@@ -1,0 +1,57 @@
+<section>
+    <h2>Being someone else</h2>
+    <p>
+        A browser context carries everything a site can learn about its visitor: screen size, touch, language, time
+        zone, position. Set them when you make the context, and every page in it believes you.
+    </p>
+<pre><code>import { devices } from '@@playwright/test';
+
+const context = await browser.newContext({
+  ...devices['Pixel 7'],                               // a phone: viewport, touch, user agent
+  locale: 'fr-FR',                                     // navigator.language, number and date formats
+  timezoneId: 'Europe/Paris',                          // what the page's clock thinks is local time
+  geolocation: { latitude: 48.8566, longitude: 2.3522 },
+  permissions: ['geolocation'],                        // without this, the site can't ask where you are
+});
+const page = await context.newPage();
+
+// Or for every test in a file:
+test.use({ ...devices['Pixel 7'], locale: 'fr-FR', timezoneId: 'Europe/Paris' });</code></pre>
+    <p class="tip">
+        <strong>Devices.</strong> <code>devices</code> holds descriptors for real phones, tablets and desktops. Each
+        sets the viewport, device scale, user agent, touch and <code>isMobile</code> together, so a test sees the
+        site the way that device would.
+    </p>
+</section>
+
+<section>
+    <h2>Taking charge of the clock</h2>
+    <p>
+        Timeouts, countdowns, "it's past midnight" banners: anything that depends on time is slow or impossible to
+        test in real time. <code>page.clock</code> replaces the page's <code>Date</code>, <code>setTimeout</code> and
+        <code>setInterval</code> with a clock the test controls.
+    </p>
+<pre><code>// Install before the page loads, so its timers use the fake clock from the start
+await page.clock.install({ time: new Date('2026-02-02T08:00:00+01:00') });
+await page.goto('/inbox');
+
+await page.clock.fastForward('30:00');                // jump ahead 30 minutes, firing timers that were due
+await expect(page.getByText('Your session is about to expire')).toBeVisible();
+
+await page.clock.pauseAt(new Date('2026-02-02T09:00:00'));   // stop time at an exact moment
+await page.clock.setFixedTime(new Date('2026-12-31T23:59:59'));   // Date.now() never moves</code></pre>
+    <p class="tip">
+        <strong>Fixed time vs. installed clock.</strong> <code>setFixedTime</code> only freezes what
+        <code>Date</code> says; timers still run in real time. To make a timer fire early, install the clock and
+        move it forward.
+    </p>
+</section>
+
+<section>
+    <h2>The Belfry</h2>
+    <p>
+        The door names tonight's traveler: a city, a phone, a time zone, a language and a place. Arrive as that
+        traveler, and be there when the bell strikes midnight in their city. Midnight is hours away, and you have
+        twenty seconds.
+    </p>
+</section>

@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 namespace PlaywrightDungeonCrawl.Dungeon;
 
 /// <summary>The certificate path: each tier covers more of the dungeon, and each is its own certificate.</summary>
-public enum CertificateTier { Apprentice, Journeyman, Master }
+public enum CertificateTier { Apprentice, Journeyman, Ultimate }
 
 /// <param name="Floors">Floors 1 to this many must be verified as cleared.</param>
 /// <param name="Reach">How far the tier goes, for the certificate path.</param>
@@ -36,7 +36,7 @@ public static partial class CertificateRules
     [
         new(CertificateTier.Apprentice, "Apprentice", 7, "from setup to the Warden's Keep"),
         new(CertificateTier.Journeyman, "Journeyman", 13, "through the Chancellery, the second boss"),
-        new(CertificateTier.Master, "Master", 19, "all the way down to The Flake"),
+        new(CertificateTier.Ultimate, "Ultimate Dungeoneer", 19, "every floor, all the way down to The Flake"),
     ];
 
     public static TierRules For(CertificateTier tier) => Tiers.Single(t => t.Tier == tier);

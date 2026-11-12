@@ -1,0 +1,52 @@
+<section>
+    <h2>Being someone else</h2>
+    <p>
+        A browser context carries everything a site can learn about its visitor: screen size, touch, language, time
+        zone, position. Set them when you make the context, and every page in it believes you.
+    </p>
+<pre><code>var context = await Browser.NewContextAsync(new(Playwright.Devices["Pixel 7"])   // a phone: viewport, touch, user agent
+{
+    Locale = "fr-FR",                                    // navigator.language, number and date formats
+    TimezoneId = "Europe/Paris",                         // what the page's clock thinks is local time
+    Geolocation = new() { Latitude = 48.8566f, Longitude = 2.3522f },
+    Permissions = new[] { "geolocation" },               // without this, the site can't ask where you are
+});
+var page = await context.NewPageAsync();</code></pre>
+    <p class="tip">
+        <strong>Devices.</strong> <code>Playwright.Devices</code> holds descriptors for real phones, tablets and
+        desktops. Each sets the viewport, device scale, user agent, touch and <code>IsMobile</code> together, so a
+        test sees the site the way that device would.
+    </p>
+</section>
+
+<section>
+    <h2>Taking charge of the clock</h2>
+    <p>
+        Timeouts, countdowns, "it's past midnight" banners: anything that depends on time is slow or impossible to
+        test in real time. <code>Page.Clock</code> replaces the page's <code>Date</code>, <code>setTimeout</code> and
+        <code>setInterval</code> with a clock the test controls.
+    </p>
+<pre><code>// Install before the page loads, so its timers use the fake clock from the start
+await page.Clock.InstallAsync(new() { TimeString = "2026-02-02T08:00:00+01:00" });
+await page.GotoAsync("/inbox");
+
+await page.Clock.FastForwardAsync("30:00");          // jump ahead 30 minutes, firing timers that were due
+await Expect(page.GetByText("Your session is about to expire")).ToBeVisibleAsync();
+
+await page.Clock.PauseAtAsync(DateTime.Parse("2026-02-02T09:00:00"));   // stop time at an exact moment
+await page.Clock.SetFixedTimeAsync("2026-12-31T23:59:59");               // Date.now() never moves</code></pre>
+    <p class="tip">
+        <strong>Fixed time vs. installed clock.</strong> <code>SetFixedTimeAsync</code> only freezes what
+        <code>Date</code> says; timers still run in real time. To make a timer fire early, install the clock and
+        move it forward.
+    </p>
+</section>
+
+<section>
+    <h2>The Belfry</h2>
+    <p>
+        The door names tonight's traveler: a city, a phone, a time zone, a language and a place. Arrive as that
+        traveler, and be there when the bell strikes midnight in their city. Midnight is hours away, and you have
+        twenty seconds.
+    </p>
+</section>

@@ -1473,15 +1473,180 @@ public sealed class DungeonCatalog
                         "Can you tell the screenshot what to leave out, or to hold still?"),
                 },
             },
+            new Floor(18, "clocktower", "The Clocktower of Elsewhere", "Emulation and the clock",
+                "Be someone else, somewhere else, at some other time. Learn to emulate devices, places and languages, and to take charge of the clock.",
+                bySlug["belfry"],
+                new[]
+                {
+                    new QuizQuestion(
+                        "Your site should show a mobile menu on phones. How does a test see the site as a phone sees it?",
+                        new[]
+                        {
+                            "Resize the desktop window by hand",
+                            "Make a new context from a device descriptor: Browser.NewContextAsync(Playwright.Devices[\"iPhone 13\"])",
+                            "Change the user agent string and nothing else",
+                            "Run the test on a real phone",
+                        },
+                        1,
+                        "A device descriptor sets everything a phone brings with it at once: viewport, screen, user agent, device scale, touch and isMobile. Add your own options (Locale, TimezoneId) on top.",
+                        "Who already knows what an iPhone looks like to a website?"),
+                    new QuizQuestion(
+                        "The page reads your position, but the test never sees a location. What's missing?",
+                        new[]
+                        {
+                            "Geolocation only works on HTTPS sites",
+                            "The permission: set Geolocation and grant Permissions = new[] { \"geolocation\" } on the context",
+                            "A real GPS",
+                            "Locale must be set first",
+                        },
+                        1,
+                        "Setting a geolocation says where the browser is; the site still has to be allowed to ask. Grant the permission on the context (or with Context.GrantPermissionsAsync) and the page gets your fake coordinates.",
+                        "What does a browser ask you before a site learns where you are?"),
+                    new QuizQuestion(
+                        "A session-timeout warning appears after 30 minutes idle. How do you test it without waiting 30 minutes?",
+                        new[]
+                        {
+                            "Page.WaitForTimeoutAsync(1_800_000)",
+                            "Install Playwright's clock before the page loads, then Page.Clock.FastForwardAsync(\"30:00\")",
+                            "Change the computer's system time",
+                            "You can't: timers always run in real time",
+                        },
+                        1,
+                        "Page.Clock replaces the page's Date, setTimeout and setInterval. Install it first, then fast-forward, run for, or pause at any time you like, and thirty minutes take a moment.",
+                        "Whose clock do the page's timers actually read?"),
+                })
+            {
+                TypeScriptRiddles = new[]
+                {
+                    new QuizQuestion(
+                        "Your site should show a mobile menu on phones. How does a test see the site as a phone sees it?",
+                        new[]
+                        {
+                            "Resize the desktop window by hand",
+                            "Make a new context from a device descriptor: browser.newContext({ ...devices['iPhone 13'] })",
+                            "Change the user agent string and nothing else",
+                            "Run the test on a real phone",
+                        },
+                        1,
+                        "A device descriptor sets everything a phone brings with it at once: viewport, screen, user agent, device scale, touch and isMobile. Add your own options (locale, timezoneId) on top, or use test.use() for a whole file.",
+                        "Who already knows what an iPhone looks like to a website?"),
+                    new QuizQuestion(
+                        "The page reads your position, but the test never sees a location. What's missing?",
+                        new[]
+                        {
+                            "Geolocation only works on HTTPS sites",
+                            "The permission: set geolocation and grant permissions: ['geolocation'] on the context",
+                            "A real GPS",
+                            "locale must be set first",
+                        },
+                        1,
+                        "Setting a geolocation says where the browser is; the site still has to be allowed to ask. Grant the permission on the context (or with context.grantPermissions) and the page gets your fake coordinates.",
+                        "What does a browser ask you before a site learns where you are?"),
+                    new QuizQuestion(
+                        "A session-timeout warning appears after 30 minutes idle. How do you test it without waiting 30 minutes?",
+                        new[]
+                        {
+                            "page.waitForTimeout(1_800_000)",
+                            "Install Playwright's clock before the page loads, then page.clock.fastForward('30:00')",
+                            "Change the computer's system time",
+                            "You can't: timers always run in real time",
+                        },
+                        1,
+                        "page.clock replaces the page's Date, setTimeout and setInterval. Install it first, then fast-forward, run for, or pause at any time you like, and thirty minutes take a moment.",
+                        "Whose clock do the page's timers actually read?"),
+                },
+            },
+            new Floor(19, "flake", "The Flake", "The final boss: a flaky-test hunt",
+                "The last monster is the one every tester meets: the test that passes, then fails, then passes. Learn why tests flake, how to catch it, and how to write tests that don't.",
+                bySlug["the-flake"],
+                new[]
+                {
+                    new QuizQuestion(
+                        "A test passes on your laptop and fails one run in ten on CI. It has a WaitForTimeoutAsync(2000) before a click. What's the fix?",
+                        new[]
+                        {
+                            "Make it 5000",
+                            "Remove the sleep: the click already waits for its element, and an assertion can wait for whatever the page needs first",
+                            "Add [Retry(3)] and move on",
+                            "Run CI on a faster machine",
+                        },
+                        1,
+                        "A fixed sleep is a guess about timing, and CI's timing is different. Actions and Expect assertions wait for the actual condition, as long as it takes and no longer.",
+                        "What is the sleep really waiting for, and can you wait for that instead?"),
+                    new QuizQuestion(
+                        "var text = await status.TextContentAsync(); Assert.That(text, Is.EqualTo(\"Saved\")); fails now and then, though the page does say Saved. Why?",
+                        new[]
+                        {
+                            "TextContentAsync is broken",
+                            "It reads the text once, maybe before it changes. Await Expect(status).ToHaveTextAsync(\"Saved\"), which retries until it's true",
+                            "The text needs trimming",
+                            "Assert.That should be Assert.AreEqual",
+                        },
+                        1,
+                        "Reading a value and then asserting on it checks one instant. Playwright's Expect assertions keep checking until the condition holds or the timeout runs out, which is what a changing page needs.",
+                        "When exactly did the test look, and when did the page change?"),
+                    new QuizQuestion(
+                        "How do you prove a test isn't flaky any more?",
+                        new[]
+                        {
+                            "Run it once and see it pass",
+                            "Run it many times in a row, e.g. [Repeat(20)], ideally where it failed (on CI), and look at the trace of any failure",
+                            "Delete it",
+                            "Ask the developer",
+                        },
+                        1,
+                        "Flakiness is a rate, so one pass proves little. Repeat it, under the conditions where it failed, and when it does fail, the trace viewer shows exactly what the page looked like at each step.",
+                        "If it fails one time in ten, how many runs make you confident?"),
+                })
+            {
+                TypeScriptRiddles = new[]
+                {
+                    new QuizQuestion(
+                        "A test passes on your laptop and fails one run in ten on CI. It has a page.waitForTimeout(2000) before a click. What's the fix?",
+                        new[]
+                        {
+                            "Make it 5000",
+                            "Remove the sleep: the click already waits for its element, and an assertion can wait for whatever the page needs first",
+                            "Set retries: 3 and move on",
+                            "Run CI on a faster machine",
+                        },
+                        1,
+                        "A fixed sleep is a guess about timing, and CI's timing is different. Actions and web-first assertions wait for the actual condition, as long as it takes and no longer.",
+                        "What is the sleep really waiting for, and can you wait for that instead?"),
+                    new QuizQuestion(
+                        "expect(await status.textContent()).toBe('Saved') fails now and then, though the page does say Saved. Why?",
+                        new[]
+                        {
+                            "textContent() is broken",
+                            "It reads the text once, maybe before it changes. await expect(status).toHaveText('Saved') retries until it's true",
+                            "The text needs trimming",
+                            "toBe should be toEqual",
+                        },
+                        1,
+                        "Reading a value and then asserting on it checks one instant. Web-first assertions keep checking until the condition holds or the timeout runs out, which is what a changing page needs.",
+                        "When exactly did the test look, and when did the page change?"),
+                    new QuizQuestion(
+                        "How do you prove a test isn't flaky any more?",
+                        new[]
+                        {
+                            "Run it once and see it pass",
+                            "Run it many times in a row, e.g. npx playwright test --repeat-each=20, ideally where it failed (on CI), and look at the trace of any failure",
+                            "Delete it",
+                            "Ask the developer",
+                        },
+                        1,
+                        "Flakiness is a rate, so one pass proves little. Repeat it, under the conditions where it failed, and when it does fail, the trace viewer shows exactly what the page looked like at each step.",
+                        "If it fails one time in ten, how many runs make you confident?"),
+                },
+            },
         };
     }
 
-    /// <summary>The deeper floors, shown on the map as sealed until they're built.</summary>
-    public IReadOnlyList<(int Number, string Title, string Skill)> SealedFloors { get; } = new[]
-    {
-        (18, "The Clocktower of Elsewhere", "Emulation and the clock"),
-        (19, "The Flake", "The final boss: a flaky-test hunt"),
-    };
+    /// <summary>
+    /// The deeper floors, shown on the map as sealed until they're built. All nineteen are dug now; a floor planned
+    /// for later goes here, e.g. (20, "Title", "Skill").
+    /// </summary>
+    public IReadOnlyList<(int Number, string Title, string Skill)> SealedFloors { get; } = [];
 
     public Floor? Find(string slug) => Floors.FirstOrDefault(f => f.Slug == slug);
 

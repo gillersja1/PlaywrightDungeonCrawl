@@ -47,8 +47,17 @@ public static class SecurityHeaders
             headers.XContentTypeOptions = "nosniff";
             headers.XFrameOptions = "SAMEORIGIN";
             headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
-            headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=(), payment=()";
+            headers["Permissions-Policy"] = PermissionsPolicy(context.Request.Path);
             await next();
         });
     }
+
+    /// <summary>
+    /// Nothing gets the camera, microphone, location or payments, except that floor 18's Belfry may ask where the
+    /// (emulated) traveler is standing, on its own page only.
+    /// </summary>
+    public static string PermissionsPolicy(PathString path) =>
+        path.Equals("/rooms/belfry", StringComparison.OrdinalIgnoreCase)
+            ? "camera=(), microphone=(), geolocation=(self), payment=()"
+            : "camera=(), microphone=(), geolocation=(), payment=()";
 }

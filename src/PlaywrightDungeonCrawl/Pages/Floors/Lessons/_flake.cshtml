@@ -1,0 +1,55 @@
+<section>
+    <h2>Why tests flake</h2>
+    <p>
+        A flaky test passes and fails on the same code. Almost always, it's a race: the test and the page disagree
+        about <em>when</em>. The test clicks before the button exists, reads text before it changes, holds on to an
+        element the page has already replaced, or sleeps for a guess that's right on your laptop and wrong on CI.
+    </p>
+    <ul>
+        <li><strong>Fixed sleeps.</strong> Too short sometimes, too slow always.</li>
+        <li><strong>Reading, then asserting.</strong> <code>TextContentAsync()</code> checks one instant.</li>
+        <li><strong>Stale elements.</strong> An element handle points at one node; re-renders replace it.</li>
+        <li><strong>Things in the way.</strong> Overlays, spinners and animations that catch the click.</li>
+        <li><strong>Shared state.</strong> Tests that depend on each other's data or order (floor 16).</li>
+    </ul>
+</section>
+
+<section>
+    <h2>Waiting for the right thing</h2>
+<pre><code>// Flaky
+await Page.WaitForTimeoutAsync(2000);
+var text = await Page.Locator(".status").TextContentAsync();
+Assert.That(text, Is.EqualTo("Saved"));
+
+// Steady: the assertion retries until it's true (or times out)
+await Expect(Page.GetByRole(AriaRole.Status)).ToHaveTextAsync("Saved");
+
+// Read a value only once it's the one you want
+await Expect(total).ToHaveTextAsync(new Regex(@@"^Total: \d+"));
+var value = await total.TextContentAsync();</code></pre>
+    <p class="tip">
+        <strong>Locators are lazy.</strong> A locator finds its element again every time you use it, so a re-render
+        doesn't break it. Actions wait for the element to be attached, visible, stable, enabled and not covered by
+        anything else, then act.
+    </p>
+</section>
+
+<section>
+    <h2>Hunting a flake</h2>
+<pre><code>[Test, Repeat(20)]                // run it 20 times in a row; one failure fails it
+public async Task SavesTheDraft() { ... }</code></pre>
+    <p>
+        When it fails, look at the trace (turn tracing on in the test's context) and see what the page actually
+        looked like at the moment the test acted. <code>[Retry(2)]</code> can keep a pipeline green while you hunt,
+        but a retried pass is still a flake: fix the race, then take the retry away.
+    </p>
+</section>
+
+<section>
+    <h2>The Flake</h2>
+    <p>
+        The last monster. Three rounds, one breath: its Strike appears late and hides behind a mist, it flickers and
+        feints before it gives its true name, and the box you speak it into is rebuilt under your fingers. Every
+        trick a flaky test falls for, all at once. Twenty-four seconds.
+    </p>
+</section>

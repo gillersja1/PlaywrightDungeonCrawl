@@ -32,7 +32,7 @@ public class CertificateModel(IPlayerRecords records, IProgressStore progress, D
     [BindProperty]
     public string? Lang { get; set; }
 
-    /// <summary>The tier being claimed or reprinted: "apprentice", "journeyman" or "master".</summary>
+    /// <summary>The tier being claimed or reprinted: "apprentice", "journeyman" or "ultimate".</summary>
     [BindProperty]
     public string? Tier { get; set; }
 

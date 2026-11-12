@@ -951,3 +951,163 @@ public sealed class CuratorsEye : Room
             Reveal: new Gallery(names, seeds, forged, flaw, strike), RevealAfter: TimeSpan.FromDays(1));
     }
 }
+
+/// <summary>
+/// Floor 18, emulation and the clock: the Belfry's door opens for one traveler a night. The door names a city; the
+/// test has to arrive as that traveler (a phone, the city's time zone and language, standing in the city) and be
+/// there when the bell strikes midnight, local time, which is hours away unless the test takes charge of the clock.
+/// The page reads the browser and the server checks every reading before the bell gives up its word.
+/// </summary>
+public sealed class Belfry : Room
+{
+    public sealed record Traveler(string City, string TimeZone, string Locale, string Language, double Latitude, double Longitude);
+
+    public static readonly IReadOnlyList<Traveler> Travelers =
+    [
+        new("Tokyo", "Asia/Tokyo", "ja-JP", "Japanese", 35.6762, 139.6503),
+        new("Reykjavik", "Atlantic/Reykjavik", "is-IS", "Icelandic", 64.1466, -21.9426),
+        new("Buenos Aires", "America/Argentina/Buenos_Aires", "es-AR", "Spanish", -34.6037, -58.3816),
+        new("Nairobi", "Africa/Nairobi", "sw-KE", "Swahili", -1.2921, 36.8219),
+        new("Auckland", "Pacific/Auckland", "en-NZ", "English", -36.8485, 174.7633),
+        new("Cairo", "Africa/Cairo", "ar-EG", "Arabic", 30.0444, 31.2357),
+        new("Lisbon", "Europe/Lisbon", "pt-PT", "Portuguese", 38.7223, -9.1393),
+    ];
+
+    /// <summary>How far from the city center still counts as being there.</summary>
+    public const double ReachKm = 30;
+
+    /// <summary>What the page read from the browser when the bell struck.</summary>
+    public sealed record Readings(string? TimeZone, string? Language, double? Latitude, double? Longitude,
+        bool Touch, int Width, long Epoch);
+
+    public override string[] Nudges { get; } =
+    {
+        "You can't walk to Tokyo by midnight. Playwright can: a new browser context can pretend to be a phone, in another time zone, speaking another language, standing somewhere else. And it can move time.",
+        "Read tonight's traveler off the door with the ordinary Page first. Then make a new context from a phone in Playwright.Devices, plus TimezoneId, Locale, Geolocation and the geolocation permission. Before opening the room there, install its clock a little before midnight in the traveler's time zone, then fast-forward past it.",
+        "var context = await Browser.NewContextAsync(new(Playwright.Devices[\"iPhone 13\"]) { TimezoneId = tz, Locale = locale, Geolocation = new() { Latitude = lat, Longitude = lng }, Permissions = new[] { \"geolocation\" } }); var page = await context.NewPageAsync(); await page.Clock.InstallAsync(new() { TimeString = \"2026-01-01T23:59:00+09:00\" }); open the room, then await page.Clock.FastForwardAsync(\"02:00\").",
+    };
+
+    public override string[] TypeScriptNudges { get; } =
+    {
+        "You can't walk to Tokyo by midnight. Playwright can: a new browser context can pretend to be a phone, in another time zone, speaking another language, standing somewhere else. And it can move time.",
+        "Read tonight's traveler off the door with the ordinary page first. Then make a new context from a phone in devices, plus timezoneId, locale, geolocation and the geolocation permission. Before opening the room there, install its clock a little before midnight in the traveler's time zone, then fast-forward past it.",
+        "const context = await browser.newContext({ ...devices['iPhone 13'], timezoneId, locale, geolocation: { latitude, longitude }, permissions: ['geolocation'] }); const page = await context.newPage(); await page.clock.install({ time: new Date('2026-01-01T23:59:00+09:00') }); open the room, then await page.clock.fastForward('02:00').",
+    };
+
+    public override string Slug => "belfry";
+    public override string Name => "The Belfry";
+    public override string Objective =>
+        "The Belfry's door opens for one traveler a night, when the bell strikes midnight in the traveler's own city. " +
+        "Arrive as tonight's traveler, and don't keep the bell waiting.";
+    public override TimeSpan TimeLimit => TimeSpan.FromSeconds(20);
+
+    /// <summary>One traveler a night (a UTC day), so a test can read the door first and then arrive as them.</summary>
+    public static Traveler Tonight(DateTimeOffset now) => Travelers[DateOnly.FromDateTime(now.UtcDateTime).DayNumber % Travelers.Count];
+
+    public override RoomPuzzle Generate(Random rng)
+    {
+        var t = Tonight(DateTimeOffset.UtcNow);
+        var word = Rune(rng, 8);
+        return new RoomPuzzle(new
+        {
+            city = t.City, timeZone = t.TimeZone, locale = t.Locale, language = t.Language,
+            latitude = t.Latitude, longitude = t.Longitude, reachKm = ReachKm,
+        }, word)
+        {
+            Trials = [new Trial(json => Check(t, json).Count == 0, new { word })],
+        };
+    }
+
+    /// <summary>What's wrong with the readings, in the doorkeeper's words. Empty means the traveler may pass.</summary>
+    public static List<string> Check(Traveler t, string json)
+    {
+        Readings? r;
+        try
+        {
+            r = System.Text.Json.JsonSerializer.Deserialize<Readings>(json, new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web));
+        }
+        catch (System.Text.Json.JsonException)
+        {
+            return ["The doorkeeper can't read your papers."];
+        }
+        if (r is null) return ["The doorkeeper can't read your papers."];
+
+        var problems = new List<string>();
+        if (!string.Equals(r.TimeZone, t.TimeZone, StringComparison.Ordinal))
+            problems.Add($"Your clock keeps {r.TimeZone ?? "no"} time, not {t.City} time.");
+        if (!string.Equals(r.Language, t.Locale, StringComparison.OrdinalIgnoreCase))
+            problems.Add($"You speak {r.Language ?? "nothing"}, not {t.Locale}.");
+        if (r.Latitude is not { } lat || r.Longitude is not { } lng || DistanceKm(lat, lng, t.Latitude, t.Longitude) > ReachKm)
+            problems.Add($"You aren't standing in {t.City}.");
+        if (!r.Touch || r.Width > 500)
+            problems.Add("You aren't on a phone.");
+        var local = TimeZoneInfo.ConvertTime(DateTimeOffset.FromUnixTimeMilliseconds(r.Epoch), TimeZoneInfo.FindSystemTimeZoneById(t.TimeZone));
+        // The bell keeps tolling for a few minutes after midnight.
+        if (local.Hour != 0 || local.Minute >= 5)
+            problems.Add($"It's {local:HH:mm} in {t.City}, not midnight.");
+        return problems;
+    }
+
+    private static double DistanceKm(double lat1, double lng1, double lat2, double lng2)
+    {
+        static double Rad(double d) => d * Math.PI / 180;
+        var a = Math.Pow(Math.Sin(Rad(lat2 - lat1) / 2), 2) +
+                Math.Cos(Rad(lat1)) * Math.Cos(Rad(lat2)) * Math.Pow(Math.Sin(Rad(lng2 - lng1) / 2), 2);
+        return 6371 * 2 * Math.Asin(Math.Sqrt(a));
+    }
+}
+
+/// <summary>
+/// Floor 19, the final boss: The Flake, a monster made of every reason tests flake. Three rounds in one breath. Each
+/// round its Strike appears late, behind a mist that eats clicks for a while; struck, it flickers (its text is
+/// re-rendered again and again), shows a feint, and only then its true name; and the box for the name is rebuilt the
+/// moment the name appears. Fixed sleeps are too short one round and too slow over three; reading too early gets the
+/// feint; an element handle goes stale. Auto-waiting, retrying assertions and locators win.
+/// </summary>
+public sealed class TheFlake : Room
+{
+    public const int Rounds = 3;
+
+    /// <summary>One round's timings (milliseconds) and names. Only the true name banishes it.</summary>
+    public sealed record Round(int AppearMs, int MistMs, int FlickerMs, int FeintMs, string Feint, string TrueName);
+
+    public override string[] Nudges { get; } =
+    {
+        "Everything here happens late, and by a different amount each round. Don't guess how long to wait: let Playwright wait for exactly what you need.",
+        "Clicks wait for the Strike to exist, be enabled and not be covered. For the name, watch the Flake's voice with an assertion that retries until the text says 'True name: ...', then read it. Find the name box fresh each time with a locator, never hold on to an element.",
+        "Three times: click Strike; await Expect(Page.GetByLabel(\"The Flake's voice\")).ToHaveTextAsync(new Regex(\"^True name: \")); read the name after the colon; FillAsync it into GetByLabel(\"The true name\"); click Banish. No WaitForTimeoutAsync anywhere.",
+    };
+
+    public override string[] TypeScriptNudges { get; } =
+    {
+        "Everything here happens late, and by a different amount each round. Don't guess how long to wait: let Playwright wait for exactly what you need.",
+        "Clicks wait for the Strike to exist, be enabled and not be covered. For the name, watch the Flake's voice with an assertion that retries until the text says 'True name: ...', then read it. Find the name box fresh each time with a locator, never hold on to an element.",
+        "Three times: click Strike; await expect(page.getByLabel(\"The Flake's voice\")).toHaveText(/^True name: /); read the name after the colon; fill it into getByLabel('The true name'); click Banish. No waitForTimeout anywhere.",
+    };
+
+    public override string Slug => "the-flake";
+    public override string Name => "The Flake";
+    public override string Objective =>
+        "The Flake passes when it feels like it and fails when you need it most. Banish it three times running: strike " +
+        "it, learn its true name, and speak it. It will feint, flicker and hide. It always does.";
+    public override TimeSpan TimeLimit => TimeSpan.FromSeconds(24);
+
+    public override RoomPuzzle Generate(Random rng)
+    {
+        var rounds = Enumerable.Range(0, Rounds).Select(_ =>
+        {
+            var name = Rune(rng, 6);
+            string feint;
+            do feint = Rune(rng, 6); while (feint == name);
+            return new Round(200 + rng.Next(700), 200 + rng.Next(700), 300 + rng.Next(400), 300 + rng.Next(500), feint, name);
+        }).ToArray();
+
+        // Each banished round hands over the next; the last name is the room's answer.
+        return new RoomPuzzle(new { rounds = Rounds, first = rounds[0] }, rounds[^1].TrueName)
+        {
+            Trials = Enumerable.Range(0, Rounds - 1)
+                .Select(i => new Trial(answer => answer == rounds[i].TrueName, new { next = rounds[i + 1] }))
+                .ToList(),
+        };
+    }
+}
