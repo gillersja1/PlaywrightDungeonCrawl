@@ -127,6 +127,20 @@ public static class DungeonApi
                 : Results.Json(new { error = "That isn't what Owl whispered." }, statusCode: 403);
         });
 
+        // Floor 17's gallery: the portraits are PNGs. Hanging 2 (after the forger strikes) has one forgery in it.
+        api.MapGet("/rooms/curators-eye/attempts/{id:guid}/portraits/{index:int}", (Guid id, int index, int? hanging,
+            AttemptStore attempts, TimeProvider clock, HttpContext context) =>
+        {
+            if (attempts.Peek("curators-eye", id) is not { Puzzle.Reveal: CuratorsEye.Gallery g } attempt
+                || index is < 0 or >= CuratorsEye.Count) return Results.NotFound();
+            var second = hanging == 2;
+            if (second && clock.GetUtcNow() - attempt.StartedAt < TimeSpan.FromMilliseconds(g.StrikeMs - 250))
+                return Results.StatusCode(425); // the forger hasn't been yet
+            context.Response.Headers.CacheControl = "no-store";
+            var flaw = second && index == g.Forged ? g.Flaw : null;
+            return Results.File(Portraits.Paint(g.Seeds[index], flaw), "image/png");
+        });
+
         // Floor 16's pit: one hunt (the setup call), five heads, each faced and cut by its own crawler in its own context.
         const string pit = "/rooms/severing-pit/hunts";
         static SeveringPit.Hunt? HuntOf(IMemoryCache cache, Guid hunt) =>

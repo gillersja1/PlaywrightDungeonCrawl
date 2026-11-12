@@ -24,6 +24,7 @@ public static class DungeonAi
         ["illusion"] = "Welcome to the Illusionist's Theater, where nothing on stage is what the server sent. The Dungeon AI approves. It has been editing what you see since floor one.",
         ["atelier"] = "Welcome to the Architect's Atelier. Every blueprint here is the same blueprint, drawn again. The Architect calls it design. The Dungeon AI calls it a page object.",
         ["hydra"] = "Welcome to the Hydra Pits. Cut one head and it grows back, which the hydra considers a business model. Down here you will need more than one of you. The Dungeon AI has always suspected there were several of you.",
+        ["gallery"] = "Welcome to the Portrait Gallery. The sitters have been staring at that wall for three hundred years. Tonight one of them will be replaced, and nobody will notice. Except you, ideally. The Dungeon AI notices everything, but it isn't telling.",
         ["gauntlet"] = "The Warden has watched every crawler who came down those stairs. It has notes. Five trials, one breath, no do-overs. The Dungeon AI has reserved a seat in the front row.",
     };
 
@@ -34,5 +35,5 @@ public static class DungeonAi
 
     /// <summary>Said under the sealed floors on the map.</summary>
     public const string SealedFloors =
-        "Floors seventeen to nineteen are under construction. The Dungeon AI apologizes for the inconvenience. It does not apologize for what's down there.";
+        "Floors eighteen and nineteen are under construction. The Dungeon AI apologizes for the inconvenience. It does not apologize for what's down there.";
 }

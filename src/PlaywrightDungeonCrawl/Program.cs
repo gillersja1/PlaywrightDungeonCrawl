@@ -42,6 +42,7 @@ builder.Services.AddSingleton<Room, ChancellorsSeal>();
 builder.Services.AddSingleton<Room, IllusionistsStage>();
 builder.Services.AddSingleton<Room, DraftingTable>();
 builder.Services.AddSingleton<Room, SeveringPit>();
+builder.Services.AddSingleton<Room, CuratorsEye>();
 builder.Services.AddSingleton<DungeonCatalog>();
 builder.Services.AddSingleton<CursedRunStore>();
 
