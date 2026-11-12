@@ -127,6 +127,17 @@ public static class DungeonApi
                 : Results.Json(new { error = "That isn't what Owl whispered." }, statusCode: 403);
         });
 
+        // Floor 18's door: the doorkeeper reads your papers and says what's wrong, without giving anything away.
+        api.MapPost("/rooms/belfry/attempts/{id:guid}/papers", async (Guid id, AttemptStore attempts, HttpContext context) =>
+        {
+            if (attempts.Peek("belfry", id) is not { } attempt) return Results.NotFound();
+            using var reader = new StreamReader(context.Request.Body);
+            var json = await reader.ReadToEndAsync();
+            var b = System.Text.Json.JsonSerializer.SerializeToElement(attempt.Puzzle.Briefing);
+            var traveler = Belfry.Travelers.Single(t => t.City == b.GetProperty("city").GetString());
+            return Results.Ok(new { problems = Belfry.Check(traveler, json) });
+        });
+
         // Floor 17's gallery: the portraits are PNGs. Hanging 2 (after the forger strikes) has one forgery in it.
         api.MapGet("/rooms/curators-eye/attempts/{id:guid}/portraits/{index:int}", (Guid id, int index, int? hanging,
             AttemptStore attempts, TimeProvider clock, HttpContext context) =>

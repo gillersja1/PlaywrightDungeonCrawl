@@ -229,24 +229,42 @@ public class CertificateTests
         {
             Assert.That(page, Does.Contain("class=\"panel cert-tier ready\" aria-labelledby=\"tier-apprentice\""));
             Assert.That(page, Does.Contain("Issue my Apprentice certificate"));
-            // Floor 19 isn't built yet, so the Master tier is sealed.
-            Assert.That(page, Does.Contain("class=\"panel cert-tier sealed\" aria-labelledby=\"tier-master\""));
+            // Every floor is built, so the Ultimate tier is open, but Ada hasn't cleared it.
+            Assert.That(page, Does.Contain("class=\"panel cert-tier locked\" aria-labelledby=\"tier-ultimate\""));
         });
     }
 
     [Test]
-    public async Task ASealedTierCantBeClaimed()
+    public async Task TheUltimateDungeoneerNeedsEveryFloor()
     {
         var player = dungeon.ClientFor("ada");
-        await ClearFloorsAsync("ada", Catalog.Floors.Count);
+        await ClearFloorsAsync("ada", 18);
 
-        var reply = await IssueTierAsync(player, "master");
+        var reply = await IssueTierAsync(player, "ultimate");
 
         Assert.Multiple(async () =>
         {
             Assert.That(reply.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-            Assert.That(await reply.Content.ReadAsStringAsync(), Does.Contain("The Master certificate opens once floors 1 to 19 are built."));
+            Assert.That(await reply.Content.ReadAsStringAsync(), Does.Contain("The Ultimate Dungeoneer certificate needs floors 1 to 19 verified as cleared."));
             Assert.That(await Records.CertificatesForAsync("id-ada"), Is.Empty);
+        });
+    }
+
+    [Test]
+    public async Task ClearingAllNineteenFloorsEarnsTheUltimateDungeoneer()
+    {
+        var player = dungeon.ClientFor("ada");
+        await ClearFloorsAsync("ada", Catalog.Floors.Count);
+
+        await IssueTierAsync(player, "ultimate");
+        var all = await Records.CertificatesForAsync("id-ada");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(Catalog.Floors, Has.Count.EqualTo(19));
+            Assert.That(all.Select(c => c.Tier), Is.EqualTo(new[] { CertificateTier.Ultimate }));
+            Assert.That(CertificateRules.CourseName(CodeLanguage.CSharp, CertificateTier.Ultimate),
+                Is.EqualTo("Playwright Dungeon Crawl: Playwright for .NET (Ultimate Dungeoneer)"));
         });
     }
 
@@ -303,8 +321,8 @@ public class CertificateTests
             Assert.That(CertificateRules.IsOpen(journeyman, Catalog), Is.EqualTo(Catalog.Floors.Count >= 13));
             Assert.That(CertificateRules.IsEligible(cleared, journeyman, Catalog), Is.EqualTo(Catalog.Floors.Count >= 13));
             Assert.That(CertificateRules.Tiers.Select(t => t.Floors), Is.Ordered.Ascending);
-            Assert.That(CertificateRules.ParseTier("MASTER"), Is.EqualTo(CertificateTier.Master));
-            Assert.That(CertificateRules.ParseTier("grandmaster"), Is.Null);
+            Assert.That(CertificateRules.ParseTier("ULTIMATE"), Is.EqualTo(CertificateTier.Ultimate));
+            Assert.That(CertificateRules.ParseTier("master"), Is.Null);
         });
     }
 

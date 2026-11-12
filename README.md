@@ -39,6 +39,8 @@ Every room is a trap built around one Playwright skill. The puzzle changes on ev
 | 15 | The Architect's Atelier | Page Object Model: one component object, used for four panels |
 | 16 | The Hydra Pits | Fixtures, setup and parallel tests: one shared hunt, five heads, five tests at once |
 | 17 | The Portrait Gallery | Screenshots and visual comparison: screenshot six portraits before and after, find the forgery |
+| 18 | The Clocktower of Elsewhere | Emulation and the clock: a phone, a time zone, a language and a place, at midnight there |
+| 19 | The Flake | The final boss: late buttons, a click-eating mist, feints and re-renders, three rounds running |
 
 ## Leaderboard and certificate
 

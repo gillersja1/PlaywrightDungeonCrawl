@@ -129,7 +129,7 @@
             </li>
         }
     </ol>
-    <partial name="_DungeonAi" model="DungeonAi.SealedFloors" />
+    <partial name="_DungeonAi" model="@(Model.SealedFloors.Count > 0 ? DungeonAi.SealedFloors : DungeonAi.AllFloorsDug)" />
 </section>
 
 <section class="panel subtle" aria-labelledby="reset-heading">
