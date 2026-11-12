@@ -1390,13 +1390,95 @@ public sealed class DungeonCatalog
                         "What do child processes inherit from the process that started them?"),
                 },
             },
+            new Floor(17, "gallery", "The Portrait Gallery", "Screenshots and visual comparison",
+                "Some changes only show in the pixels. Learn to take screenshots of a page or one part of it, keep moving parts out of the picture, and compare what you see.",
+                bySlug["curators-eye"],
+                new[]
+                {
+                    new QuizQuestion(
+                        "You want a picture of one card on the page, not the whole page. What do you call?",
+                        new[]
+                        {
+                            "Page.ScreenshotAsync(), then crop it",
+                            "ScreenshotAsync() on the card's locator: it captures just that element",
+                            "Page.PdfAsync() for the card",
+                            "There's no way to capture less than the viewport",
+                        },
+                        1,
+                        "Every locator can take its own screenshot. Playwright scrolls the element into view and captures exactly its box, and returns the PNG as bytes (or saves it, with Path).",
+                        "Who else can take a screenshot, besides the page?"),
+                    new QuizQuestion(
+                        "Two screenshots of the same page, a second apart, never match: a spinner keeps turning. How do you keep it out of the comparison?",
+                        new[]
+                        {
+                            "Take the screenshot faster",
+                            "Mask it (Mask = new[] { spinner }), or turn animations off with Animations = ScreenshotAnimations.Disabled",
+                            "Compare only the file sizes",
+                            "Retry until two shots match",
+                        },
+                        1,
+                        "Mask paints a box over the parts you name, the same color every time. Disabled animations jump to their end state. Either way the moving part stops changing the picture.",
+                        "Can you tell the screenshot what to leave out, or to hold still?"),
+                    new QuizQuestion(
+                        "Why compare screenshots at all, when you can read the page's HTML?",
+                        new[]
+                        {
+                            "Screenshots are faster than reading HTML",
+                            "Some bugs only live in the pixels: the HTML, the src and the alt text can be identical while what's drawn differs",
+                            "HTML can't be read in a test",
+                            "Screenshots never change between browsers",
+                        },
+                        1,
+                        "A wrong color, a broken image, an overlap or a missing font all leave the DOM looking fine. Only what's drawn shows them, which is what visual comparison checks.",
+                        "What could be wrong on a page whose HTML is perfect?"),
+                })
+            {
+                TypeScriptRiddles = new[]
+                {
+                    new QuizQuestion(
+                        "You want a picture of one card on the page, not the whole page. What do you call?",
+                        new[]
+                        {
+                            "page.screenshot(), then crop it",
+                            "screenshot() on the card's locator: it captures just that element",
+                            "page.pdf() for the card",
+                            "There's no way to capture less than the viewport",
+                        },
+                        1,
+                        "Every locator can take its own screenshot. Playwright scrolls the element into view and captures exactly its box, and returns the PNG as a Buffer (or saves it, with path).",
+                        "Who else can take a screenshot, besides the page?"),
+                    new QuizQuestion(
+                        "The first time you run expect(page).toHaveScreenshot(), it fails. Why?",
+                        new[]
+                        {
+                            "toHaveScreenshot only works in CI",
+                            "There's no baseline yet: the first run writes one, and later runs compare against it",
+                            "It needs a full-page screenshot",
+                            "The page wasn't loaded",
+                        },
+                        1,
+                        "A visual assertion needs something to compare with. The first run saves the expected image next to the test; commit it, and from then on every run is checked against it (--update-snapshots makes a new one).",
+                        "What does the assertion compare the screenshot with?"),
+                    new QuizQuestion(
+                        "Two screenshots of the same page, a second apart, never match: a spinner keeps turning. How do you keep it out of the comparison?",
+                        new[]
+                        {
+                            "Take the screenshot faster",
+                            "Mask it ({ mask: [spinner] }), or turn animations off with { animations: 'disabled' }",
+                            "Compare only the file sizes",
+                            "Retry until two shots match",
+                        },
+                        1,
+                        "mask paints a box over the parts you name, the same color every time. Disabled animations jump to their end state. Either way the moving part stops changing the picture.",
+                        "Can you tell the screenshot what to leave out, or to hold still?"),
+                },
+            },
         };
     }
 
     /// <summary>The deeper floors, shown on the map as sealed until they're built.</summary>
     public IReadOnlyList<(int Number, string Title, string Skill)> SealedFloors { get; } = new[]
     {
-        (17, "The Portrait Gallery", "Screenshots and visual comparison"),
         (18, "The Clocktower of Elsewhere", "Emulation and the clock"),
         (19, "The Flake", "The final boss: a flaky-test hunt"),
     };

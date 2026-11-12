@@ -38,6 +38,7 @@ Every room is a trap built around one Playwright skill. The puzzle changes on ev
 | 14 | The Illusionist's Theater | Mocking responses: change a real reply on its way in, block a request |
 | 15 | The Architect's Atelier | Page Object Model: one component object, used for four panels |
 | 16 | The Hydra Pits | Fixtures, setup and parallel tests: one shared hunt, five heads, five tests at once |
+| 17 | The Portrait Gallery | Screenshots and visual comparison: screenshot six portraits before and after, find the forgery |
 
 ## Leaderboard and certificate
 

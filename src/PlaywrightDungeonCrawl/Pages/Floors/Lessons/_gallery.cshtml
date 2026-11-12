@@ -1,0 +1,57 @@
+<section>
+    <h2>Taking pictures</h2>
+    <p>
+        A screenshot is the one check that sees what the user sees. Playwright can take one of the page or of any
+        single element, and hands it back as PNG bytes, or saves it to a file.
+    </p>
+<pre><code>var page = await Page.ScreenshotAsync();                               // what's in the viewport
+var whole = await Page.ScreenshotAsync(new() { FullPage = true });     // the whole scrolling page
+var card = await Page.GetByRole(AriaRole.Article).First.ScreenshotAsync();   // just one element
+
+await Page.ScreenshotAsync(new() { Path = "screenshots/home.png" });  // keep it, to look at later</code></pre>
+    <p class="tip">
+        <strong>Element screenshots.</strong> A locator's screenshot captures exactly that element's box, after
+        scrolling it into view. Whatever happens elsewhere on the page stays out of the picture.
+    </p>
+</section>
+
+<section>
+    <h2>Holding still</h2>
+    <p>
+        Anything that moves (a spinner, a clock, a carousel, an ad) makes two screenshots of the same page differ.
+        Leave it out, or make it hold still:
+    </p>
+<pre><code>await Page.ScreenshotAsync(new()
+{
+    Mask = new[] { Page.Locator(".clock") },          // painted over with a solid box, the same every time
+    Animations = ScreenshotAnimations.Disabled,     // CSS animations jump to their end
+});</code></pre>
+</section>
+
+<section>
+    <h2>Comparing</h2>
+    <p>
+        Screenshots of the same thing, in the same browser, come out byte for byte the same. So the simplest visual
+        check is to compare the bytes:
+    </p>
+<pre><code>var before = await logo.ScreenshotAsync();
+await Page.GetByRole(AriaRole.Button, new() { Name = "Dark mode" }).ClickAsync();
+await Page.GetByRole(AriaRole.Button, new() { Name = "Light mode" }).ClickAsync();
+var after = await logo.ScreenshotAsync();
+
+Assert.That(after.SequenceEqual(before), "the logo should look exactly as it did");</code></pre>
+    <p class="tip">
+        <strong>Baselines.</strong> Playwright for TypeScript has a built-in visual assertion,
+        <code>toHaveScreenshot</code>, which saves an expected image on the first run and compares later runs against
+        it. In .NET, you compare yourself, as above, or save a baseline PNG and compare against that file.
+    </p>
+</section>
+
+<section>
+    <h2>The Curator's Eye</h2>
+    <p>
+        Six portraits hang in the gallery. A few seconds in, the lights flicker and a forger rehangs all six. One
+        comes back a few pixels off: no eye could tell, and nothing in the page says which. Find it and accuse it.
+        The candle never stops flickering. Fifteen seconds.
+    </p>
+</section>

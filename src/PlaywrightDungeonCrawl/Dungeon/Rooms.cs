@@ -899,3 +899,55 @@ public sealed class SeveringPit : Room
             openMs = 1500,
         }, Rune(rng, 8));
 }
+
+/// <summary>
+/// Floor 17, screenshots and visual comparison: six portraits, painted on the server. A few seconds in, the forger
+/// rehangs all six, and one comes back with a tiny patch off color. Nothing in the page or its data says which: the
+/// test has to screenshot each portrait before and after and compare. A candle flickers beside them, so whole-page
+/// screenshots never match twice.
+/// </summary>
+public sealed class CuratorsEye : Room
+{
+    private static readonly string[] Sitters =
+    {
+        "Lady Wren", "Sir Ambrose", "The Widow Hale", "Brother Cormac", "Duchess Ines", "Captain Rook",
+        "Old Tamsin", "Lord Percival", "Mistress Juno", "The Young Earl",
+    };
+
+    public const int Count = 6;
+
+    /// <summary>What the forger did. Kept out of /reveal by a reveal time no attempt lives to see.</summary>
+    public sealed record Gallery(string[] Names, int[] Seeds, int Forged, Portraits.Flaw Flaw, int StrikeMs);
+
+    public override string[] Nudges { get; } =
+    {
+        "Your eyes won't find it: the forgery is a few pixels, a shade off. Something that compares images exactly will.",
+        "Screenshot each portrait on its own (a locator's screenshot, not the page's: the candle never holds still), before the forger comes and after the room says he's gone. The one whose screenshot changed is the forgery.",
+        "var portraits = Page.GetByRole(AriaRole.Figure); for each one: before[i] = await portraits.Nth(i).ScreenshotAsync(); wait for the status to say the forger has gone, take the after shots the same way, and accuse the figure where !before[i].SequenceEqual(after[i]).",
+    };
+
+    public override string[] TypeScriptNudges { get; } =
+    {
+        "Your eyes won't find it: the forgery is a few pixels, a shade off. Something that compares images exactly will.",
+        "Screenshot each portrait on its own (a locator's screenshot, not the page's: the candle never holds still), before the forger comes and after the room says he's gone. The one whose screenshot changed is the forgery.",
+        "const portraits = page.getByRole('figure'); before[i] = await portraits.nth(i).screenshot(); wait for the status to say the forger has gone, take the after shots the same way, and accuse the figure where !before[i].equals(after[i]).",
+    };
+
+    public override string Slug => "curators-eye";
+    public override string Name => "The Curator's Eye";
+    public override string Objective =>
+        "Six portraits hang in the gallery. Tonight a forger will swap one for a copy so good no eye can tell. " +
+        "Find it anyway, and accuse it before the curator does.";
+    public override TimeSpan TimeLimit => TimeSpan.FromSeconds(15);
+
+    public override RoomPuzzle Generate(Random rng)
+    {
+        var names = Sitters.OrderBy(_ => rng.Next()).Take(Count).ToArray();
+        var seeds = Enumerable.Range(0, Count).Select(_ => rng.Next()).ToArray();
+        var forged = rng.Next(Count);
+        var flaw = new Portraits.Flaw(10 + rng.Next(Portraits.Width - 24), 10 + rng.Next(Portraits.Height - 24));
+        var strike = 2000 + rng.Next(1000);
+        return new RoomPuzzle(new { sitters = names, strikeMs = strike }, names[forged],
+            Reveal: new Gallery(names, seeds, forged, flaw, strike), RevealAfter: TimeSpan.FromDays(1));
+    }
+}

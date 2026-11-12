@@ -1,0 +1,57 @@
+<section>
+    <h2>Taking pictures</h2>
+    <p>
+        A screenshot is the one check that sees what the user sees. Playwright can take one of the page or of any
+        single element, and hands it back as a PNG <code>Buffer</code>, or saves it to a file.
+    </p>
+<pre><code>const shot = await page.screenshot();                              // what's in the viewport
+const whole = await page.screenshot({ fullPage: true });           // the whole scrolling page
+const card = await page.getByRole('article').first().screenshot(); // just one element
+
+await page.screenshot({ path: 'screenshots/home.png' });          // keep it, to look at later</code></pre>
+    <p class="tip">
+        <strong>Element screenshots.</strong> A locator's screenshot captures exactly that element's box, after
+        scrolling it into view. Whatever happens elsewhere on the page stays out of the picture.
+    </p>
+</section>
+
+<section>
+    <h2>Holding still</h2>
+    <p>
+        Anything that moves (a spinner, a clock, a carousel, an ad) makes two screenshots of the same page differ.
+        Leave it out, or make it hold still:
+    </p>
+<pre><code>await page.screenshot({
+  mask: [page.locator('.clock')],   // painted over with a solid box, the same every time
+  animations: 'disabled',           // CSS animations jump to their end
+});</code></pre>
+</section>
+
+<section>
+    <h2>Comparing</h2>
+    <p>
+        Playwright Test has a visual assertion built in. The first run saves the expected image next to the test;
+        every later run compares against it, and fails with a diff image if they differ.
+    </p>
+<pre><code>await expect(page).toHaveScreenshot('home.png', { mask: [page.locator('.clock')] });
+await expect(page.getByRole('banner')).toHaveScreenshot({ maxDiffPixels: 10 });
+
+// npx playwright test --update-snapshots   makes new baselines when the change is on purpose</code></pre>
+    <p>
+        Within one test, you can also compare two screenshots directly: the same thing, in the same browser, comes
+        out byte for byte the same.
+    </p>
+<pre><code>const before = await logo.screenshot();
+// ... something that shouldn't change the logo ...
+const after = await logo.screenshot();
+expect(after.equals(before)).toBe(true);</code></pre>
+</section>
+
+<section>
+    <h2>The Curator's Eye</h2>
+    <p>
+        Six portraits hang in the gallery. A few seconds in, the lights flicker and a forger rehangs all six. One
+        comes back a few pixels off: no eye could tell, and nothing in the page says which. Find it and accuse it.
+        The candle never stops flickering. Fifteen seconds.
+    </p>
+</section>

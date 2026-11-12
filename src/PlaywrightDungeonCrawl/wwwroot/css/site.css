@@ -500,3 +500,14 @@ a.bug-badge:hover { background: rgba(111, 191, 115, 0.15); }
 .pit-head.reared { transform: translateY(-6px) scale(1.08); }
 .pit-head.severed { opacity: 0.4; text-decoration: line-through; }
 .pit-status { color: var(--stone-400); font-style: italic; min-height: 2em; }
+
+/* Floor 17: the Curator's Eye */
+.gallery { padding: 16px 12px; border-radius: var(--radius); background: linear-gradient(#211a12, #0e0b08); }
+.gallery-wall { display: grid; grid-template-columns: repeat(auto-fill, minmax(136px, 1fr)); gap: 12px; max-width: 480px; margin: 0 auto 12px; }
+.portrait { margin: 0; padding: 6px; background: #3a2a14; border: 3px solid #8a6a2c; text-align: center; }
+.portrait img { display: block; margin: 0 auto; image-rendering: pixelated; }
+.portrait figcaption { color: #e8d9b5; font-size: 0.85em; margin-top: 4px; }
+.candle { display: block; width: fit-content; margin: 0 0 12px auto; font-size: 1.8em; animation: flicker 0.31s infinite alternate; }
+@keyframes flicker { from { opacity: 0.55; transform: rotate(-4deg) scale(0.94); } to { opacity: 1; transform: rotate(3deg) scale(1.06); } }
+.gallery-status { color: var(--stone-400); font-style: italic; min-height: 2em; }
+.accuse { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; }
