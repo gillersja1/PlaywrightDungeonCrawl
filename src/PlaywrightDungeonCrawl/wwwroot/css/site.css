@@ -506,6 +506,8 @@ a.bug-badge:hover { background: rgba(111, 191, 115, 0.15); }
 .gallery-wall { display: grid; grid-template-columns: repeat(auto-fill, minmax(136px, 1fr)); gap: 12px; max-width: 480px; margin: 0 auto 12px; }
 .portrait { margin: 0; padding: 6px; background: #3a2a14; border: 3px solid #8a6a2c; text-align: center; }
 .portrait img { display: block; margin: 0 auto; image-rendering: pixelated; }
+/* Until its painting arrives, a frame stays empty rather than showing a broken image. */
+.portrait img:not([src]) { visibility: hidden; }
 .portrait figcaption { color: #e8d9b5; font-size: 0.85em; margin-top: 4px; }
 .candle { display: block; width: fit-content; margin: 0 0 12px auto; font-size: 1.8em; animation: flicker 0.31s infinite alternate; }
 @keyframes flicker { from { opacity: 0.55; transform: rotate(-4deg) scale(0.94); } to { opacity: 1; transform: rotate(3deg) scale(1.06); } }
