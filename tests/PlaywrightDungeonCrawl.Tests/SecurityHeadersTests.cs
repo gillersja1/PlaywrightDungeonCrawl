@@ -39,6 +39,21 @@ public class SecurityHeadersTests
         });
     }
 
+    // HSTS is only sent outside Development, over https, to a host that isn't localhost. Gremlin caught the language
+    // switch's redirect going out without it, because the switch ran before UseHsts.
+    [TestCase("/")]
+    [TestCase("/floors/hydra?lang=ts")]
+    public async Task HttpsResponsesTellBrowsersToStayOnHttps(string path)
+    {
+        using var live = new WebApplicationFactory<Program>().WithWebHostBuilder(b => b.UseEnvironment("Production"));
+        var client = live.CreateClient(new() { BaseAddress = new Uri("https://dungeon.example/"), AllowAutoRedirect = false });
+
+        var reply = await client.GetAsync(path);
+
+        Assert.That(reply.Headers.TryGetValues("Strict-Transport-Security", out var hsts) ? hsts.Single() : null,
+            Does.StartWith("max-age="), $"{(int)reply.StatusCode} {path}");
+    }
+
     [Test]
     public async Task ScriptsOnlyRunInlineWithANonceThatChangesEveryRequest()
     {
