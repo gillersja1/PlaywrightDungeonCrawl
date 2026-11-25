@@ -60,14 +60,16 @@ await app.PrepareAccountsAsync();
 
 app.UseForwardedHeaders();
 app.UseSecurityHeaders();
-app.UseLanguageSwitch();
 
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
     // Tell browsers to stick to https. Only sent on https requests, which Render's proxy forwards as such.
+    // Before the language switch, whose redirect ends the request: it needs the header too.
     app.UseHsts();
 }
+
+app.UseLanguageSwitch();
 
 app.UseRouting();
 app.UseAuthentication();
