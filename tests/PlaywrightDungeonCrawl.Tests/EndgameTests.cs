@@ -41,6 +41,23 @@ public class EndgameTests
         Assert.That(Belfry.Check(Tokyo, Readings()), Is.Empty);
 
     [Test]
+    public void BuenosAiresPassesUnderTheNameChromeReports()
+    {
+        // Chromium reports America/Argentina/Buenos_Aires as the older America/Buenos_Aires.
+        var buenosAires = Belfry.Travelers.Single(t => t.City == "Buenos Aires");
+        var midnight = new DateTimeOffset(2026, 11, 26, 3, 0, 20, TimeSpan.Zero).ToUnixTimeMilliseconds();
+        string Papers(string zone) => JsonSerializer.Serialize(
+            new Belfry.Readings(zone, "es-AR", -34.6037, -58.3816, true, 390, midnight),
+            new JsonSerializerOptions(JsonSerializerDefaults.Web));
+        Assert.Multiple(() =>
+        {
+            Assert.That(Belfry.Check(buenosAires, Papers("America/Buenos_Aires")), Is.Empty);
+            Assert.That(Belfry.Check(buenosAires, Papers("America/Argentina/Buenos_Aires")), Is.Empty);
+            Assert.That(Belfry.Check(buenosAires, Papers("America/Sao_Paulo")), Has.One.Contains("Buenos Aires time"));
+        });
+    }
+
+    [Test]
     public void EveryWrongReadingIsNamed()
     {
         var oneHourEarly = TokyoMidnight - 3_600_000;
