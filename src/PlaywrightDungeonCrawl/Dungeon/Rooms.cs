@@ -1033,7 +1033,7 @@ public sealed class Belfry : Room
         if (r is null) return ["The doorkeeper can't read your papers."];
 
         var problems = new List<string>();
-        if (!string.Equals(r.TimeZone, t.TimeZone, StringComparison.Ordinal))
+        if (!string.Equals(Canonical(r.TimeZone), t.TimeZone, StringComparison.Ordinal))
             problems.Add($"Your clock keeps {r.TimeZone ?? "no"} time, not {t.City} time.");
         if (!string.Equals(r.Language, t.Locale, StringComparison.OrdinalIgnoreCase))
             problems.Add($"You speak {r.Language ?? "nothing"}, not {t.Locale}.");
@@ -1047,6 +1047,18 @@ public sealed class Belfry : Room
             problems.Add($"It's {local:HH:mm} in {t.City}, not midnight.");
         return problems;
     }
+
+    /// <summary>
+    /// Older names for the travelers' zones. Browsers report the name their ICU data treats as canonical, and for
+    /// Buenos Aires Chromium still reports the old "America/Buenos_Aires", even when the context was told the new one.
+    /// </summary>
+    private static readonly Dictionary<string, string> OldZoneNames = new(StringComparer.Ordinal)
+    {
+        ["America/Buenos_Aires"] = "America/Argentina/Buenos_Aires",
+    };
+
+    private static string? Canonical(string? timeZone) =>
+        timeZone is not null && OldZoneNames.TryGetValue(timeZone, out var current) ? current : timeZone;
 
     private static double DistanceKm(double lat1, double lng1, double lat2, double lng2)
     {
